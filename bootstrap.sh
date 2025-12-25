@@ -1,61 +1,38 @@
 #!/bin/bash
-
-# Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "----------------------------------------------------------"
-echo "🚀 Starting macOS Provisioning Bootstrapper"
-echo "----------------------------------------------------------"
+REPO_DEST="$HOME/mac-setup"
+REPO_URL="https://github.com/timoparsons/ansible-macos.git"
 
-# 1. Install Xcode Command Line Tools
-if ! xcode-select -p &>/dev/null; then
-    echo "📦 Installing Xcode Command Line Tools..."
-    xcode-select --install
-    echo "⚠️  WAIT: A popup has appeared. Please click 'Install' and wait for it to finish."
-    read -p "Press [Enter] once the installation is complete to continue..."
-fi
-
-# 2. Install Homebrew
+# 1. Install Homebrew (Only if missing)
 if ! command -v brew &>/dev/null; then
     echo "🍺 Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
-    # Set path for the current session based on architecture
-    if [[ $(uname -m) == "arm64" ]]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    else
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
 fi
 
-# 3. Install Requirements (Ansible and GitHub CLI)
-echo "🛠️  Installing Ansible and GitHub CLI..."
-brew install ansible gh
+# Ensure brew is in the current shell session's PATH
+[[ $(uname -m) == "arm64" ]] && eval "$(/opt/homebrew/bin/brew shellenv)" || eval "$(/usr/local/bin/brew shellenv)"
 
-# 4. Authenticate with GitHub
-# This will trigger the device-code flow
-echo "🔐 Authenticating with GitHub to access your private Ansible repo..."
-gh auth login --hostname github.com --scopes "repo,read:org" --web
+# 2. Install Git & GitHub CLI (Brew handles the "is it already installed" check internally)
+echo "🛠️ Ensuring Git and GitHub CLI are present..."
+brew install git gh
 
-# 5. Run Ansible Pull
-# Replace the URL with your actual private repo URL
-REPO_URL="https://github.com/YOUR_USERNAME/YOUR_PRIVATE_REPO.git"
+# 3. Authenticate & Clone
+echo "🔐 Please login to GitHub to download the provisioning scripts:"
+gh auth login --scopes "repo" --web
 
-echo "📥 Running ansible-pull from $REPO_URL..."
-# -U: URL of the repository
-# -C: Checkout the specific branch (default is main)
-# -i: Use your inventory file inside the repo
-# -K: Ask for become (sudo) password for system changes
-# --ask-vault-pass: Only add this if you use Ansible Vault for secrets
-ansible-pull -U "$REPO_URL" \
-             -i inventory.ini \
-             -K \
-             site.yml
+if [ ! -d "$REPO_DEST" ]; then
+    echo "📥 Cloning repository..."
+    gh repo clone "$REPO_URL" "$REPO_DEST"
+else
+    echo "🔄 Repository exists, pulling latest changes..."
+    cd "$REPO_DEST" && git pull
+fi
 
-# 6. Optional: Cleanup GitHub Session
-# Uncomment the line below if you don't want your GitHub account left logged in (good for family Macs)
-# gh auth logout -y
+# Logout of Github immediately after cloning
+gh auth logout -y
 
-echo "----------------------------------------------------------"
-echo "✅ Bootstrap phase complete. Ansible is now configuring your Mac!"
-echo "----------------------------------------------------------"
+# 4. Hand off to the Private Orchestrator
+# Use the full path to ensure the script is found
+chmod +x "$REPO_DEST/scripts/setup.sh"
+"$REPO_DEST/scripts/setup.sh"
