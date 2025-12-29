@@ -1,46 +1,120 @@
 #!/bin/bash
+
+# Exit on error
 set -e
 
-echo "------------------------------------------------"
-echo "🖥️  PROVISIONING ORCHESTRATOR (CLI Login Mode)"
-echo "------------------------------------------------"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."  # Navigate to repo root
 
-# 1. Ensure Ansible is installed
-if ! command -v ansible &>/dev/null; then
-    brew install ansible
+# Then verify files exist
+if [ ! -f "site.yml" ] || [ ! -f "inventory.ini" ]; then
+    echo "❌ Required Ansible files not found."
+    exit 1
 fi
 
-# 2. User Selection
-echo "Select the configuration for this Mac:"
-options=("Personal" "Video Production" "Family" "Exit")
-select opt in "${options[@]}"
-do
-    case $opt in
-        "Personal") TYPE="personal"; TAGS="always,personal,video"; break ;;
-        "Video Production") TYPE="work"; TAGS="always,video"; break ;;
-        "Family") TYPE="family"; TAGS="always,family"; break ;;
-        "Exit") exit ;;
-        *) echo "invalid option $REPLY";;
-    esac
-done
+# Clear screen for a clean start
+clear
 
-# 3. Run the Playbook
-# No --ask-vault-pass needed here!
-ansible-playbook site.yml \
-    -i inventory.ini \
-    -K \
-    --extra-vars "mac_type=$TYPE" \
-    --tags "$TAGS"
+echo "===================================================="
+echo "🖥️  macOS Provisioning Orchestrator"
+echo "===================================================="
+echo ""
 
-# 4. Clean up for Family/Work machines if desired
-if [ "$TYPE" == "family" ] || [ "$TYPE" == "work" ]; then
-    echo "🧹 Security Cleanup: Logging out of GitHub..."
-    gh auth logout -y
-    
-    if [ "$TYPE" == "family" ]; then
-        echo "Removing setup files..."
-        cd ~ && rm -rf "$HOME/mac-setup"
+# 1. Install Ansible if missing (Homebrew is already there from Gist)
+if ! command -v ansible &>/dev/null; then
+    echo "📦 Installing Ansible..."
+    if ! brew install ansible; then
+        echo "❌ Failed to install Ansible. Exiting."
+        exit 1
     fi
 fi
 
-echo "✅ Done!"
+# 2. Define the Menu
+echo "Select the configuration for this Mac:"
+echo "1) Personal (Full setup + Video tools)"
+echo "2) Video Production (Work focused)"
+echo "3) Family (Basic + Restrictions)"
+echo "4) Quit"
+echo ""
+
+while true; do
+    read -p "Enter choice [1-4]: " choice
+    
+    case $choice in
+        1|2|3|4)
+            break
+            ;;
+        *)
+            echo "❌ Invalid option. Please enter 1-4."
+            ;;
+    esac
+done
+
+case $choice in
+    1)
+        TAGS="always,personal,video"
+        DESC="Personal Machine"
+        ;;
+    2)
+        TAGS="always,video"
+        DESC="Video Production Machine"
+        ;;
+    3)
+        TAGS="always,family"
+        DESC="Family Machine"
+        ;;
+    4)
+        echo "Exiting..."
+        exit 0
+        ;;
+    *)
+        echo "Invalid option. Exiting."
+        exit 1
+        ;;
+esac
+
+
+echo ""
+echo "🚀 Ready to provision: $DESC"
+echo "   Tags: $TAGS"
+read -p "Continue? [y/N]: " confirm
+
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    exit 0
+fi
+
+
+echo ""
+echo "🚀 Starting provisioning for: $DESC"
+echo "----------------------------------------------------"
+
+# Verify the playbook exists before running
+if [ ! -f "site.yml" ]; then
+    echo "❌ site.yml not found. Are you in the correct directory?"
+    exit 1
+fi
+
+# 3. Run Ansible
+# -K prompts for your macOS user password (sudo)
+# --tags limits execution to the chosen machine type
+
+if ! ansible-playbook site.yml \
+    -i inventory.ini \
+    -K \
+    --tags "$TAGS"; then
+    echo ""
+    echo "❌ Provisioning failed. Check errors above."
+    exit 1
+fi
+
+
+
+echo ""
+echo "===================================================="
+echo "✅ Provisioning Complete for: $DESC"
+echo "===================================================="
+echo ""
+echo "💡 Next steps:"
+echo "   - Restart your Mac if system preferences were changed"
+echo "   - Check ~/mac-setup for logs if issues occurred"

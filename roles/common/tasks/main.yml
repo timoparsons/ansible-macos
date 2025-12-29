@@ -1,0 +1,42 @@
+---
+# Install Rosetta for Apple Silicon Machines
+- name: Ensure Rosetta 2 is installed on Apple Silicon
+  shell: softwareupdate --install-rosetta --agree-to-license
+  when: ansible_architecture == "arm64"
+  args:
+    creates: /Library/Apple/usr/share/rosetta/rosetta
+
+# 1. Install CLI Tools
+- name: Install Common Homebrew Formulae
+  community.general.homebrew:
+    name: "{{ common_formula_apps }}"
+    state: present
+
+# 2. Install GUI Apps
+- name: Install Common Homebrew Casks
+  community.general.homebrew_cask:
+    name: "{{ common_cask_apps }}"
+    state: present
+
+# 3. Install App Store Apps
+- name: Install Common App Store Apps
+  community.general.mas:
+    id: "{{ item.id }}"
+    state: present
+  loop: "{{ common_mas_apps }}"
+
+# 4. System Settings (Standard for all Macs)
+- name: Set Dock to auto-hide
+  osx_defaults:
+    domain: com.apple.dock
+    key: autohide
+    type: bool
+    value: true
+
+- name: Keep folders on top in Finder
+  osx_defaults:
+    domain: com.apple.finder
+    key: _FXSortFoldersFirst
+    type: bool
+    value: true
+

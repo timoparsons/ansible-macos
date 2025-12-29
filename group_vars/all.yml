@@ -1,0 +1,22 @@
+# group_vars/all.yml
+
+# Command Line Tools (Brew Formulae)
+common_formula_apps:
+  - git
+  - mas        # Required for App Store automation
+  - bottom     # System monitor
+  - tree
+  - zsh-autosuggestions
+
+# GUI Applications (Brew Casks)
+common_cask_apps:
+  - google-chrome
+  - visual-studio-code
+  - vlc
+  - spotify
+#  - keepingyouawake  # Prevents sleep during long tasks
+
+# Mac App Store (MAS)
+common_mas_apps:
+#  - { id: 1451685025, name: 'WireGuard' }
+#  - { id: 440139360,  name: 'AdBlock' }

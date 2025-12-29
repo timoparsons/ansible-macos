@@ -1,0 +1,20 @@
+# group_vars/video.yml
+
+# GUI Apps (installed via 'brew install --cask')
+video_cask_apps:
+  - blackmagic-design-davinci-resolve
+#  - adobe-creative-cloud
+  - handbrake
+  - vlc
+
+# CLI Tools (installed via 'brew install')
+video_formula_apps:
+  - ffmpeg
+  - youtube-dl
+  - mkvtoolnix
+
+# Mac App Store Apps (installed via 'mas install [app_id]')
+# Note: You use the App ID number from the store
+video_mas_apps:
+#  - { id: 424389933, name: 'Final Cut Pro' }
+  - { id: 1450066118, name: 'Blackmagic Speed Test' }
