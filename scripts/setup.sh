@@ -3,12 +3,14 @@
 # Exit on error
 set -e
 
+# Get script directory and navigate to repo root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/.."  # Navigate to repo root
+REPO_ROOT="$SCRIPT_DIR/.."
+cd "$REPO_ROOT"
 
-# Then verify files exist
+# Verify Ansible files exist
 if [ ! -f "site.yml" ] || [ ! -f "inventory.ini" ]; then
-    echo "❌ Required Ansible files not found."
+    echo "❌ Required Ansible files not found in $REPO_ROOT"
     exit 1
 fi
 
@@ -67,12 +69,7 @@ case $choice in
         echo "Exiting..."
         exit 0
         ;;
-    *)
-        echo "Invalid option. Exiting."
-        exit 1
-        ;;
 esac
-
 
 echo ""
 echo "🚀 Ready to provision: $DESC"
@@ -84,21 +81,13 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-
 echo ""
 echo "🚀 Starting provisioning for: $DESC"
 echo "----------------------------------------------------"
 
-# Verify the playbook exists before running
-if [ ! -f "site.yml" ]; then
-    echo "❌ site.yml not found. Are you in the correct directory?"
-    exit 1
-fi
-
 # 3. Run Ansible
 # -K prompts for your macOS user password (sudo)
 # --tags limits execution to the chosen machine type
-
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     -K \
@@ -108,8 +97,6 @@ if ! ansible-playbook site.yml \
     exit 1
 fi
 
-
-
 echo ""
 echo "===================================================="
 echo "✅ Provisioning Complete for: $DESC"
@@ -117,4 +104,15 @@ echo "===================================================="
 echo ""
 echo "💡 Next steps:"
 echo "   - Restart your Mac if system preferences were changed"
-echo "   - Check ~/mac-setup for logs if issues occurred"
+echo "   - Check $REPO_ROOT for logs if issues occurred"
+
+# 4. Optional: Self-Destruct for Family Macs
+if [ "$choice" == "3" ]; then
+    echo ""
+    read -p "🧹 Delete setup files? [y/N]: " cleanup
+    if [[ "$cleanup" =~ ^[Yy]$ ]]; then
+        echo "Cleaning up $REPO_ROOT..."
+        rm -rf "$REPO_ROOT"
+        echo "✅ Setup files removed."
+    fi
+fi
