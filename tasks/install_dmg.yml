@@ -3,7 +3,7 @@
 # Shared task to handle DMG files containing either .app or .pkg installers
 # Pass in the variable 'dmg_pkg_apps' when including this task
 
-- name: Process DMG installers
+- name: Process DMG installer for {{ item.name }}
   block:
     - name: Mount DMG
       command: hdiutil attach "{{ item.url }}" -nobrowse -quiet
