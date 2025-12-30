@@ -32,12 +32,18 @@ if ! command -v ansible &>/dev/null; then
 fi
 
 
-# Install required Ansible Galaxy roles
+# Install required Ansible Galaxy collections and roles
 if [ -f "requirements.yml" ]; then
     echo "📦 Installing Ansible Galaxy dependencies..."
-    if ! ansible-galaxy install -r requirements.yml; then
-        echo "❌ Failed to install Galaxy roles. Exiting."
+    # Install collections
+    if ! ansible-galaxy collection install -r requirements.yml; then
+        echo "❌ Failed to install Galaxy collections. Exiting."
         exit 1
+    fi
+    # Install roles (if any are defined)
+    if ! ansible-galaxy role install -r requirements.yml 2>/dev/null; then
+        # Ignore error if no roles are defined
+        true
     fi
     echo ""
 fi
