@@ -31,7 +31,7 @@ if ! /usr/bin/env python3 --version &>/dev/null; then
 fi
 
 # Clear screen for a clean start
-clear
+#clear
 
 echo "===================================================="
 echo "🖥️  macOS Provisioning Orchestrator"
