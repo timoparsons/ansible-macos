@@ -14,6 +14,15 @@ if [ ! -f "site.yml" ] || [ ! -f "inventory.ini" ]; then
     exit 1
 fi
 
+echo "🔍 Verifying sudo permissions..."
+if sudo -n true 2>/dev/null; then
+    echo "✅ Passwordless sudo is active."
+else
+    echo "❌ Passwordless sudo is NOT configured. This is required for Cask installers."
+    echo "   Please run bootstrap.sh again or check /etc/sudoers.d/$USER"
+    exit 1
+fi
+
 # Clear screen for a clean start
 clear
 
