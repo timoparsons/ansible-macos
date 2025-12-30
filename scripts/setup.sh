@@ -129,9 +129,10 @@ if ! ansible-playbook site.yml \
     -e "ansible_python_interpreter=$BREW_PATH" \
     --tags "$TAGS" \
     -v; then
-    # ... error handling ...
+    echo ""
+    echo "❌ Provisioning failed. Check errors above."
+    exit 1
 fi
-
 
 
 echo ""
