@@ -118,7 +118,8 @@ echo "----------------------------------------------------"
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     -K \
-    --tags "never,video" \
+    --tags "video" \
+    --skip-tags "always,common,personal,family" \
     -v; then
     echo ""
     echo "❌ Provisioning failed. Check errors above."
