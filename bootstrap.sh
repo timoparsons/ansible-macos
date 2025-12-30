@@ -75,9 +75,9 @@ fi
 
 
 # Logout of Github (Optional - you can leave this out for Personal Macs if you prefer)
-# Note: Since the orchestrator script is now on disk, we can logout here.
-echo "🔓 Logging out of GitHub CLI to stay clean..."
-gh auth logout --yes
+
+#echo "🔓 Logging out of GitHub CLI to stay clean..."
+#gh auth logout --yes
 
 echo ""
 echo "✅ Bootstrap complete! Starting setup..."
