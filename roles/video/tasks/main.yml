@@ -1,6 +1,4 @@
 ---
-# roles/video/tasks/main.yml
-
 - name: Install video formula apps
   homebrew:
     name: "{{ video_formula_apps }}"
@@ -24,25 +22,11 @@
 - name: Install video apps from DMG/PKG files
   bepri.macos_tools.install:
     source: "{{ item.url }}"
-    type: "{{ item.type | default(omit) }}"
-    allow_untrusted: "{{ item.allow_untrusted | default(omit) }}"
+    type: "{{ item.type }}"
   loop: "{{ video_dmg_pkg_apps }}"
   when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
 
-- name: Display video apps requiring manual installation
+- name: Display video manual install list
   debug:
-    msg: |
-      
-      =====================================================
-      📋 MANUAL INSTALLATION REQUIRED (video)
-      =====================================================
-      The following apps need to be installed manually:
-      {% for app in video_manual_installs %}
-      
-      {{ loop.index }}. {{ app.name }}
-         URL: {{ app.url }}
-         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
-      {% endfor %}
-      
-      =====================================================
+    msg: "{{ video_manual_installs }}"
   when: video_manual_installs is defined and video_manual_installs | length > 0
