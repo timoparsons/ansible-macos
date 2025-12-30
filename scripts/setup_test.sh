@@ -60,6 +60,10 @@ fi
 
 echo "✅ Python3 is accessible: $(/usr/bin/env python3 --version)"
 
+echo "📦 Installing Python dependencies for Ansible modules..."
+python3 -m pip install --upgrade setuptools packaging --break-system-packages 2>/dev/null || \
+python3 -m pip install --upgrade setuptools packaging
+
 
 # Clear screen for a clean start
 #clear
@@ -77,6 +81,7 @@ if ! command -v ansible &>/dev/null; then
         exit 1
     fi
 fi
+
 
 
 # Install required Ansible Galaxy collections and roles
