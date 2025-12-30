@@ -20,7 +20,7 @@
   become: yes
   when: video_mas_apps is defined and video_mas_apps | length > 0
 
-  - name: Install video Mac App Store apps
+- name: Install video Mac App Store apps
   community.general.mas:
     id: "{{ item.id }}"
     state: present
