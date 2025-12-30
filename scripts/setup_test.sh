@@ -117,9 +117,9 @@ echo "----------------------------------------------------"
 # Run Ansible with the dynamic interpreter path
 if ! ansible-playbook site.yml \
     -i inventory.ini \
-    -K \
+    --limit "video" \
     --tags "video" \
-    --skip-tags "always,common,personal,family" \
+    -K \
     -v; then
     echo ""
     echo "❌ Provisioning failed. Check errors above."

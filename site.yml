@@ -1,10 +1,20 @@
 ---
 - name: Provision macOS
-  hosts: localhost
+  hosts: all
   become: false
   
   roles:
-    - { role: common, tags: ['always'] }
-    - { role: video, tags: ['video'] }
-    - { role: family, tags: ['family'] }
-    - { role: personal, tags: ['personal'] }
+    - role: common
+      tags: common
+      
+    - role: video
+      when: "'video' in group_names"
+      tags: video
+      
+    - role: personal
+      when: "'personal' in group_names"
+      tags: personal
+      
+    - role: family
+      when: "'family' in group_names"
+      tags: family
