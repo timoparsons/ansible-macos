@@ -59,6 +59,7 @@ else
     echo "✅ Python3 is already accessible via /usr/bin/env"
 fi
 
+
 # Clear screen for a clean start
 #clear
 
