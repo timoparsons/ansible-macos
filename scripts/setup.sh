@@ -23,12 +23,42 @@ else
     exit 1
 fi
 
-echo "🔍 Checking module compatibility..."
-if ! /usr/bin/env python3 --version &>/dev/null; then
-    echo "⚠️  /usr/bin/env python3 not found. Linking Homebrew Python..."
-    # Create a link in a standard location that /usr/bin/env always checks
-    sudo ln -s "$(which python3)" /usr/local/bin/python3 2>/dev/null || true
+echo "🔧 Ensuring Python3 is accessible via /usr/bin/env..."
+
+# Determine the correct Homebrew Python path
+if [[ $(uname -m) == "arm64" ]]; then
+    BREW_PYTHON="/opt/homebrew/bin/python3"
+else
+    BREW_PYTHON="/usr/local/bin/python3"
 fi
+
+# Verify Homebrew Python exists
+if [ ! -f "$BREW_PYTHON" ]; then
+    echo "❌ Homebrew Python not found at $BREW_PYTHON"
+    exit 1
+fi
+
+# Test if /usr/bin/env can find python3
+if ! /usr/bin/env python3 --version &>/dev/null; then
+    echo "⚠️  Creating symlink so /usr/bin/env can find python3..."
+    
+    # Ensure /usr/local/bin exists
+    sudo mkdir -p /usr/local/bin
+    
+    # Create or update the symlink
+    sudo ln -sf "$BREW_PYTHON" /usr/local/bin/python3
+    
+    # Verify it worked
+    if /usr/bin/env python3 --version &>/dev/null; then
+        echo "✅ Symlink created successfully"
+    else
+        echo "❌ Symlink creation failed"
+        exit 1
+    fi
+else
+    echo "✅ Python3 is already accessible via /usr/bin/env"
+fi
+
 
 # Clear screen for a clean start
 #clear
