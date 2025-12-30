@@ -83,6 +83,22 @@ echo ""
 echo "✅ Bootstrap complete! Starting setup..."
 echo ""
 
+# Ensure passwordless sudo for the current user to prevent Cask installation failures
+echo "🔐 Configuring passwordless sudo..."
+if ! sudo -n true 2>/dev/null; then
+    echo "Standard sudo password required to configure automation permissions:"
+fi
+
+# Create a sudoers file specifically for this user
+SUDOERS_FILE="/etc/sudoers.d/$USER"
+if [ ! -f "$SUDOERS_FILE" ]; then
+    echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee "$SUDOERS_FILE" > /dev/null
+    sudo chmod 440 "$SUDOERS_FILE"
+    echo "✅ Passwordless sudo configured."
+else
+    echo "✅ Passwordless sudo already configured."
+fi
+
 # Hand off to the Private Orchestrator
 chmod +x "$REPO_DEST/scripts/setup.sh"
 "$REPO_DEST/scripts/setup.sh" 

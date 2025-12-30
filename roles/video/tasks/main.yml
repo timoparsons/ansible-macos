@@ -1,12 +1,12 @@
 ---
 - name: Install video formula apps
-  homebrew:
+  community.general.homebrew:
     name: "{{ video_formula_apps }}"
     state: present
   when: video_formula_apps is defined and video_formula_apps | length > 0
 
 - name: Install video cask apps
-  homebrew_cask:
+  community.general.homebrew_cask:
     name: "{{ video_cask_apps }}"
     state: present
   when: video_cask_apps is defined and video_cask_apps | length > 0
@@ -20,12 +20,12 @@
   become: yes
   when: video_mas_apps is defined and video_mas_apps | length > 0
 
-- name: Install video apps from DMG/PKG files
-  bepri.macos_tools.install:
-    source: "{{ item.url }}"
-    type: "{{ item.type }}"
-  loop: "{{ video_dmg_pkg_apps }}"
-  when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
+  - name: Install video Mac App Store apps
+  community.general.mas:
+    id: "{{ item.id }}"
+    state: present
+  loop: "{{ video_mas_apps }}"
+  when: video_mas_apps is defined and video_mas_apps | length > 0
 
 - name: Display video manual install list
   debug:
