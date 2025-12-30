@@ -38,26 +38,27 @@ if [ ! -f "$BREW_PYTHON" ]; then
     exit 1
 fi
 
-# Test if /usr/bin/env can find python3
-if ! /usr/bin/env python3 --version &>/dev/null; then
-    echo "⚠️  Creating symlink so /usr/bin/env can find python3..."
-    
-    # Ensure /usr/local/bin exists
+# Ensure /usr/local/bin/python3 exists and is in PATH
+if [ ! -L "/usr/local/bin/python3" ]; then
+    echo "⚠️  Creating symlink at /usr/local/bin/python3..."
     sudo mkdir -p /usr/local/bin
-    
-    # Create or update the symlink
     sudo ln -sf "$BREW_PYTHON" /usr/local/bin/python3
+fi
+
+# Verify /usr/bin/env can find it
+if ! /usr/bin/env python3 --version &>/dev/null; then
+    echo "❌ /usr/bin/env python3 still not working"
+    echo "Current PATH: $PATH"
+    echo "Trying to add /usr/local/bin to PATH..."
+    export PATH="/usr/local/bin:$PATH"
     
-    # Verify it worked
-    if /usr/bin/env python3 --version &>/dev/null; then
-        echo "✅ Symlink created successfully"
-    else
-        echo "❌ Symlink creation failed"
+    if ! /usr/bin/env python3 --version &>/dev/null; then
+        echo "❌ Still cannot find python3. Manual intervention needed."
         exit 1
     fi
-else
-    echo "✅ Python3 is already accessible via /usr/bin/env"
 fi
+
+echo "✅ Python3 is accessible: $(/usr/bin/env python3 --version)"
 
 
 # Clear screen for a clean start

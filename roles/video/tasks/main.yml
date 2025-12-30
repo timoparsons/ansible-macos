@@ -26,8 +26,7 @@
   loop: "{{ video_dmg_pkg_apps }}"
   when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
   vars:
-    # This forces the task to use the same interpreter passed to the playbook
-    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    ansible_python_interpreter: /usr/local/bin/python3
 
 
 
