@@ -10,10 +10,10 @@ common_cask_apps:
   - affinity
   - appcleaner
   - bloom
-  - loop
   - jordanbaird-ice # ICE Menu Bar Organiser
-  - vlc
+  - loop
   - spotify
+  - vlc
   - whatsapp
 
 # Mac App Store (MAS)

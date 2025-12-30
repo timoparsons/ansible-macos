@@ -16,7 +16,8 @@
   loop: "{{ video_mas_apps }}"
   register: mas_result
   changed_when: "'Installed' in mas_result.stdout"
-  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
+  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr and 'already installed' not in mas_result.stdout
+  become: yes
   when: video_mas_apps is defined and video_mas_apps | length > 0
 
 - name: Install video apps from DMG/PKG files

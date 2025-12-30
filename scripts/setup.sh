@@ -109,7 +109,8 @@ echo "----------------------------------------------------"
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     -K \
-    --tags "$TAGS"; then
+    --tags "$TAGS" \
+    -v; then
     echo ""
     echo "❌ Provisioning failed. Check errors above."
     exit 1
