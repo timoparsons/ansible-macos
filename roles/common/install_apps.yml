@@ -1,0 +1,50 @@
+---
+# roles/common/tasks/install_apps.yml
+# Reusable task file for installing apps
+# Required vars: role_prefix (e.g., 'personal', 'video', 'family')
+
+- name: "Install {{ role_prefix }} formula apps"
+  homebrew:
+    name: "{{ lookup('vars', role_prefix + '_formula_apps', default=[]) }}"
+    state: present
+  when: lookup('vars', role_prefix + '_formula_apps', default=[]) | length > 0
+
+- name: "Install {{ role_prefix }} cask apps"
+  homebrew_cask:
+    name: "{{ lookup('vars', role_prefix + '_cask_apps', default=[]) }}"
+    state: present
+  when: lookup('vars', role_prefix + '_cask_apps', default=[]) | length > 0
+
+- name: "Install {{ role_prefix }} Mac App Store apps"
+  command: "mas install {{ item.id }}"
+  loop: "{{ lookup('vars', role_prefix + '_mas_apps', default=[]) }}"
+  register: mas_result
+  changed_when: "'Installed' in mas_result.stdout"
+  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
+  when: lookup('vars', role_prefix + '_mas_apps', default=[]) | length > 0
+
+- name: "Install {{ item.name }}"
+  macos_pkg:
+    source: "{{ item.url }}"
+    type: "{{ item.type | default(omit) }}"
+    allow_unsigned: "{{ item.allow_unsigned | default(omit) }}"
+  loop: "{{ lookup('vars', role_prefix + '_dmg_pkg_apps', default=[]) }}"
+  when: lookup('vars', role_prefix + '_dmg_pkg_apps', default=[]) | length > 0
+
+- name: "Display {{ role_prefix }} apps requiring manual installation"
+  debug:
+    msg: |
+      
+      =====================================================
+      📋 MANUAL INSTALLATION REQUIRED ({{ role_prefix | upper }})
+      =====================================================
+      The following apps need to be installed manually:
+      {% for app in lookup('vars', role_prefix + '_manual_installs', default=[]) %}
+      
+      {{ loop.index }}. {{ app.name }}
+         URL: {{ app.url }}
+         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
+      {% endfor %}
+      
+      =====================================================
+  when: lookup('vars', role_prefix + '_manual_installs', default=[]) | length > 0

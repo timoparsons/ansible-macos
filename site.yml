@@ -1,9 +1,10 @@
 ---
 - name: Provision macOS
   hosts: localhost
-  become: false  # Ansible will ask for password only when needed
+  become: false
   
   roles:
     - { role: common, tags: ['always'] }
-    - { role: video_prod, tags: ['video'], when: "'video' in ansible_run_tags" }
-    - { role: family_setup, tags: ['family'], when: "'family' in ansible_run_tags" }
+    - { role: video, tags: ['video'] }
+    - { role: family, tags: ['family'] }
+    - { role: personal, tags: ['personal'] }

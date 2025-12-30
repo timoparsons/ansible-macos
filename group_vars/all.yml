@@ -4,19 +4,20 @@
 common_formula_apps:
   - git
   - mas        # Required for App Store automation
-  - bottom     # System monitor
-  - tree
-  - zsh-autosuggestions
 
 # GUI Applications (Brew Casks)
 common_cask_apps:
-  - google-chrome
-  - visual-studio-code
+  - affinity
+  - appcleaner
+  - bloom
+  - loop
+  - jordanbaird-ice # ICE Menu Bar Organiser
   - vlc
   - spotify
-#  - keepingyouawake  # Prevents sleep during long tasks
+  - whatsapp
 
 # Mac App Store (MAS)
 common_mas_apps:
-#  - { id: 1451685025, name: 'WireGuard' }
-#  - { id: 440139360,  name: 'AdBlock' }
+  - { id: 411643860, name: 'DaisyDisk' }
+
+# OTHER INSTALL METHOD

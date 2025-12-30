@@ -1,0 +1,16 @@
+# group_vars/family.yml
+
+# Command Line Tools (Brew Formulae)
+family_formula_apps:
+
+# GUI Applications (Brew Casks)
+family_cask_apps:
+  - google-chrome
+  - plex
+  - sonos
+
+# Mac App Store (MAS)
+family_mas_apps:
+  - { id: 1570472288, name: 'Sketchbook Pro' }
+
+# OTHER INSTALL METHOD

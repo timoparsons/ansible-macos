@@ -1,20 +1,44 @@
 # group_vars/video.yml
 
-# GUI Apps (installed via 'brew install --cask')
-video_cask_apps:
-  - blackmagic-design-davinci-resolve
-#  - adobe-creative-cloud
-  - handbrake
-  - vlc
-
-# CLI Tools (installed via 'brew install')
+# Command Line Tools (Brew Formulae)
 video_formula_apps:
   - ffmpeg
-  - youtube-dl
-  - mkvtoolnix
 
-# Mac App Store Apps (installed via 'mas install [app_id]')
-# Note: You use the App ID number from the store
+# GUI Applications (Brew Casks)
+video_cask_apps:
+  - handbrake
+  - eagle
+  - jump-desktop-connect
+  - iina
+  - neofinder
+  - slack
+
+# Mac App Store (MAS)
 video_mas_apps:
-#  - { id: 424389933, name: 'Final Cut Pro' }
-  - { id: 1450066118, name: 'Blackmagic Speed Test' }
+  - { id: 1160435653, name: 'AutoMounter' }
+  - { id: 425264550, name: 'Blackmagic Speed Test' }
+  - { id: 424390742, name: 'Compressor' }
+  #- { id: 1598580439, name: 'RAW Convertor' } Converts prores raw into cinemadng – not needed anymore
+
+
+# Install from a DMG
+- name: "Offshoot - Legacy v23.2"
+  macos_pkg:
+    source: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
+
+
+# Apps requiring manual installation
+video_manual_installs:
+  - name: "DaVinci Resolve Studio"
+    url: "https://www.blackmagicdesign.com/products/davinciresolve"
+  - name: "Frame.io Transfer"
+    url: "https://frame.io/download"
+  - name: "Jump Desktop Connect"
+    url: "https://jumpdesktop.com/connect/"
+  - name: "slimRAW"
+    url: "https://www.slimraw.com/download"
+
+
+# Apps to solve
+# Python installer for Resolve
+

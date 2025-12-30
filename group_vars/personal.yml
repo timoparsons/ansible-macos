@@ -1,0 +1,106 @@
+# group_vars/personal.yml
+
+# Command Line Tools (Brew Formulae)
+personal_formula_apps:
+  - exiftool
+  - gnu-tar
+  - immich-go
+  - mkvtoolnix
+  - tree
+  - youtube-dl
+
+
+# GUI Applications (Brew Casks)
+personal_cask_apps:
+  #- 4k-video-downloader
+  - adobe-creative-cloud
+  - angry-ip-scanner
+  #- audacity ?
+  - balenaetcher
+  - brave-browser
+  - visual-studio-code
+  - blender
+  - carbon-copy-cloner
+  - discord
+  - downie
+  #- flux ??
+  #- find-empty-folders
+  - fontbase
+  - fontforge-app
+  - github
+  - google-drive
+  - heroic
+  - imageoptim
+  #- imazing DO I HAVE AN OLDER LICENSE??
+  - jump-desktop
+  #- keka
+  - loopback
+  - lulu
+  - mactracker
+  - macwhisper
+  - mediahuman-audio-converter
+  #- mkvtools
+  #- mkvtoolnix-app
+  - opencore-patcher
+  - opentabletdriver
+  - platypus
+  - plex
+  - pronotes
+  - qlmarkdown
+  - raycast
+  - sonos
+  #- subler
+  #- sublercli
+  - superwhisper
+  - synology-drive
+  - the-unarchiver
+  #- ultimate-vocal-remover
+
+
+# Mac App Store (MAS)
+personal_mas_apps:
+  - { id: 1586435171, name: 'Actions' } #Actions for Apple Shortcuts
+  - { id: 1616831348, name: 'Affinity Designer 2' }
+  - { id: 1616822987, name: 'Affinity Photo 2' }
+  - { id: 1606941598, name: 'Affinity Publisher 2' }
+  - { id: 1160435653, name: 'AutoMounter' }
+  - { id: 424390742, name: 'Compressor' }
+  - { id: 1453273600, name: 'Data Jar' } # Data Store for Shortcuts
+  - { id: 325206381, name: 'Flame Services Browser' }
+  #- { id: 6443819966, name: 'IP Scanner' }
+  - { id: 524141863, name: 'Jump Desktop'}
+  - { id: 1532597159, name: 'Mp3tag' }
+  - { id: 1455214828, name: 'MQTT Explorer' }
+  - { id: 603637384, name: 'Name Mangler 3' }
+  - { id: 463362050, name: 'Photosweeper' }
+  - { id: 506088175, name: 'Pushover' }
+  - { id: 1598580439, name: 'RAW Convertor' }
+  - { id: 1550457805, name: 'Soro for Sonos' } # Control Sonos with Shortcuts
+  - { id: 1481853033, name: 'Strongbox Pro' }
+  - { id: 1475387142, name: 'Tailscale' }
+  - { id: 1490879410, name: 'Trash Me' }
+  - { id: 1062679359, name: 'Typeface 4' }
+
+
+# Apps to install via DMG/PKG (using bepri.macos_tools)
+personal_dmg_pkg_apps:
+# Argest
+# Crossover
+# Loopback
+# Sketchup
+# Swinsian
+
+
+personal_manual_installs:
+  - name: "DJI Assistant 2 (Ronin Series)"
+    url: "https://www.dji.com/downloads/softwares/assistant-dji-2-for-ronin"
+  - name: "Downie 4"
+    url: "https://software.charliemonroe.net/downie/"
+
+
+#Unpaid / Legacy Software / Solve
+# Creation Date Batch Change
+# Quickres
+# IWLTBAP LUT Generator
+
+

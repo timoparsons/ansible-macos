@@ -1,0 +1,7 @@
+---
+# roles/personal/tasks/main.yml
+
+- name: Install personal applications
+  include_tasks: ../../common/tasks/install_apps.yml
+  vars:
+    role_prefix: personal

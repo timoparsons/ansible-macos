@@ -22,7 +22,7 @@ echo "🖥️  macOS Provisioning Orchestrator"
 echo "===================================================="
 echo ""
 
-# 1. Install Ansible if missing (Homebrew is already there from Gist)
+# Install Ansible if missing (Homebrew is already there from Gist)
 if ! command -v ansible &>/dev/null; then
     echo "📦 Installing Ansible..."
     if ! brew install ansible; then
@@ -31,7 +31,19 @@ if ! command -v ansible &>/dev/null; then
     fi
 fi
 
-# 2. Define the Menu
+
+# Install required Ansible Galaxy roles
+if [ -f "requirements.yml" ]; then
+    echo "📦 Installing Ansible Galaxy dependencies..."
+    if ! ansible-galaxy install -r requirements.yml; then
+        echo "❌ Failed to install Galaxy roles. Exiting."
+        exit 1
+    fi
+    echo ""
+fi
+
+
+# Define the Menu
 echo "Select the configuration for this Mac:"
 echo "1) Personal (Full setup + Video tools)"
 echo "2) Video Production (Work focused)"
@@ -85,7 +97,7 @@ echo ""
 echo "🚀 Starting provisioning for: $DESC"
 echo "----------------------------------------------------"
 
-# 3. Run Ansible
+# Run Ansible
 # -K prompts for your macOS user password (sudo)
 # --tags limits execution to the chosen machine type
 if ! ansible-playbook site.yml \
@@ -106,7 +118,7 @@ echo "💡 Next steps:"
 echo "   - Restart your Mac if system preferences were changed"
 echo "   - Check $REPO_ROOT for logs if issues occurred"
 
-# 4. Optional: Self-Destruct for Family Macs
+# Optional: Self-Destruct for Family Macs
 if [ "$choice" == "3" ]; then
     echo ""
     read -p "🧹 Delete setup files? [y/N]: " cleanup

@@ -1,0 +1,7 @@
+---
+# requirements.yml
+# Install with: ansible-galaxy install -r requirements.yml
+
+roles:
+  - name: bepri.macos_tools
+    version: 1.0.0  # Check for latest version

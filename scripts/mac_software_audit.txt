@@ -1,0 +1,136 @@
+==========================================================
+MAC SOFTWARE AUDIT - Tue 23 Dec 2025 23:30:34 NZDT
+==========================================================
+
+[1/3] HOMEBREW FORMULAS (CLI Tools - 'Leaves' only)
+----------------------------------------------------------
+balena-cli
+exiftool
+ffmpeg
+gnu-tar
+icu4c@77
+immich-go
+mas
+mbedtls
+pandoc
+smartmontools
+tree
+
+[2/3] HOMEBREW CASKS (GUI Apps already managed by Brew)
+----------------------------------------------------------
+qlmarkdown
+
+[3/3] POTENTIAL CASK MIGRATIONS
+The following apps are in /Applications but NOT managed by Brew.
+If a match is found, add it to your Ansible 'casks' list.
+----------------------------------------------------------
+❌ NO CASK:     'Affinity Designer 2' (Keep as manual install or check MAS)
+❌ NO CASK:     'Affinity Photo 2' (Keep as manual install or check MAS)
+❌ NO CASK:     'Affinity Publisher 2' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Affinity' can be installed via cask: affinity
+❌ NO CASK:     'Alfred 5' (Keep as manual install or check MAS)
+❌ NO CASK:     'Angry IP Scanner' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Antinote' can be installed via cask: antinote
+❌ NO CASK:     'ArGest Backup' (Keep as manual install or check MAS)
+❌ NO CASK:     'ArtWorkout' (Keep as manual install or check MAS)
+❌ NO CASK:     'Assimilate' (Keep as manual install or check MAS)
+❌ NO CASK:     'AutoMounter' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'balenaEtcher' can be installed via cask: balenaetcher
+❌ NO CASK:     'Blackmagic Disk Speed Test' (Keep as manual install or check MAS)
+❌ NO CASK:     'Blackmagic Media Express' (Keep as manual install or check MAS)
+❌ NO CASK:     'Blackmagic Proxy Generator' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Blender' can be installed via cask: blender
+✅ MATCH FOUND: 'Bloom' can be installed via cask: bloom
+❌ NO CASK:     'Brave Browser' (Keep as manual install or check MAS)
+❌ NO CASK:     'Carbon Copy Cloner' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Claude' can be installed via cask: claude
+❌ NO CASK:     'Compressor' (Keep as manual install or check MAS)
+❌ NO CASK:     'CP210xVCPDriver' (Keep as manual install or check MAS)
+❌ NO CASK:     'Creationdate Batch Change' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'CrossOver' can be installed via cask: crossover
+✅ MATCH FOUND: 'DaisyDisk' can be installed via cask: daisydisk
+❌ NO CASK:     'Discord Canary' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Discord' can be installed via cask: discord
+❌ NO CASK:     'DJI Assistant 2 (Ronin Series)' (Keep as manual install or check MAS)
+❌ NO CASK:     'Downie 4' (Keep as manual install or check MAS)
+❌ NO CASK:     'DRmare Spotify Music Converter' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'flame' can be installed via cask: eagle
+✅ MATCH FOUND: 'FileBot' can be installed via cask: filebot
+✅ MATCH FOUND: 'Flame' can be installed via cask: flame
+✅ MATCH FOUND: 'FontBase' can be installed via cask: fontbase
+❌ NO CASK:     'Frame.io Transfer' (Keep as manual install or check MAS)
+❌ NO CASK:     'Game Controller Tester' (Keep as manual install or check MAS)
+❌ NO CASK:     'GitHub Desktop' (Keep as manual install or check MAS)
+❌ NO CASK:     'Google Docs' (Keep as manual install or check MAS)
+❌ NO CASK:     'Google Drive' (Keep as manual install or check MAS)
+❌ NO CASK:     'Google Sheets' (Keep as manual install or check MAS)
+❌ NO CASK:     'Google Slides' (Keep as manual install or check MAS)
+❌ NO CASK:     'HandBrake' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Heroic' can be installed via cask: heroic
+❌ NO CASK:     'Home Assistant' (Keep as manual install or check MAS)
+❌ NO CASK:     'Ice' (Keep as manual install or check MAS)
+❌ NO CASK:     'iconik Agent' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'IINA' can be installed via cask: iina
+❌ NO CASK:     'iLove Date Changer' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'ImageOptim' can be installed via cask: imageoptim
+❌ NO CASK:     'iMovie' (Keep as manual install or check MAS)
+❌ NO CASK:     'Install macOS Sequoia' (Keep as manual install or check MAS)
+❌ NO CASK:     'JokyoHAPPlayer' (Keep as manual install or check MAS)
+❌ NO CASK:     'JoystickMonitor' (Keep as manual install or check MAS)
+❌ NO CASK:     'Jump Desktop Connect' (Keep as manual install or check MAS)
+❌ NO CASK:     'Jump Desktop' (Keep as manual install or check MAS)
+❌ NO CASK:     'Key Finder' (Keep as manual install or check MAS)
+❌ NO CASK:     'KeyFinder' (Keep as manual install or check MAS)
+❌ NO CASK:     'Kyno' (Keep as manual install or check MAS)
+❌ NO CASK:     'LM Studio' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Loop' can be installed via cask: loop
+✅ MATCH FOUND: 'Loopback' can be installed via cask: loopback
+✅ MATCH FOUND: 'LuLu' can be installed via cask: lulu
+✅ MATCH FOUND: 'Mactracker' can be installed via cask: mactracker
+✅ MATCH FOUND: 'MacWhisper' can be installed via cask: macwhisper
+❌ NO CASK:     'MediaHuman Audio Converter' (Keep as manual install or check MAS)
+❌ NO CASK:     'MIB Browser' (Keep as manual install or check MAS)
+❌ NO CASK:     'MindNode' (Keep as manual install or check MAS)
+❌ NO CASK:     'MKVToolNix-90.0' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Mp3tag' can be installed via cask: mp3tag
+❌ NO CASK:     'MQTT Explorer' (Keep as manual install or check MAS)
+❌ NO CASK:     'Name Mangler 3' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'NeoFinder' can be installed via cask: neofinder
+❌ NO CASK:     'OffShoot' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'OnyX' can be installed via cask: onyx
+✅ MATCH FOUND: 'OpenCore-Patcher' can be installed via cask: opencore-patcher
+❌ NO CASK:     'OpenTabletDriver' (Keep as manual install or check MAS)
+❌ NO CASK:     'PhotoSweeper' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Platypus' can be installed via cask: platypus
+✅ MATCH FOUND: 'Plex' can be installed via cask: plex
+✅ MATCH FOUND: 'ProNotes' can be installed via cask: pronotes
+❌ NO CASK:     'Pushover' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'qbittorrent' can be installed via cask: qbittorrent
+❌ NO CASK:     'QSpace Pro' (Keep as manual install or check MAS)
+❌ NO CASK:     'Raw Convertor' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Raycast' can be installed via cask: raycast
+❌ NO CASK:     'Reolink' (Keep as manual install or check MAS)
+❌ NO CASK:     'Safari' (Keep as manual install or check MAS)
+❌ NO CASK:     'SketchbookPro' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Slack' can be installed via cask: slack
+❌ NO CASK:     'slimRAW' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Sonos' can be installed via cask: sonos
+❌ NO CASK:     'Soro' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'Spotify' can be installed via cask: spotify
+❌ NO CASK:     'Stacher7' (Keep as manual install or check MAS)
+❌ NO CASK:     'Strongbox' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'superwhisper' can be installed via cask: superwhisper
+✅ MATCH FOUND: 'Swinsian' can be installed via cask: swinsian
+❌ NO CASK:     'Synology Drive Client' (Keep as manual install or check MAS)
+❌ NO CASK:     'Tailscale' (Keep as manual install or check MAS)
+❌ NO CASK:     'TeraCopy' (Keep as manual install or check MAS)
+❌ NO CASK:     'The Unarchiver' (Keep as manual install or check MAS)
+❌ NO CASK:     'TrashMe 3' (Keep as manual install or check MAS)
+❌ NO CASK:     'Visual Studio Code' (Keep as manual install or check MAS)
+✅ MATCH FOUND: 'VLC' can be installed via cask: vlc
+✅ MATCH FOUND: 'WhatsApp' can be installed via cask: whatsapp
+❌ NO CASK:     'Xcode' (Keep as manual install or check MAS)
+
+==========================================================
+AUDIT COMPLETE
+==========================================================

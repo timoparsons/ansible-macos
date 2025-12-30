@@ -1,20 +1,7 @@
 ---
-# 1. Install CLI Tools
-- name: Install Video CLI Tools
-  community.general.homebrew:
-    name: "{{ video_formula_apps }}"
-    state: present
+# roles/video/tasks/main.yml
 
-# 2. Install GUI Apps
-- name: Install Video GUI Casks
-  community.general.homebrew_cask:
-    name: "{{ video_cask_apps }}"
-    state: present
-
-# 3. Install App Store Apps
-# This requires the 'mas' CLI tool to be installed in the 'common' role first
-- name: Install Video App Store Apps
-  community.general.mas:
-    id: "{{ item.id }}"
-    state: present
-  loop: "{{ video_mas_apps }}"
+- name: Install video applications
+  include_tasks: ../../common/tasks/install_apps.yml
+  vars:
+    role_prefix: video

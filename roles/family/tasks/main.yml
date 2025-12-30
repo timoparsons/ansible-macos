@@ -1,0 +1,6 @@
+# roles/family/tasks/main.yml
+
+- name: Install family applications
+  include_tasks: ../../common/tasks/install_apps.yml
+  vars:
+    role_prefix: family
