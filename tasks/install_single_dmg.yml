@@ -5,14 +5,18 @@
 - name: Process DMG installer for {{ dmg_item.name }}
   block:
     - name: Mount DMG
-      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -quiet
+      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse
       register: mount_result
       changed_when: false
       failed_when: mount_result.rc != 0
 
+    - name: Debug mount output
+      debug:
+        var: mount_result.stdout_lines
+
     - name: Extract mount point from hdiutil output
       set_fact:
-        mount_point: "{{ mount_result.stdout_lines | select('search', '/Volumes/') | first | regex_replace('^.*(/Volumes/[^\\s]+).*$', '\\1') }}"
+        mount_point: "{{ mount_result.stdout_lines | select('search', '/Volumes') | list | last | regex_search('/Volumes/[^\\s]+') }}"
 
     - name: Check for .app file in DMG
       find:

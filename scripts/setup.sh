@@ -133,6 +133,7 @@ echo "----------------------------------------------------"
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     --limit "$TARGET" \
+    --skip-tags "common" \
     -K \
     -v; then
     echo ""
