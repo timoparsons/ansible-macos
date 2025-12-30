@@ -133,7 +133,6 @@ echo "----------------------------------------------------"
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     -K \
-    -e "ansible_python_interpreter=$BREW_PATH" \
     --tags "$TAGS" \
     -v; then
     echo ""
