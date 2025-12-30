@@ -25,7 +25,7 @@
   bepri.macos_tools.install:
     source: "{{ item.url }}"
     type: "{{ item.type | default(omit) }}"
-    allow_unsigned: "{{ item.allow_unsigned | default(omit) }}"
+    allow_untrusted: "{{ item.allow_untrusted | default(omit) }}"
   loop: "{{ personal_dmg_pkg_apps }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
 
