@@ -11,6 +11,7 @@ video_cask_apps:
   - jump-desktop-connect
   - iina
   - neofinder
+  - python # Required by Davinci Resolve as it has trouble with the brew version.
   - slack
 
 # Mac App Store (MAS)

@@ -108,22 +108,26 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-echo ""
+# Dynamically determine the Homebrew prefix and Python path
+if [[ $(uname -m) == "arm64" ]]; then
+    BREW_PATH="/opt/homebrew/bin/python3"
+else
+    BREW_PATH="/usr/local/bin/python3"
+fi
+
 echo "🚀 Starting provisioning for: $DESC"
 echo "----------------------------------------------------"
 
-# Run Ansible
-# -K prompts for your macOS user password (sudo)
-# --tags limits execution to the chosen machine type
+# Run Ansible with the dynamic interpreter path
 if ! ansible-playbook site.yml \
     -i inventory.ini \
     -K \
+    -e "ansible_python_interpreter=$BREW_PATH" \
     --tags "$TAGS" \
     -v; then
-    echo ""
-    echo "❌ Provisioning failed. Check errors above."
-    exit 1
+    # ... error handling ...
 fi
+
 
 echo ""
 echo "===================================================="
