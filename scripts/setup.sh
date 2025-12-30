@@ -108,6 +108,9 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
+
+
+
 # Dynamically determine the Homebrew prefix and Python path
 if [[ $(uname -m) == "arm64" ]]; then
     BREW_PATH="/opt/homebrew/bin/python3"
@@ -115,6 +118,7 @@ else
     BREW_PATH="/usr/local/bin/python3"
 fi
 
+echo ""
 echo "🚀 Starting provisioning for: $DESC"
 echo "----------------------------------------------------"
 
@@ -127,6 +131,7 @@ if ! ansible-playbook site.yml \
     -v; then
     # ... error handling ...
 fi
+
 
 
 echo ""
