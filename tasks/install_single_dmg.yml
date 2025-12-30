@@ -10,13 +10,9 @@
       changed_when: false
       failed_when: mount_result.rc != 0
 
-    - name: Debug mount output
-      debug:
-        var: mount_result.stdout_lines
-
     - name: Extract mount point from hdiutil output
       set_fact:
-        mount_point: "{{ mount_result.stdout_lines | select('search', '/Volumes') | list | last | regex_search('/Volumes/[^\\s]+') }}"
+        mount_point: "{{ (mount_result.stdout_lines | select('search', '/Volumes') | list | last).split()[-1] }}"
 
     - name: Check for .app file in DMG
       find:
