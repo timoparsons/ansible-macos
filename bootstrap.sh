@@ -28,8 +28,17 @@ if ! command -v brew &>/dev/null; then
 fi
 
 
-# Ensure brew is in the current session PATH
-[[ $(uname -m) == "arm64" ]] && eval "$(/opt/homebrew/bin/brew shellenv)" || eval "$(/usr/local/bin/brew shellenv)"
+# Ensure Homebrew and its Python are in the PATH for the current session
+if [[ $(uname -m) == "arm64" ]]; then
+    # Silicon Path
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+    # Intel Path
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Explicitly export the path so Ansible sub-processes inherit it
+export PATH="$(brew --prefix)/bin:$(brew --prefix)/sbin:$PATH"
 
 
 # Install Git & GitHub CLI

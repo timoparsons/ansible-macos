@@ -23,6 +23,13 @@ else
     exit 1
 fi
 
+echo "🔍 Checking module compatibility..."
+if ! /usr/bin/env python3 --version &>/dev/null; then
+    echo "⚠️  /usr/bin/env python3 not found. Linking Homebrew Python..."
+    # Create a link in a standard location that /usr/bin/env always checks
+    sudo ln -s "$(which python3)" /usr/local/bin/python3 2>/dev/null || true
+fi
+
 # Clear screen for a clean start
 clear
 
