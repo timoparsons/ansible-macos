@@ -14,7 +14,7 @@ if [ ! -f "site.yml" ] || [ ! -f "inventory.ini" ]; then
     exit 1
 fi
 
-echo "🔍 Verifying sudo permissions..."
+echo "🔐 Verifying sudo permissions..."
 if sudo -n true 2>/dev/null; then
     echo "✅ Passwordless sudo is active."
 else
@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-echo "🔧 Ensuring Python3 is accessible via /usr/bin/env..."
+echo "🔧 Ensuring Python3 is accessible..."
 
 # Determine the correct Homebrew Python path
 if [[ $(uname -m) == "arm64" ]]; then
@@ -38,36 +38,22 @@ if [ ! -f "$BREW_PYTHON" ]; then
     exit 1
 fi
 
-# Test if /usr/bin/env can find python3
-if ! /usr/bin/env python3 --version &>/dev/null; then
-    echo "⚠️  Creating symlink so /usr/bin/env can find python3..."
-    
-    # Ensure /usr/local/bin exists
+# Ensure /usr/local/bin/python3 symlink exists for compatibility
+if [ ! -L "/usr/local/bin/python3" ]; then
+    echo "⚠️  Creating symlink at /usr/local/bin/python3..."
     sudo mkdir -p /usr/local/bin
-    
-    # Create or update the symlink
     sudo ln -sf "$BREW_PYTHON" /usr/local/bin/python3
-    
-    # Verify it worked
-    if /usr/bin/env python3 --version &>/dev/null; then
-        echo "✅ Symlink created successfully"
-    else
-        echo "❌ Symlink creation failed"
-        exit 1
-    fi
-else
-    echo "✅ Python3 is already accessible via /usr/bin/env"
 fi
 
-# Clear screen for a clean start
-#clear
+echo "✅ Python3 ready: $(python3 --version)"
 
+echo ""
 echo "===================================================="
 echo "🖥️  macOS Provisioning Orchestrator"
 echo "===================================================="
 echo ""
 
-# Install Ansible if missing (Homebrew is already there from Gist)
+# Install Ansible if missing
 if ! command -v ansible &>/dev/null; then
     echo "📦 Installing Ansible..."
     if ! brew install ansible; then
@@ -76,23 +62,18 @@ if ! command -v ansible &>/dev/null; then
     fi
 fi
 
-
 # Install required Ansible Galaxy collections and roles
 if [ -f "requirements.yml" ]; then
     echo "📦 Installing Ansible Galaxy dependencies..."
-    # Install collections
     if ! ansible-galaxy collection install -r requirements.yml; then
         echo "❌ Failed to install Galaxy collections. Exiting."
         exit 1
     fi
-    # Install roles (if any are defined)
     if ! ansible-galaxy role install -r requirements.yml 2>/dev/null; then
-        # Ignore error if no roles are defined
-        true
+        true  # Ignore if no roles defined
     fi
     echo ""
 fi
-
 
 # Define the Menu
 echo "Select the configuration for this Mac:"
@@ -117,15 +98,15 @@ done
 
 case $choice in
     1)
-        TAGS="always,personal,video"
+        TARGET="personal"
         DESC="Personal Machine"
         ;;
     2)
-        TAGS="always,video"
+        TARGET="video"
         DESC="Video Production Machine"
         ;;
     3)
-        TAGS="always,family"
+        TARGET="family"
         DESC="Family Machine"
         ;;
     4)
@@ -136,7 +117,7 @@ esac
 
 echo ""
 echo "🚀 Ready to provision: $DESC"
-echo "   Tags: $TAGS"
+echo "   Target: $TARGET"
 read -p "Continue? [y/N]: " confirm
 
 if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
@@ -144,31 +125,20 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-
-
-
-# Dynamically determine the Homebrew prefix and Python path
-if [[ $(uname -m) == "arm64" ]]; then
-    BREW_PATH="/opt/homebrew/bin/python3"
-else
-    BREW_PATH="/usr/local/bin/python3"
-fi
-
 echo ""
 echo "🚀 Starting provisioning for: $DESC"
 echo "----------------------------------------------------"
 
-# Run Ansible with the dynamic interpreter path
+# Run Ansible targeting the specific group
 if ! ansible-playbook site.yml \
     -i inventory.ini \
+    --limit "$TARGET" \
     -K \
-    --tags "$TAGS" \
     -v; then
     echo ""
     echo "❌ Provisioning failed. Check errors above."
     exit 1
 fi
-
 
 echo ""
 echo "===================================================="

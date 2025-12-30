@@ -25,7 +25,6 @@ video_mas_apps:
 video_dmg_pkg_apps:
   - name: "Offshoot - Legacy v23.2"
     url: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
-    type: dmg
 
 # Apps requiring manual installation
 video_manual_installs:

@@ -19,18 +19,10 @@
   when: video_mas_apps is defined and video_mas_apps | length > 0
 
 - name: Install video apps from DMG/PKG files
-  bepri.macos_tools.install:
-    source: "{{ item.url }}"
-    type: "{{ item.type | default(omit) }}"
-    allow_untrusted: "{{ item.allow_untrusted | default(omit) }}"
-  loop: "{{ video_dmg_pkg_apps }}"
-  when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
   vars:
-    ansible_python_interpreter: /usr/local/bin/python3
-
-
-
-
+    dmg_pkg_apps: "{{ video_dmg_pkg_apps }}"
+  when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
 
 - name: Display video manual install list
   debug:
