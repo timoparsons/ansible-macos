@@ -3,33 +3,53 @@
 # Reusable task file for installing apps
 # Required vars: role_prefix (e.g., 'personal', 'video', 'family')
 
+- name: Set variable names
+  set_fact:
+    formula_var: "{{ role_prefix }}_formula_apps"
+    cask_var: "{{ role_prefix }}_cask_apps"
+    mas_var: "{{ role_prefix }}_mas_apps"
+    dmg_pkg_var: "{{ role_prefix }}_dmg_pkg_apps"
+    manual_var: "{{ role_prefix }}_manual_installs"
+
 - name: "Install {{ role_prefix }} formula apps"
   homebrew:
-    name: "{{ lookup('vars', role_prefix + '_formula_apps', default=[]) }}"
+    name: "{{ vars[formula_var] }}"
     state: present
-  when: lookup('vars', role_prefix + '_formula_apps', default=[]) | length > 0
+  when: 
+    - formula_var in vars
+    - vars[formula_var] is defined
+    - vars[formula_var] | length > 0
 
 - name: "Install {{ role_prefix }} cask apps"
   homebrew_cask:
-    name: "{{ lookup('vars', role_prefix + '_cask_apps', default=[]) }}"
+    name: "{{ vars[cask_var] }}"
     state: present
-  when: lookup('vars', role_prefix + '_cask_apps', default=[]) | length > 0
+  when:
+    - cask_var in vars
+    - vars[cask_var] is defined
+    - vars[cask_var] | length > 0
 
 - name: "Install {{ role_prefix }} Mac App Store apps"
   command: "mas install {{ item.id }}"
-  loop: "{{ lookup('vars', role_prefix + '_mas_apps', default=[]) }}"
+  loop: "{{ vars[mas_var] }}"
   register: mas_result
   changed_when: "'Installed' in mas_result.stdout"
   failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
-  when: lookup('vars', role_prefix + '_mas_apps', default=[]) | length > 0
+  when:
+    - mas_var in vars
+    - vars[mas_var] is defined
+    - vars[mas_var] | length > 0
 
 - name: "Install {{ item.name }}"
   macos_pkg:
     source: "{{ item.url }}"
     type: "{{ item.type | default(omit) }}"
     allow_unsigned: "{{ item.allow_unsigned | default(omit) }}"
-  loop: "{{ lookup('vars', role_prefix + '_dmg_pkg_apps', default=[]) }}"
-  when: lookup('vars', role_prefix + '_dmg_pkg_apps', default=[]) | length > 0
+  loop: "{{ vars[dmg_pkg_var] | default([]) }}"
+  when:
+    - dmg_pkg_var in vars
+    - vars[dmg_pkg_var] is defined
+    - vars[dmg_pkg_var] | length > 0
 
 - name: "Display {{ role_prefix }} apps requiring manual installation"
   debug:
@@ -39,7 +59,7 @@
       📋 MANUAL INSTALLATION REQUIRED ({{ role_prefix | upper }})
       =====================================================
       The following apps need to be installed manually:
-      {% for app in lookup('vars', role_prefix + '_manual_installs', default=[]) %}
+      {% for app in vars[manual_var] %}
       
       {{ loop.index }}. {{ app.name }}
          URL: {{ app.url }}
@@ -47,4 +67,7 @@
       {% endfor %}
       
       =====================================================
-  when: lookup('vars', role_prefix + '_manual_installs', default=[]) | length > 0
+  when:
+    - manual_var in vars
+    - vars[manual_var] is defined
+    - vars[manual_var] | length > 0
