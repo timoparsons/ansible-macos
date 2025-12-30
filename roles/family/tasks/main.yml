@@ -21,7 +21,7 @@
   when: family_mas_apps is defined and family_mas_apps | length > 0
 
 - name: Install family apps from DMG/PKG files
-  macos_pkg:
+  bepri.macos_tools.install:
     source: "{{ item.url }}"
     type: "{{ item.type | default(omit) }}"
     allow_unsigned: "{{ item.allow_unsigned | default(omit) }}"
