@@ -95,45 +95,9 @@ if [ -f "requirements.yml" ]; then
 fi
 
 
-# Define the Menu
-echo "Select the configuration for this Mac:"
-echo "1) Personal (Full setup + Video tools)"
-echo "2) Video Production (Work focused)"
-echo "3) Family (Basic + Restrictions)"
-echo "4) Quit"
-echo ""
+TAGS="video"
+DESC="Video Production Machine TEST"
 
-while true; do
-    read -p "Enter choice [1-4]: " choice
-    
-    case $choice in
-        1|2|3|4)
-            break
-            ;;
-        *)
-            echo "❌ Invalid option. Please enter 1-4."
-            ;;
-    esac
-done
-
-case $choice in
-    1)
-        TAGS="always,personal,video"
-        DESC="Personal Machine"
-        ;;
-    2)
-        TAGS="always,video"
-        DESC="Video Production Machine"
-        ;;
-    3)
-        TAGS="always,family"
-        DESC="Family Machine"
-        ;;
-    4)
-        echo "Exiting..."
-        exit 0
-        ;;
-esac
 
 echo ""
 echo "🚀 Ready to provision: $DESC"
@@ -145,15 +109,6 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-
-
-
-# Dynamically determine the Homebrew prefix and Python path
-if [[ $(uname -m) == "arm64" ]]; then
-    BREW_PATH="/opt/homebrew/bin/python3"
-else
-    BREW_PATH="/usr/local/bin/python3"
-fi
 
 echo ""
 echo "🚀 Starting provisioning for: $DESC"
@@ -180,13 +135,3 @@ echo "💡 Next steps:"
 echo "   - Restart your Mac if system preferences were changed"
 echo "   - Check $REPO_ROOT for logs if issues occurred"
 
-# Optional: Self-Destruct for Family Macs
-if [ "$choice" == "3" ]; then
-    echo ""
-    read -p "🧹 Delete setup files? [y/N]: " cleanup
-    if [[ "$cleanup" =~ ^[Yy]$ ]]; then
-        echo "Cleaning up $REPO_ROOT..."
-        rm -rf "$REPO_ROOT"
-        echo "✅ Setup files removed."
-    fi
-fi
