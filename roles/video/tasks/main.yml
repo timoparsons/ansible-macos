@@ -1,7 +1,48 @@
 ---
 # roles/video/tasks/main.yml
 
-- name: Install video applications
-  include_tasks: ../../common/tasks/install_apps.yml
-  vars:
-    role_prefix: video
+- name: Install video formula apps
+  homebrew:
+    name: "{{ video_formula_apps }}"
+    state: present
+  when: video_formula_apps is defined and video_formula_apps | length > 0
+
+- name: Install video cask apps
+  homebrew_cask:
+    name: "{{ video_cask_apps }}"
+    state: present
+  when: video_cask_apps is defined and video_cask_apps | length > 0
+
+- name: Install video Mac App Store apps
+  command: "mas install {{ item.id }}"
+  loop: "{{ video_mas_apps }}"
+  register: mas_result
+  changed_when: "'Installed' in mas_result.stdout"
+  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
+  when: video_mas_apps is defined and video_mas_apps | length > 0
+
+- name: Install video apps from DMG/PKG files
+  macos_pkg:
+    source: "{{ item.url }}"
+    type: "{{ item.type | default(omit) }}"
+    allow_unsigned: "{{ item.allow_unsigned | default(omit) }}"
+  loop: "{{ video_dmg_pkg_apps }}"
+  when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
+
+- name: Display video apps requiring manual installation
+  debug:
+    msg: |
+      
+      =====================================================
+      📋 MANUAL INSTALLATION REQUIRED (video)
+      =====================================================
+      The following apps need to be installed manually:
+      {% for app in video_manual_installs %}
+      
+      {{ loop.index }}. {{ app.name }}
+         URL: {{ app.url }}
+         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
+      {% endfor %}
+      
+      =====================================================
+  when: video_manual_installs is defined and video_manual_installs | length > 0

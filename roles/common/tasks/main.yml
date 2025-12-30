@@ -14,15 +14,27 @@
     path: /opt/homebrew/bin/brew
   register: homebrew_check
   failed_when: not homebrew_check.stat.exists
-  tags: always
 
 - name: Update Homebrew
   homebrew:
     update_homebrew: yes
-  tags: always
 
-- name: Install common applications
-  include_tasks: install_apps.yml
-  vars:
-    role_prefix: common
-  tags: always
+- name: Install common formula apps
+  homebrew:
+    name: "{{ common_formula_apps }}"
+    state: present
+  when: common_formula_apps is defined and common_formula_apps | length > 0
+
+- name: Install common cask apps
+  homebrew_cask:
+    name: "{{ common_cask_apps }}"
+    state: present
+  when: common_cask_apps is defined and common_cask_apps | length > 0
+
+- name: Install common Mac App Store apps
+  command: "mas install {{ item.id }}"
+  loop: "{{ common_mas_apps }}"
+  register: mas_result
+  changed_when: "'Installed' in mas_result.stdout"
+  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
+  when: common_mas_apps is defined and common_mas_apps | length > 0
