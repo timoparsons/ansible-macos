@@ -2,6 +2,7 @@
 
 # Command Line Tools (Brew Formulae)
 common_formula_apps:
+  - dockutil  # Required to manage the MacOS Dock via command line
   - git
   - mas        # Required for App Store automation
 
@@ -21,3 +22,17 @@ common_mas_apps:
   - { id: 411643860, name: 'DaisyDisk' }
 
 # OTHER INSTALL METHOD
+
+
+configure_dock: true
+dock_clear_all: true
+
+dock_apps:
+  - path: "/Applications/Bloom.app"
+  - path: "/Applications/Brave.app"
+  - path: "/System/Applications/Messages.app"
+  - path: "/System/Applications/Notes.app"
+  - path: "/System/Applications/Reminders.app"
+  - path: "/System/Applications/System Settings.app"
+
+dock_folders: []

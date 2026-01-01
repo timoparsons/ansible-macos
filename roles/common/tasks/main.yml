@@ -47,3 +47,7 @@
     state: present
   loop: "{{ common_mas_apps }}"
   when: common_mas_apps is defined and common_mas_apps | length > 0
+
+- name: Import Dock configuration tasks
+  ansible.builtin.import_tasks: dock.yml
+  tags: ['dock']

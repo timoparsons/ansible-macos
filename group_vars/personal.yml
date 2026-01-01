@@ -7,7 +7,6 @@ personal_formula_apps:
   - immich-go
   - mkvtoolnix
   - tree
-  - youtube-dl
 
 
 # GUI Applications (Brew Casks)
@@ -82,9 +81,11 @@ personal_mas_apps:
   - { id: 1062679359, name: 'Typeface 4' }
 
 
-# Apps to install via DMG/PKG (using bepri.macos_tools)
+# Apps to install via DMG/PKG 
 personal_dmg_pkg_apps:
-# Argest
+  - name: "Argest - Legacy"
+    url: "/Volumes/common/Software/Installers/Archiving/Argest/ArGest.dmg"
+
 # Crossover
 # Loopback
 # Sketchup
@@ -93,12 +94,12 @@ personal_dmg_pkg_apps:
 
 personal_manual_installs:
   - name: "DJI Assistant 2 (Ronin Series)"
-    url: "https://www.dji.com/downloads/softwares/assistant-dji-2-for-ronin"
+    url: "https://www.dji.com/nz/downloads/softwares/dji-assistant-2-ronin-series"
   - name: "Downie 4"
     url: "https://software.charliemonroe.net/downie/"
 
 
-#Unpaid / Legacy Software / Solve
+# No longer used
 # Creation Date Batch Change
 # Quickres
 # IWLTBAP LUT Generator

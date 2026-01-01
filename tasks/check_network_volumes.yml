@@ -1,0 +1,29 @@
+---
+# tasks/check_network_volumes.yml
+# Simple check that fails if volumes aren't mounted
+# Define 'required_volumes' variable when including this task
+
+- name: Check if required network volumes are mounted
+  stat:
+    path: "/Volumes/{{ item }}"
+  register: volume_check
+  loop: "{{ required_volumes }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: List unmounted volumes
+  set_fact:
+    unmounted_volumes: "{{ volume_check.results | selectattr('stat.exists', 'equalto', false) | map(attribute='item') | list }}"
+
+- name: Fail if any required volumes are not mounted
+  fail:
+    msg: |
+      ❌ Required network volumes are not mounted: {{ unmounted_volumes | join(', ') }}
+      
+      Please mount these volumes manually:
+      1. Open Finder
+      2. Press Cmd+K (or Go > Connect to Server)
+      3. Enter: smb://your-server/common (or your network path)
+      4. Authenticate and mount the volume
+      5. Run this script again
+  when: unmounted_volumes | length > 0

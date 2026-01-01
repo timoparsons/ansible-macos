@@ -8,13 +8,23 @@
       tags: common
       
     - role: video
-      when: "'video' in group_names"
+      when: machine_type in ['video', 'personal']
       tags: video
       
     - role: personal
-      when: "'personal' in group_names"
+      when: machine_type == 'personal'
       tags: personal
       
     - role: family
-      when: "'family' in group_names"
+      when: machine_type == 'family'
       tags: family
+
+  tasks:
+    - name: Check required network volumes are mounted
+      include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
+      vars:
+        required_volumes:
+          - common
+          # - production  # Add more as needed
+      when: machine_type in ['video', 'personal']
+      tags: always

@@ -62,6 +62,7 @@ if ! command -v ansible &>/dev/null; then
     fi
 fi
 
+
 # Install required Ansible Galaxy collections and roles
 if [ -f "requirements.yml" ]; then
     echo "📦 Installing Ansible Galaxy dependencies..."

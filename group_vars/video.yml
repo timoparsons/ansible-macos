@@ -1,25 +1,44 @@
 # group_vars/video.yml
 
+# Command Line Tools (Brew Formulae)
+video_formula_apps:
+  - ffmpeg
 
+# GUI Applications (Brew Casks)
+video_cask_apps:
+  - handbrake
+  - ogdesign-eagle # Eagle.cool
+  - jump-desktop-connect
+  - iina
+  - neofinder
+  - slack
 
-# Apps to install via DMG/PKG (using bepri.macos_tools)
+# Mac App Store (MAS)
+video_mas_apps:
+  - { id: 1160435653, name: 'AutoMounter' }
+  - { id: 425264550, name: 'Blackmagic Speed Test' }
+  #- { id: 424390742, name: 'Compressor' } # This requires the joy.inc App Store account
+  #- { id: 1598580439, name: 'RAW Convertor' } Converts prores raw into cinemadng – not needed anymore
+
+# Apps to install via DMG/PKG
 video_dmg_pkg_apps:
   - name: "Offshoot - Legacy v23.2"
     url: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
 
 # Apps requiring manual installation
 video_manual_installs:
+  - name: Compressor
+    url: "https://apps.apple.com/nz/app/compressor/id424390742"
+    note: "Install in App Store using tim@joy.inc"
   - name: "DaVinci Resolve Studio"
-    url: "https://www.blackmagicdesign.com/products/davinciresolve"
+    url: "https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion"
     note: "Requires registration form completion"
   - name: "Frame.io Transfer"
-    url: "https://frame.io/download"
+    url: "https://frame.io/transfer"
     note: "Standard download"
   - name: "slimRAW"
-    url: "https://www.slimraw.com/download"
+    url: "https://www.slimraw.com/download.html"
     note: "Licensed software - download from account"
-
-
-# Apps to solve
-# Python installer for Resolve
-
+  - name: Python
+    url: "https://www.python.org/downloads/macos/"
+    note: "Needed for Resolve as it can't find brew python"
