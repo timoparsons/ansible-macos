@@ -14,19 +14,16 @@
   when: personal_cask_apps is defined and personal_cask_apps | length > 0
 
 - name: Install personal Mac App Store apps
-  command: "mas install {{ item.id }}"
+  community.general.mas:
+    id: "{{ item.id }}"
+    state: present
   loop: "{{ personal_mas_apps }}"
-  register: mas_result
-  changed_when: "'Installed' in mas_result.stdout"
-  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
   when: personal_mas_apps is defined and personal_mas_apps | length > 0
 
 - name: Install personal apps from DMG/PKG files
-  bepri.macos_tools.install:
-    source: "{{ item.url }}"
-    type: "{{ item.type | default(omit) }}"
-    allow_untrusted: "{{ item.allow_untrusted | default(omit) }}"
-  loop: "{{ personal_dmg_pkg_apps }}"
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+  vars:
+    dmg_pkg_apps: "{{ personal_dmg_pkg_apps }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
 
 - name: Display personal apps requiring manual installation

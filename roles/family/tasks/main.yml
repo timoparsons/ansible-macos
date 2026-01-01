@@ -13,19 +13,16 @@
   when: family_cask_apps is defined and family_cask_apps | length > 0
 
 - name: Install family Mac App Store apps
-  command: "mas install {{ item.id }}"
+  community.general.mas:
+    id: "{{ item.id }}"
+    state: present
   loop: "{{ family_mas_apps }}"
-  register: mas_result
-  changed_when: "'Installed' in mas_result.stdout"
-  failed_when: mas_result.rc != 0 and 'already installed' not in mas_result.stderr
   when: family_mas_apps is defined and family_mas_apps | length > 0
 
 - name: Install family apps from DMG/PKG files
-  bepri.macos_tools.install:
-    source: "{{ item.url }}"
-    type: "{{ item.type | default(omit) }}"
-    allow_untrusted: "{{ item.allow_untrusted | default(omit) }}"
-  loop: "{{ family_dmg_pkg_apps }}"
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+  vars:
+    dmg_pkg_apps: "{{ family_dmg_pkg_apps }}"
   when: family_dmg_pkg_apps is defined and family_dmg_pkg_apps | length > 0
 
 - name: Display family apps requiring manual installation

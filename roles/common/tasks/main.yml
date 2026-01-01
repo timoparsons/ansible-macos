@@ -48,6 +48,30 @@
   loop: "{{ common_mas_apps }}"
   when: common_mas_apps is defined and common_mas_apps | length > 0
 
+- name: Install common apps from DMG/PKG files
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+  vars:
+    dmg_pkg_apps: "{{ common_dmg_pkg_apps }}"
+  when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
+
+- name: Display common apps requiring manual installation
+  debug:
+    msg: |
+      
+      =====================================================
+      📋 MANUAL INSTALLATION REQUIRED (common)
+      =====================================================
+      The following apps need to be installed manually:
+      {% for app in common_manual_installs %}
+      
+      {{ loop.index }}. {{ app.name }}
+         URL: {{ app.url }}
+         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
+      {% endfor %}
+      
+      =====================================================
+  when: common_manual_installs is defined and common_manual_installs | length > 0
+
 - name: Import Dock configuration tasks
   ansible.builtin.import_tasks: dock.yml
   tags: ['dock']
