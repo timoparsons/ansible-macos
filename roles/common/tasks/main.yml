@@ -72,6 +72,12 @@
       =====================================================
   when: common_manual_installs is defined and common_manual_installs | length > 0
 
+- name: Apply macOS system defaults
+  ansible.builtin.script: "{{ role_path }}/files/macos-defaults.sh"
+  register: macos_defaults_result
+  changed_when: "'Please log out' in macos_defaults_result.stdout"
+  tags: ['macos_defaults']
+
 - name: Import Dock configuration tasks
   ansible.builtin.import_tasks: dock.yml
   tags: ['dock']
