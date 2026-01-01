@@ -28,8 +28,6 @@ configure_dock: true
 dock_clear_all: true
 
 dock_apps:
-  - path: "/Applications/Bloom.app"
-  - path: "/Applications/Brave.app"
   - path: "/System/Applications/Messages.app"
   - path: "/System/Applications/Notes.app"
   - path: "/System/Applications/Reminders.app"

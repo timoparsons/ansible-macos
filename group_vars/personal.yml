@@ -105,3 +105,12 @@ personal_manual_installs:
 # IWLTBAP LUT Generator
 
 
+dock_apps:
+  - path: "/Applications/Bloom.app"
+  - path: "/Applications/Brave.app"
+  - path: "/System/Applications/Messages.app"
+  - path: "/System/Applications/Notes.app"
+  - path: "/System/Applications/Reminders.app"
+  - path: "/System/Applications/System Settings.app"
+
+dock_folders: []

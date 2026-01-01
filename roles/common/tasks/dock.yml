@@ -17,8 +17,10 @@
     - name: Remove all items from Dock
       ansible.builtin.command: dockutil --remove all --no-restart
       register: dock_clear
-      changed_when: "'was not found in' not in dock_clear.stderr"
-      failed_when: false
+      changed_when: "'No dock items to remove' not in dock_clear.stderr"
+      failed_when: 
+        - dock_clear.rc != 0
+        - "'No dock items to remove' not in dock_clear.stderr"
       when: dock_clear_all | default(true)
 
     - name: Add applications to Dock
@@ -26,13 +28,12 @@
         dockutil --add "{{ item.path }}"
         {% if item.position is defined %}--position {{ item.position }}{% endif %}
         --no-restart
-      loop: "{{ dock_apps }}"
+      loop: "{{ dock_apps | default([]) }}"
       register: dock_add
       changed_when: "'already exists' not in dock_add.stderr"
       failed_when: 
         - dock_add.rc != 0
         - "'already exists' not in dock_add.stderr"
-      when: dock_apps is defined and dock_apps | length > 0
 
     - name: Add folders/files to Dock
       ansible.builtin.command: >
@@ -42,15 +43,22 @@
         {% if item.sort is defined %}--sort {{ item.sort }}{% endif %}
         {% if item.position is defined %}--position {{ item.position }}{% endif %}
         --no-restart
-      loop: "{{ dock_folders }}"
+      loop: "{{ dock_folders | default([]) }}"
       register: dock_folder_add
       changed_when: "'already exists' not in dock_folder_add.stderr"
       failed_when: 
         - dock_folder_add.rc != 0
         - "'already exists' not in dock_folder_add.stderr"
-      when: dock_folders is defined and dock_folders | length > 0
+
+    - name: Check if Dock needs restart
+      set_fact:
+        dock_needs_restart: >-
+          {{
+            (dock_clear is changed) or
+            (dock_add.results | default([]) | selectattr('changed', 'equalto', true) | list | length > 0) or
+            (dock_folder_add.results | default([]) | selectattr('changed', 'equalto', true) | list | length > 0)
+          }}
 
     - name: Restart Dock
       ansible.builtin.command: killall Dock
-      changed_when: true
-      when: dock_clear.changed or dock_add.changed or dock_folder_add.changed
+      when: dock_needs_restart | bool

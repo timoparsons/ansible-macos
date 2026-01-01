@@ -4,15 +4,21 @@
 
 - name: Process DMG installer for {{ dmg_item.name }}
   block:
+    - name: Check if DMG file exists
+      stat:
+        path: "{{ dmg_item.url }}"
+      register: dmg_stat
+      failed_when: not dmg_stat.stat.exists
+
     - name: Mount DMG
-      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse
+      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
       register: mount_result
       changed_when: false
-      failed_when: mount_result.rc != 0
 
     - name: Extract mount point from hdiutil output
       set_fact:
-        mount_point: "{{ mount_result.stdout | regex_search('/Volumes/[^\t\n]+') }}"
+        mount_point: "{{ mount_result.stdout_lines | select('search', '/Volumes/') | first | regex_search('/Volumes/\\S+') }}"
+      failed_when: mount_point is not defined or mount_point == ''
 
     - name: Check for .app file in DMG
       find:
@@ -32,38 +38,50 @@
 
     - name: Install .app from DMG
       block:
+        - name: Get app name
+          set_fact:
+            app_name: "{{ app_files.files[0].path | basename }}"
+        
+        - name: Check if app already exists
+          stat:
+            path: "/Applications/{{ app_name }}"
+          register: existing_app
+
+        - name: Remove existing app if present
+          file:
+            path: "/Applications/{{ app_name }}"
+            state: absent
+          become: true
+          when: existing_app.stat.exists
+
         - name: Copy app to Applications folder
-          command: cp -R "{{ app_files.files[0].path }}" /Applications/
-          args:
-            creates: "/Applications/{{ app_files.files[0].path | basename }}"
+          command: ditto "{{ app_files.files[0].path }}" "/Applications/{{ app_name }}"
           become: true
           
         - name: Set correct permissions on app
           file:
-            path: "/Applications/{{ app_files.files[0].path | basename }}"
+            path: "/Applications/{{ app_name }}"
             owner: root
-            group: wheel
-            mode: '0755'
+            group: admin
+            mode: '0775'
+            recurse: yes
           become: true
       when: app_files.matched > 0
 
     - name: Install .pkg from DMG
-      block:
-        - name: Install PKG with installer
-          command: installer -pkg "{{ pkg_files.files[0].path }}" -target /
-          become: true
-          register: pkg_install
-          changed_when: pkg_install.rc == 0
+      command: sudo installer -pkg "{{ pkg_files.files[0].path }}" -target /
+      register: pkg_install
+      changed_when: "'successful' in pkg_install.stdout.lower()"
       when: pkg_files.matched > 0
 
-    - name: Warn if no installer found
-      debug:
-        msg: "WARNING: No .app or .pkg found in {{ mount_point }} for {{ dmg_item.name }}"
+    - name: Fail if no installer found
+      fail:
+        msg: "No .app or .pkg found in {{ mount_point }} for {{ dmg_item.name }}"
       when: app_files.matched == 0 and pkg_files.matched == 0
 
   always:
     - name: Unmount DMG
-      command: hdiutil detach "{{ mount_point }}"
+      command: hdiutil detach "{{ mount_point }}" -force
       changed_when: false
       failed_when: false
-      when: mount_point is defined
+      when: mount_point is defined and mount_point != ''

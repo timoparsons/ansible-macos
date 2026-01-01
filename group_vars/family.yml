@@ -13,4 +13,16 @@ family_cask_apps:
 family_mas_apps:
   - { id: 1570472288, name: 'Sketchbook Pro' }
 
-# OTHER INSTALL METHOD
+
+dock_apps:
+  - path: "/Applications/Google Chrome.app"
+  - path: "/System/Applications/Messages.app"
+  - path: "/System/Applications/Notes.app"
+  - path: "/System/Applications/Reminders.app"
+  - path: "/System/Applications/System Settings.app"
+
+dock_folders:
+  - path: "~/Downloads"
+    view: fan
+    display: folder
+    sort: dateadded
