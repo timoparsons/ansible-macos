@@ -1,7 +1,7 @@
 # group_vars/family.yml
 
 # Command Line Tools (Brew Formulae)
-family_formula_apps:
+family_formula_apps: []
 
 # GUI Applications (Brew Casks)
 family_cask_apps:
