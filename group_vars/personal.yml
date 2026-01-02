@@ -31,7 +31,7 @@ personal_cask_apps:
   - heroic
   - imageoptim
   #- imazing DO I HAVE AN OLDER LICENSE??
-  - jump-desktop
+  # - jump-desktop Joy Inc App Store License
   #- keka
   - loopback
   - lulu
@@ -67,7 +67,7 @@ personal_mas_apps:
   - { id: 1453273600, name: 'Data Jar' } # Data Store for Shortcuts
   - { id: 325206381, name: 'Flame Services Browser' }
   #- { id: 6443819966, name: 'IP Scanner' }
-  - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
+  # - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
   - { id: 1532597159, name: 'Mp3tag' }
   - { id: 1455214828, name: 'MQTT Explorer' }
   - { id: 603637384, name: 'Name Mangler 3' }
