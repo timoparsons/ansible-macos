@@ -1,6 +1,6 @@
 ---
-# dock-config.yml
-# Playbook to run only the Dock configuration
+# test-dock-config.yml
+# Test playbook to run only the Dock configuration
 #
 # Usage: ansible-playbook test-dock-config.yml -i inventory.ini --limit personal -K
 
@@ -9,9 +9,13 @@
   become: false
   
   tasks:
-    - name: Debug - Show machine_type
+    - name: Debug - Show all relevant variables
       debug:
-        msg: "Machine type is: {{ machine_type }}"
+        msg:
+          - "Inventory hostname: {{ inventory_hostname }}"
+          - "Group names: {{ group_names }}"
+          - "Machine type: {{ machine_type }}"
+          - "Hostvars machine_type: {{ hostvars[inventory_hostname]['machine_type'] }}"
     
     - name: Set dock configuration based on machine type
       set_fact:
