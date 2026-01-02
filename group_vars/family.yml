@@ -10,8 +10,8 @@ family_cask_apps:
   - sonos
 
 # Mac App Store (MAS)
-family_mas_apps:
-  - { id: 1570472288, name: 'Sketchbook Pro' }
+family_mas_apps: []
+  #- { id: 1570472288, name: 'Sketchbook Pro' }
 
 
 dock_apps:
