@@ -2,16 +2,16 @@
 
 # Command Line Tools (Brew Formulae)
 common_formula_apps:
-  - dockutil  # Required to manage the MacOS Dock via command line
+  - dockutil
   - git
-  - mas        # Required for App Store automation
+  - mas
 
 # GUI Applications (Brew Casks)
 common_cask_apps:
   - affinity
   - appcleaner
   - bloom
-  - jordanbaird-ice # ICE Menu Bar Organiser
+  - jordanbaird-ice
   - loop
   - spotify
   - vlc
@@ -21,16 +21,14 @@ common_cask_apps:
 common_mas_apps:
   - { id: 411643860, name: 'DaisyDisk' }
 
-# OTHER INSTALL METHOD
-
-
 configure_dock: true
 dock_clear_all: true
 
-dock_apps:
+# Default dock configuration (will be overridden by group-specific configs)
+common_dock_apps:
   - path: "/System/Applications/Messages.app"
   - path: "/System/Applications/Notes.app"
   - path: "/System/Applications/Reminders.app"
   - path: "/System/Applications/System Settings.app"
 
-dock_folders: []
+common_dock_folders: []

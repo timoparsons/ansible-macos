@@ -42,3 +42,11 @@ video_manual_installs:
   - name: Python
     url: "https://www.python.org/downloads/macos/"
     note: "Needed for Resolve as it can't find brew python"
+
+video_dock_apps:
+  - path: "/System/Applications/Messages.app"
+  - path: "/System/Applications/Notes.app"
+  - path: "/System/Applications/Reminders.app"
+  - path: "/System/Applications/System Settings.app"
+
+video_dock_folders: []

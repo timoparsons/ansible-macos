@@ -14,14 +14,15 @@ family_mas_apps: []
   #- { id: 1570472288, name: 'Sketchbook Pro' }
 
 
-dock_apps:
+# At the end of the file, change dock_apps to family_dock_apps:
+
+family_dock_apps:
   - path: "/Applications/Google Chrome.app"
   - path: "/System/Applications/Messages.app"
   - path: "/System/Applications/Notes.app"
   - path: "/System/Applications/Reminders.app"
-  - path: "/System/Applications/System Settings.app"
 
-dock_folders:
+family_dock_folders:
   - path: "~/Downloads"
     view: fan
     display: folder

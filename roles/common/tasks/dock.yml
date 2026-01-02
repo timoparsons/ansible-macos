@@ -3,6 +3,11 @@
 - name: Configure Dock
   when: configure_dock | default(true)
   block:
+    - name: Set dock configuration based on machine type
+      set_fact:
+        dock_apps: "{{ lookup('vars', machine_type + '_dock_apps', default=common_dock_apps) }}"
+        dock_folders: "{{ lookup('vars', machine_type + '_dock_folders', default=common_dock_folders) }}"
+    
     - name: Check if dockutil is installed
       ansible.builtin.command: which dockutil
       register: dockutil_check
