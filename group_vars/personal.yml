@@ -41,7 +41,6 @@ personal_cask_apps:
   #- mkvtools
   #- mkvtoolnix-app
   - opencore-patcher
-  - opentabletdriver
   - platypus
   - plex
   - pronotes
@@ -90,6 +89,7 @@ personal_dmg_pkg_apps:
 # Loopback
 # Sketchup
 # Swinsian
+# Opentabletdriver
 
 
 personal_manual_installs:
