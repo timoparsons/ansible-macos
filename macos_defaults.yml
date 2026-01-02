@@ -1,0 +1,24 @@
+---
+# macos-defaults.yml
+# Run only the macOS system defaults script
+#
+# Usage: ansible-playbook test-macos-defaults.yml -i inventory.ini --limit personal -K
+
+- name: Test macOS System Defaults
+  hosts: all
+  become: false
+  
+  tasks:
+    - name: Apply macOS system defaults
+      ansible.builtin.script: "roles/common/files/macos-defaults.sh"
+      register: macos_defaults_result
+      changed_when: "'Please log out' in macos_defaults_result.stdout"
+      
+    - name: Display script output
+      debug:
+        var: macos_defaults_result.stdout_lines
+        
+    - name: Display script errors (if any)
+      debug:
+        var: macos_defaults_result.stderr_lines
+      when: macos_defaults_result.stderr_lines is defined and macos_defaults_result.stderr_lines | length > 0
