@@ -1,6 +1,6 @@
 ---
-# test-dock-config.yml
-# Test playbook to run only the Dock configuration
+# dock-config.yml
+# Playbook to run only the Dock configuration
 #
 # Usage: ansible-playbook test-dock-config.yml -i inventory.ini --limit personal -K
 
@@ -9,6 +9,21 @@
   become: false
   
   tasks:
+    - name: Debug - Show machine_type
+      debug:
+        msg: "Machine type is: {{ machine_type }}"
+    
+    - name: Set dock configuration based on machine type
+      set_fact:
+        dock_apps: "{{ lookup('vars', machine_type + '_dock_apps', default=common_dock_apps) }}"
+        dock_folders: "{{ lookup('vars', machine_type + '_dock_folders', default=common_dock_folders) }}"
+    
+    - name: Debug - Show selected dock configuration
+      debug:
+        msg:
+          - "Selected dock_apps: {{ dock_apps }}"
+          - "Selected dock_folders: {{ dock_folders }}"
+    
     - name: Check if dockutil is installed
       ansible.builtin.command: which dockutil
       register: dockutil_check
