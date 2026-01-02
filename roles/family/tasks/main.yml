@@ -1,13 +1,13 @@
 # roles/family/tasks/main.yml
 
 - name: Install family formula apps
-  homebrew:
+  community.general.homebrew:
     name: "{{ family_formula_apps }}"
     state: present
   when: family_formula_apps is defined and family_formula_apps | length > 0
 
 - name: Install family cask apps
-  homebrew_cask:
+  community.general.homebrew_cask:
     name: "{{ family_cask_apps }}"
     state: present
   when: family_cask_apps is defined and family_cask_apps | length > 0

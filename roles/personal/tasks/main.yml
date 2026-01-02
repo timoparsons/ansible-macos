@@ -2,13 +2,13 @@
 # roles/personal/tasks/main.yml
 
 - name: Install personal formula apps
-  homebrew:
+  community.general.homebrew:
     name: "{{ personal_formula_apps }}"
     state: present
   when: personal_formula_apps is defined and personal_formula_apps | length > 0
 
 - name: Install personal cask apps
-  homebrew_cask:
+  community.general.homebrew_cask:
     name: "{{ personal_cask_apps }}"
     state: present
   when: personal_cask_apps is defined and personal_cask_apps | length > 0
