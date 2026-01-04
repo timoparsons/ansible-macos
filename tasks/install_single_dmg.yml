@@ -1,6 +1,7 @@
 ---
 # tasks/install_single_dmg.yml
-# Handles a single DMG installation (called by install_dmg.yml)
+# Simplified DMG installer - user provides volume name
+# This is a shared task used by all roles
 
 - name: Process DMG installer for {{ dmg_item.name }}
   block:
@@ -15,10 +16,15 @@
       register: mount_result
       changed_when: false
 
-    - name: Extract mount point from hdiutil output
+    - name: Set mount point
       set_fact:
-        mount_point: "{{ mount_result.stdout_lines | select('search', '/Volumes/') | first | regex_search('/Volumes/\\S+') }}"
-      failed_when: mount_point is not defined or mount_point == ''
+        mount_point: "/Volumes/{{ dmg_item.volume }}"
+
+    - name: Verify mount point exists
+      stat:
+        path: "{{ mount_point }}"
+      register: mount_check
+      failed_when: not mount_check.stat.exists
 
     - name: Check for .app file in DMG
       find:
@@ -79,9 +85,9 @@
         msg: "No .app or .pkg found in {{ mount_point }} for {{ dmg_item.name }}"
       when: app_files.matched == 0 and pkg_files.matched == 0
 
-#  always:
-#    - name: Unmount DMG
-#      command: hdiutil detach "{{ mount_point }}" -force
-#      changed_when: false
-#      failed_when: false
-#      when: mount_point is defined and mount_point != ''
+  always:
+    - name: Unmount DMG
+      command: hdiutil detach "{{ mount_point }}" -force
+      changed_when: false
+      failed_when: false
+      when: mount_point is defined and mount_point != ''

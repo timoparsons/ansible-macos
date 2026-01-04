@@ -51,9 +51,11 @@
     - item.id | string not in mas_verify.stdout
 
 - name: Install video apps from DMG/PKG files
-  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
-  vars:
-    dmg_pkg_apps: "{{ video_dmg_pkg_apps }}"
+  include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
+  loop: "{{ video_dmg_pkg_apps }}"  # Each item has name, url, and volume
+  loop_control:
+    loop_var: dmg_item
+    label: "{{ dmg_item.name }}"
   when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
 
 - name: Display video apps requiring manual installation
