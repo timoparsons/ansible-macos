@@ -58,11 +58,10 @@ personal_cask_apps:
 # Mac App Store (MAS)
 personal_mas_apps:
   - { id: 1586435171, name: 'Actions' } #Actions for Apple Shortcuts
-  - { id: 1616831348, name: 'Affinity Designer 2' }
-  - { id: 1616822987, name: 'Affinity Photo 2' }
-  - { id: 1606941598, name: 'Affinity Publisher 2' }
-  # - { id: 1160435653, name: 'AutoMounter' }
-  # - { id: 424390742, name: 'Compressor' }
+  #- { id: 1616831348, name: 'Affinity Designer 2' } DISCONTINUED
+  #- { id: 1616822987, name: 'Affinity Photo 2' } DISCONTINUED
+  # - { id: 1606941598, name: 'Affinity Publisher 2' } DISCONTINUED
+  # - { id: 424390742, name: 'Compressor' } USE JOY INC ACCOUNT
   - { id: 1453273600, name: 'Data Jar' } # Data Store for Shortcuts
   - { id: 325206381, name: 'Flame Services Browser' }
   #- { id: 6443819966, name: 'IP Scanner' }
@@ -71,7 +70,7 @@ personal_mas_apps:
   - { id: 1455214828, name: 'MQTT Explorer' }
   - { id: 603637384, name: 'Name Mangler 3' }
   - { id: 463362050, name: 'Photosweeper' }
-  - { id: 506088175, name: 'Pushover' }
+  # - { id: 506088175, name: 'Pushover' } IPAD APP – MANUAL INSTALL
   - { id: 1598580439, name: 'RAW Convertor' }
   - { id: 1550457805, name: 'Soro for Sonos' } # Control Sonos with Shortcuts
   - { id: 1481853033, name: 'Strongbox Pro' }
