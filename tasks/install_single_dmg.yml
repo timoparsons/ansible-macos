@@ -79,9 +79,9 @@
         msg: "No .app or .pkg found in {{ mount_point }} for {{ dmg_item.name }}"
       when: app_files.matched == 0 and pkg_files.matched == 0
 
-  always:
-    - name: Unmount DMG
-      command: hdiutil detach "{{ mount_point }}" -force
-      changed_when: false
-      failed_when: false
-      when: mount_point is defined and mount_point != ''
+#  always:
+#    - name: Unmount DMG
+#      command: hdiutil detach "{{ mount_point }}" -force
+#      changed_when: false
+#      failed_when: false
+#      when: mount_point is defined and mount_point != ''
