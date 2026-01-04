@@ -11,12 +11,19 @@
     state: present
   when: video_cask_apps is defined and video_cask_apps | length > 0
 
+- name: Check if video Mac App Store apps are already installed
+  ansible.builtin.command: mas list
+  register: mas_installed
+  changed_when: false
+  failed_when: false
+
 - name: Install video Mac App Store apps
   ansible.builtin.command: mas install {{ item.id }}
   loop: "{{ video_mas_apps }}"
   when: 
     - video_mas_apps is defined 
     - video_mas_apps | length > 0
+    - mas_installed.rc == 0
     - item.id | string not in mas_installed.stdout
   register: mas_install
   changed_when: mas_install.rc == 0
