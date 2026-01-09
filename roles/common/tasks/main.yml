@@ -101,7 +101,7 @@
   ansible.builtin.script: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
   register: role_defaults_result
   changed_when: "'Please log out' in role_defaults_result.stdout"
-  tags: ['macos_defaults', '{{ machine_type }}_defaults']
+  tags: ['macos_defaults']
   when: 
     - machine_type != 'common'
     - role_defaults_script.stat.exists
