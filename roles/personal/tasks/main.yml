@@ -8,25 +8,53 @@
         path: "/Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt"
       register: cert_file
 
-    - name: Install certificate to system keychain
-      command: >
-        security add-trusted-cert
-        -d
-        -r trustRoot
-        -k /Library/Keychains/System.keychain
-        "/Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt"
+    - name: Check if certificate is already trusted
+      shell: security dump-trust-settings | grep -q "caddy-root-ca" && echo "installed" || echo "not-installed"
+      register: cert_check
+      changed_when: false
+      failed_when: false
       when: cert_file.stat.exists
-      become: true
-      register: cert_install
-      changed_when: cert_install.rc == 0
-      failed_when: 
-        - cert_install.rc != 0
-        - "'already exists' not in cert_install.stderr"
 
-    - name: Display certificate installation status
+    - name: Copy certificate to user directory for manual installation
+      copy:
+        src: "/Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt"
+        dest: "{{ ansible_facts['env']['HOME'] }}/Desktop/caddy-root-ca.crt"
+        mode: '0644'
+      when: 
+        - cert_file.stat.exists
+        - cert_check.stdout == "not-installed"
+      register: cert_copied
+
+    - name: Display manual certificate installation instructions
       debug:
-        msg: "✅ Caddy Root CA certificate installed successfully"
-      when: cert_file.stat.exists and cert_install.rc == 0
+        msg: |
+          
+          ⚠️  MANUAL ACTION REQUIRED: Install Caddy Root CA Certificate
+          
+          The certificate has been copied to your Desktop: caddy-root-ca.crt
+          
+          To install it:
+          1. Double-click the certificate file on your Desktop
+          2. In the Keychain Access window, select "System" from the dropdown
+          3. Click "Add"
+          4. Enter your password when prompted
+          5. Find the certificate in System keychain, double-click it
+          6. Expand "Trust" section
+          7. Set "When using this certificate" to "Always Trust"
+          8. Close the window and enter your password again
+          
+          Or run this command manually:
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/Desktop/caddy-root-ca.crt
+      when: 
+        - cert_file.stat.exists
+        - cert_check.stdout == "not-installed"
+
+    - name: Certificate already installed
+      debug:
+        msg: "✅ Caddy Root CA certificate is already installed"
+      when: 
+        - cert_file.stat.exists
+        - cert_check.stdout == "installed"
 
     - name: Warning if certificate file not found
       debug:
