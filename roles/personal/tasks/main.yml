@@ -1,31 +1,6 @@
 ---
 # roles/personal/tasks/main.yml
 
-- name: Install personal formula apps
-  community.general.homebrew:
-    name: "{{ personal_formula_apps }}"
-    state: present
-  when: personal_formula_apps is defined and personal_formula_apps | length > 0
-
-- name: Install personal cask apps
-  community.general.homebrew_cask:
-    name: "{{ personal_cask_apps }}"
-    state: present
-  when: personal_cask_apps is defined and personal_cask_apps | length > 0
-
-- name: Install personal Mac App Store apps
-  community.general.mas:
-    id: "{{ item.id }}"
-    state: present
-  loop: "{{ personal_mas_apps }}"
-  when: personal_mas_apps is defined and personal_mas_apps | length > 0
-
-- name: Install personal apps from DMG/PKG files
-  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
-  vars:
-    dmg_pkg_apps: "{{ personal_dmg_pkg_apps }}"
-  when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
-
 - name: Install Caddy Root CA Certificate
   block:
     - name: Check if certificate file exists
@@ -58,6 +33,33 @@
         msg: "⚠️  Caddy Root CA certificate not found at /Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt - skipping"
       when: not cert_file.stat.exists
   tags: ['certificates']
+
+- name: Install personal formula apps
+  community.general.homebrew:
+    name: "{{ personal_formula_apps }}"
+    state: present
+  when: personal_formula_apps is defined and personal_formula_apps | length > 0
+
+- name: Install personal cask apps
+  community.general.homebrew_cask:
+    name: "{{ personal_cask_apps }}"
+    state: present
+  when: personal_cask_apps is defined and personal_cask_apps | length > 0
+
+- name: Install personal Mac App Store apps
+  community.general.mas:
+    id: "{{ item.id }}"
+    state: present
+  loop: "{{ personal_mas_apps }}"
+  when: personal_mas_apps is defined and personal_mas_apps | length > 0
+
+- name: Install personal apps from DMG/PKG files
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+  vars:
+    dmg_pkg_apps: "{{ personal_dmg_pkg_apps }}"
+  when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
+
+
 
 
 - name: Display personal apps requiring manual installation
