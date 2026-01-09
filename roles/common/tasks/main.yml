@@ -73,12 +73,12 @@
   when: common_manual_installs is defined and common_manual_installs | length > 0
 
 - name: Setup SSH keys
-  include_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
+  include_tasks: "{{ role_path }}/tasks/setup_ssh.yml"
   tags: ['ssh']
   when: ssh_files is defined and ssh_files | length > 0
 
 - name: Setup dotfiles
-  include_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
+  include_tasks: "{{ role_path }}/tasks/setup_dotfiles.yml"
   tags: ['dotfiles']
   when: dotfiles_files is defined and dotfiles_files | length > 0
   
