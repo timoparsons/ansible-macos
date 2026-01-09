@@ -10,7 +10,7 @@
 
     - name: Install certificate to system keychain
       command: >
-        sudo security add-trusted-cert
+        security add-trusted-cert
         -d
         -r trustRoot
         -k /Library/Keychains/System.keychain
