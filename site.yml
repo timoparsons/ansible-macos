@@ -3,6 +3,15 @@
   hosts: all
   become: false
   
+  pre_tasks:
+    - name: Check required network volumes are mounted
+      include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
+      vars:
+        required_volumes:
+          - backup_proxmox
+      when: machine_type in ['video', 'personal']
+      tags: always
+
   roles:
     - role: common
       tags: common
@@ -19,12 +28,8 @@
       when: machine_type == 'family'
       tags: family
 
-  tasks:
-    - name: Check required network volumes are mounted
-      include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
-      vars:
-        required_volumes:
-          - common
-          # - production  # Add more as needed
-      when: machine_type in ['video', 'personal']
-      tags: always
+  post_tasks:
+    - name: Configure Dock (after all apps installed)
+      import_tasks: roles/common/tasks/dock.yml
+      tags: ['dock']
+    

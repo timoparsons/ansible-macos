@@ -1,4 +1,8 @@
 # group_vars/all.yml
+# Network volume base path (used by all machine types)
+macos_network_base: "/Volumes/backup_proxmox/macos"
+
+dotfiles_files: []
 
 # Command Line Tools (Brew Formulae)
 common_formula_apps:

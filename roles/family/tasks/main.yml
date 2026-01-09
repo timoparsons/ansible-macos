@@ -1,5 +1,6 @@
 # roles/family/tasks/main.yml
 
+
 - name: Install family formula apps
   community.general.homebrew:
     name: "{{ family_formula_apps }}"
@@ -24,7 +25,7 @@
   vars:
     dmg_pkg_apps: "{{ family_dmg_pkg_apps }}"
   when: family_dmg_pkg_apps is defined and family_dmg_pkg_apps | length > 0
-
+  
 - name: Display family apps requiring manual installation
   debug:
     msg: |

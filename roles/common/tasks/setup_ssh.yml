@@ -1,0 +1,34 @@
+# tasks/setup_ssh.yml
+---
+- name: Ensure .ssh directory exists
+  file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Check if SSH source directory exists on network volume
+  stat:
+    path: "{{ macos_network_base }}/ssh/{{ machine_type }}"
+  register: ssh_source_check
+  when: macos_network_base is defined
+
+- name: Copy SSH files from network volume
+  copy:
+    src: "{{ macos_network_base }}/ssh/{{ machine_type }}/{{ item.src }}"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.dest }}"
+    mode: "{{ item.mode }}"
+    backup: yes
+  loop: "{{ ssh_files | default([]) }}"
+  when: 
+    - macos_network_base is defined
+    - ssh_source_check.stat.exists
+    - ssh_files is defined
+    - ssh_files | length > 0
+  no_log: true
+
+- name: Ensure correct permissions on .ssh directory
+  file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
+    state: directory
+    mode: '0700'
+    recurse: yes

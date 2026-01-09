@@ -1,0 +1,33 @@
+# tasks/setup_dotfiles.yml
+---
+- name: Check if dotfiles directory exists on network volume
+  stat:
+    path: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
+  register: dotfiles_check
+  when: macos_network_base is defined
+
+- name: Display dotfiles status
+  debug:
+    msg: "Dotfiles directory {{ 'found' if dotfiles_check.stat.exists else 'not found' }} at {{ macos_network_base }}/dotfiles/{{ machine_type }}"
+  when: 
+    - macos_network_base is defined
+    - dotfiles_check is defined
+
+- name: Copy dotfiles from network volume
+  copy:
+    src: "{{ macos_network_base }}/dotfiles/{{ machine_type }}/{{ item.src }}"
+    dest: "{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+    backup: yes
+  loop: "{{ dotfiles_files | default([]) }}"
+  when: 
+    - macos_network_base is defined
+    - dotfiles_check.stat.exists
+    - dotfiles_files is defined
+    - dotfiles_files | length > 0
+
+- name: No dotfiles configured message
+  debug:
+    msg: "No dotfiles configured for {{ machine_type }} machine type"
+  when: 
+    - dotfiles_files is not defined or dotfiles_files | length == 0

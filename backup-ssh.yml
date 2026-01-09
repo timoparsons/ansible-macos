@@ -1,0 +1,85 @@
+# backup-ssh.yml
+---
+- name: Backup SSH configuration to network volume (Personal machines only)
+  hosts: personal
+  become: false
+  
+  vars:
+    backup_base: "/Volumes/backup_proxmox/macos"
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+  
+  tasks:
+    - name: Check if network volume is mounted
+      stat:
+        path: "{{ backup_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+    
+    - name: Ensure SSH backup directory exists
+      file:
+        path: "{{ backup_base }}/ssh/personal"
+        state: directory
+        mode: '0700'
+    
+    - name: Create timestamped backup directory
+      file:
+        path: "{{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}"
+        state: directory
+        mode: '0700'
+      when: create_timestamped_backup | default(false) | bool
+    
+    - name: Backup current SSH directory (timestamped)
+      synchronize:
+        src: "{{ ansible_facts['env']['HOME'] }}/.ssh/"
+        dest: "{{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}/"
+        recursive: yes
+        delete: no
+      delegate_to: "{{ inventory_hostname }}"
+      when: create_timestamped_backup | default(false) | bool
+    
+    - name: List files to backup
+      find:
+        paths: "{{ ansible_facts['env']['HOME'] }}/.ssh"
+        file_type: file
+      register: ssh_files_found
+    
+    - name: Backup SSH files to network volume
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ backup_base }}/ssh/personal/{{ item.path | basename }}"
+        mode: preserve
+        backup: no
+      loop: "{{ ssh_files_found.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+      no_log: true
+    
+    - name: Set correct permissions on backed up private keys
+      file:
+        path: "{{ backup_base }}/ssh/personal/{{ item }}"
+        mode: '0600'
+      loop:
+        - id_ed25519
+        - id_rsa
+        - config
+        - authorized_keys
+        - known_hosts
+      ignore_errors: yes
+    
+    - name: Set correct permissions on backed up public keys
+      file:
+        path: "{{ backup_base }}/ssh/personal/{{ item }}"
+        mode: '0644'
+      loop:
+        - id_ed25519.pub
+        - id_rsa.pub
+      ignore_errors: yes
+    
+    - name: Display backup location
+      debug:
+        msg: |
+          ✅ SSH backup complete!
+          Location: {{ backup_base }}/ssh/personal/
+          {% if create_timestamped_backup | default(false) | bool %}
+          Timestamped backup: {{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}/
+          {% endif %}

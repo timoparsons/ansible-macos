@@ -72,12 +72,36 @@
       =====================================================
   when: common_manual_installs is defined and common_manual_installs | length > 0
 
-- name: Apply macOS system defaults
+- name: Setup SSH keys
+  include_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
+  tags: ['ssh']
+  when: ssh_files is defined and ssh_files | length > 0
+
+- name: Setup dotfiles
+  include_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
+  tags: ['dotfiles']
+  when: dotfiles_files is defined and dotfiles_files | length > 0
+  
+# Apply macOS defaults - common for all machine types
+- name: Apply common macOS system defaults
   ansible.builtin.script: "{{ role_path }}/files/macos-defaults.sh"
   register: macos_defaults_result
   changed_when: "'Please log out' in macos_defaults_result.stdout"
   tags: ['macos_defaults']
 
-- name: Import Dock configuration tasks
-  ansible.builtin.import_tasks: dock.yml
-  tags: ['dock']
+# Apply role-specific macOS defaults if they exist
+- name: Check if role-specific macOS defaults script exists
+  stat:
+    path: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
+  register: role_defaults_script
+  delegate_to: localhost
+  when: machine_type != 'common'
+
+- name: Apply role-specific macOS defaults
+  ansible.builtin.script: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
+  register: role_defaults_result
+  changed_when: "'Please log out' in role_defaults_result.stdout"
+  tags: ['macos_defaults', '{{ machine_type }}_defaults']
+  when: 
+    - machine_type != 'common'
+    - role_defaults_script.stat.exists

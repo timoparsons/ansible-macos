@@ -26,6 +26,40 @@
     dmg_pkg_apps: "{{ personal_dmg_pkg_apps }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
 
+- name: Install Caddy Root CA Certificate
+  block:
+    - name: Check if certificate file exists
+      stat:
+        path: "/Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt"
+      register: cert_file
+
+    - name: Install certificate to system keychain
+      command: >
+        sudo security add-trusted-cert
+        -d
+        -r trustRoot
+        -k /Library/Keychains/System.keychain
+        "/Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt"
+      when: cert_file.stat.exists
+      become: true
+      register: cert_install
+      changed_when: cert_install.rc == 0
+      failed_when: 
+        - cert_install.rc != 0
+        - "'already exists' not in cert_install.stderr"
+
+    - name: Display certificate installation status
+      debug:
+        msg: "✅ Caddy Root CA certificate installed successfully"
+      when: cert_file.stat.exists and cert_install.rc == 0
+
+    - name: Warning if certificate file not found
+      debug:
+        msg: "⚠️  Caddy Root CA certificate not found at /Volumes/backup_proxmox/macos/certificates/caddy-root-ca.crt - skipping"
+      when: not cert_file.stat.exists
+  tags: ['certificates']
+
+
 - name: Display personal apps requiring manual installation
   debug:
     msg: |

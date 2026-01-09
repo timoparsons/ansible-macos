@@ -8,37 +8,45 @@
         dock_apps: "{{ lookup('vars', machine_type + '_dock_apps', default=common_dock_apps) }}"
         dock_folders: "{{ lookup('vars', machine_type + '_dock_folders', default=common_dock_folders) }}"
     
-    - name: Check if dockutil is installed
-      ansible.builtin.command: which dockutil
-      register: dockutil_check
-      changed_when: false
-      failed_when: false
-
-    - name: Fail if dockutil is not installed
-      ansible.builtin.fail:
-        msg: "dockutil is required but not installed. Install it with: brew install dockutil"
-      when: dockutil_check.rc != 0
-
+    - name: Check which apps exist
+      stat:
+        path: "{{ item.path }}"
+      loop: "{{ dock_apps | default([]) }}"
+      register: app_check
+      loop_control:
+        label: "{{ item.path }}"
+    
+    - name: Filter to only existing apps
+      set_fact:
+        existing_dock_apps: "{{ app_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        missing_dock_apps: "{{ app_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+    
+    - name: Warn about missing apps
+      debug:
+        msg: "⚠️  Skipping {{ item.path | basename }} - not installed yet"
+      loop: "{{ missing_dock_apps }}"
+      loop_control:
+        label: "{{ item.path }}"
+      when: missing_dock_apps | length > 0
+    
     - name: Remove all items from Dock
       ansible.builtin.command: dockutil --remove all --no-restart
       register: dock_clear
       changed_when: "'No dock items to remove' not in dock_clear.stderr"
-      failed_when: 
-        - dock_clear.rc != 0
-        - "'No dock items to remove' not in dock_clear.stderr"
+      failed_when: false
       when: dock_clear_all | default(true)
 
-    - name: Add applications to Dock
+    - name: Add existing applications to Dock
       ansible.builtin.command: >
         dockutil --add "{{ item.path }}"
         {% if item.position is defined %}--position {{ item.position }}{% endif %}
         --no-restart
-      loop: "{{ dock_apps | default([]) }}"
+      loop: "{{ existing_dock_apps }}"
       register: dock_add
       changed_when: "'already exists' not in dock_add.stderr"
-      failed_when: 
-        - dock_add.rc != 0
-        - "'already exists' not in dock_add.stderr"
+      failed_when: false
+      loop_control:
+        label: "{{ item.path | basename }}"
 
     - name: Add folders/files to Dock
       ansible.builtin.command: >
@@ -51,19 +59,8 @@
       loop: "{{ dock_folders | default([]) }}"
       register: dock_folder_add
       changed_when: "'already exists' not in dock_folder_add.stderr"
-      failed_when: 
-        - dock_folder_add.rc != 0
-        - "'already exists' not in dock_folder_add.stderr"
-
-    - name: Check if Dock needs restart
-      set_fact:
-        dock_needs_restart: >-
-          {{
-            (dock_clear is changed) or
-            (dock_add.results | default([]) | selectattr('changed', 'equalto', true) | list | length > 0) or
-            (dock_folder_add.results | default([]) | selectattr('changed', 'equalto', true) | list | length > 0)
-          }}
+      failed_when: false
 
     - name: Restart Dock
       ansible.builtin.command: killall Dock
-      when: dock_needs_restart | bool
+      when: dock_clear is changed or dock_add is changed or dock_folder_add is changed
