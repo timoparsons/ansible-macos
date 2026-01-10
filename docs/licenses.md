@@ -140,9 +140,16 @@ For each app:
 
 **Before deactivating:** No deactivation needed
 
-### Other Applications
+### Visual Studio Code
 
-Check `/Volumes/backup_proxmox/macos/licenses/other/` for additional license files.
+**Settings**
+
+1. Launch VSCode
+2. Settings → Backup and Sync Settings...
+3. Sign in to Github
+
+
+
 
 ## Adding New License Information
 

@@ -61,10 +61,8 @@ app_backup_definitions:
   bloom:
     name: "Bloom"
     paths:
-      - src: "~/Library/Containers/com.striving.bloom"
-        dest: "bloom/container"
-        exclude:
-          - "Data/Library/Caches"
+      - src: "~/Library/Preferences/com.asiafu.Bloom.plist"
+        dest: "bloom"
   
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"
@@ -276,7 +274,9 @@ app_backup_definitions:
           - "globalStorage"
           - "History"
           - "CachedData"
-
+          - "sync"              
+          - "Backups"           
+          - "logs"              
 
 # ============================================================================
 # MACHINE-SPECIFIC APP LISTS
