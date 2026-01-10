@@ -1,5 +1,5 @@
 # ============================================================================
-# File: tasks/backup_single_app.yml
+# File: tasks/backup_app.yml
 # Reusable task to backup a single application
 # Called by backup playbooks, not run directly
 # ============================================================================
@@ -20,7 +20,7 @@
         label: "{{ item.dest }}"
     
     - name: "Backup paths for {{ app_def.name }}"
-      include_tasks: backup_single_path.yml
+      include_tasks: backup_path.yml
       loop: "{{ app_def.paths }}"
       loop_control:
         loop_var: path_item

@@ -9,7 +9,23 @@ ssh_files:
   - { src: "config", dest: "config", mode: '0600' }
   - { src: "authorized_keys", dest: "authorized_keys", mode: '0600' }
 
+
+dotfiles_files:
+  # Essential shell config
+  - { src: ".zshrc", dest: ".zshrc", mode: '0644' }
+  - { src: ".zprofile", dest: ".zprofile", mode: '0644' }
   
+  # Git config
+  - { src: ".gitconfig", dest: ".gitconfig", mode: '0644' }
+  - { src: ".gitignore_global", dest: ".gitignore_global", mode: '0644' }
+  
+  # Prompt
+  - { src: ".config/starship.toml", dest: ".config/starship.toml", mode: '0644' }
+  
+  # VS Code Projects
+  - { src: ".config/vscode_projects.json", dest: ".config/vscode_projects.json", mode: '0644' }
+
+
 # Command Line Tools (Brew Formulae)
 personal_formula_apps:
   - exiftool

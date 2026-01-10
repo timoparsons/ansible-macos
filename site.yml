@@ -33,6 +33,25 @@
       import_tasks: roles/common/tasks/dock.yml
       tags: ['dock', 'config']
     
+    # Restore SSH keys from network backup
+    - name: Restore SSH keys
+      import_tasks: playbooks/restore-ssh.yml
+      when: 
+        - restore_ssh_keys | default(true)
+        - macos_network_base is defined
+        - ssh_files is defined
+        - ssh_files | length > 0
+      tags: ['restore', 'ssh', 'config']
+    
+    # Restore dotfiles from network backup
+    - name: Restore dotfiles
+      import_tasks: playbooks/restore-dotfiles.yml
+      when: 
+        - restore_dotfiles | default(true)
+        - macos_network_base is defined
+      tags: ['restore', 'dotfiles', 'config']
+    
+    # Wait for apps to settle before restoring settings
     - name: Wait for apps to settle
       pause:
         seconds: 3
@@ -42,6 +61,7 @@
         - macos_network_base is defined
       tags: ['restore', 'config']
     
+    # Smart restore - only restore settings for apps that are actually installed
     - name: Check if app settings backup exists
       stat:
         path: "{{ macos_network_base }}/apps/{{ machine_type }}"
@@ -79,18 +99,23 @@
           ✅ Provisioning complete!
           
           {% if restore_app_settings | default(true) and macos_network_base is defined %}
-          📦 Application settings restored for installed apps
+          📦 Restored:
+            • SSH keys ({{ ssh_files | default([]) | length }} files)
+            • Dotfiles ({{ lookup('vars', machine_type + '_dotfiles_files', default=dotfiles_files) | length }} files)
+            • App settings (for installed apps only)
           
           For manually installed apps, restore settings with:
-            ansible-playbook site.yml -i inventory.ini --limit {{ machine_type }} --tags restore
+            ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit {{ machine_type }}
           
           Or restore specific apps:
             ansible-playbook playbooks/selective/restore-apps-selective.yml \
               -i inventory.ini --limit {{ machine_type }} \
               -e "apps_list=raycast,vscode"
           {% else %}
-          💡 App settings were NOT restored. To restore them:
-             ansible-playbook site.yml -i inventory.ini --limit {{ machine_type }} --tags restore
+          💡 Settings were NOT restored. To restore them:
+             ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit {{ machine_type }}
+             ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit {{ machine_type }}
+             ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit {{ machine_type }}
           {% endif %}
           
           ⚠️  Remember to log out and back in for all settings to take effect

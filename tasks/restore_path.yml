@@ -1,7 +1,7 @@
 # ============================================================================
-# File: tasks/restore_single_path.yml
+# File: tasks/restore_path.yml
 # Restores a single path (file or directory)
-# Called by restore_single_app.yml, not run directly
+# Called by restore_app.yml, not run directly
 # ============================================================================
 ---
 - name: "Check if backup exists: {{ path_item.dest }}"

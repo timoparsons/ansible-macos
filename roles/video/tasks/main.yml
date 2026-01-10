@@ -59,7 +59,7 @@
   tags: ['mas', 'gui']
 
 - name: Install video apps from DMG/PKG files
-  include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
+  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
   loop: "{{ video_dmg_pkg_apps }}"
   loop_control:
     loop_var: dmg_item

@@ -1,5 +1,5 @@
 # ============================================================================
-# File: tasks/restore_single_app.yml
+# File: tasks/restore_app.yml
 # Reusable task to restore a single application
 # Called by restore playbooks, not run directly
 # ============================================================================
@@ -11,7 +11,7 @@
         app_def: "{{ app_backup_definitions[app_key] }}"
     
     - name: "Restore paths for {{ app_def.name }}"
-      include_tasks: restore_single_path.yml
+      include_tasks: restore_path.yml
       loop: "{{ app_def.paths }}"
       loop_control:
         loop_var: path_item

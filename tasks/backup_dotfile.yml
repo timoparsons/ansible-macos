@@ -1,0 +1,58 @@
+# ============================================================================
+# File: tasks/backup_dotfile.yml
+# Backs up a single dotfile to network storage
+# Called by backup-dotfiles.yml, not run directly
+# ============================================================================
+---
+- name: "Check if {{ dotfile_item.dest }} is a file or directory"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}"
+  register: dotfile_stat
+
+- name: "Create parent directory for {{ dotfile_item.src }}"
+  file:
+    path: "{{ backup_base }}/{{ dotfile_item.src | dirname }}"
+    state: directory
+    mode: '0755'
+  when: (dotfile_item.src | dirname) != '' and (dotfile_item.src | dirname) != '.'
+
+- name: "Backup file: {{ dotfile_item.dest }}"
+  copy:
+    src: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}"
+    dest: "{{ backup_base }}/{{ dotfile_item.src }}"
+    mode: preserve
+  when: not dotfile_stat.stat.isdir
+
+- name: "Backup directory: {{ dotfile_item.dest }}"
+  synchronize:
+    src: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}/"
+    dest: "{{ backup_base }}/{{ dotfile_item.src }}/"
+    recursive: yes
+    delete: no
+  delegate_to: "{{ inventory_hostname }}"
+  when: dotfile_stat.stat.isdir
+
+- name: "Create timestamped backup of {{ dotfile_item.dest }}"
+  block:
+    - name: "Create timestamped parent directory"
+      file:
+        path: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ dotfile_item.src | dirname }}"
+        state: directory
+        mode: '0755'
+      when: (dotfile_item.src | dirname) != '' and (dotfile_item.src | dirname) != '.'
+    
+    - name: "Timestamped backup (file): {{ dotfile_item.dest }}"
+      copy:
+        src: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}"
+        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ dotfile_item.src }}"
+        mode: preserve
+      when: not dotfile_stat.stat.isdir
+    
+    - name: "Timestamped backup (directory): {{ dotfile_item.dest }}"
+      synchronize:
+        src: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}/"
+        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ dotfile_item.src }}/"
+        recursive: yes
+      delegate_to: "{{ inventory_hostname }}"
+      when: dotfile_stat.stat.isdir
+  when: backup_create_timestamped | default(false) | bool

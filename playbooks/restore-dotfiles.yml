@@ -1,0 +1,75 @@
+# ============================================================================
+# File: playbooks/restore-dotfiles.yml
+# Restore dotfiles from network volume
+# Usage: ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Restore Dotfiles from Network Volume
+  hosts: all
+  become: false
+  
+  vars:
+    backup_base: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
+  
+  tasks:
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+    
+    - name: Get dotfiles list for this machine type
+      set_fact:
+        dotfiles_list: "{{ lookup('vars', machine_type + '_dotfiles_files', default=dotfiles_files) }}"
+    
+    - name: Display restore summary
+      debug:
+        msg: |
+          📥 Restoring dotfiles for {{ machine_type }} machine
+          📂 Source: {{ backup_base }}/
+          📝 Files to restore: {{ dotfiles_list | length }}
+    
+    - name: Skip if no dotfiles configured
+      debug:
+        msg: "⏭️  No dotfiles configured for {{ machine_type }} machine type"
+      when: dotfiles_list | length == 0
+
+    - name: Check which backup files exist on network
+      stat:
+        path: "{{ backup_base }}/{{ item.dest }}"
+      register: remote_dotfile_check
+      loop: "{{ dotfiles_list }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      when: dotfiles_list | length > 0
+    
+    - name: Create list of restorable dotfiles
+      set_fact:
+        restorable_dotfiles: "{{ remote_dotfile_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        missing_backups: "{{ remote_dotfile_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+      when: dotfiles_list | length > 0
+    
+    - name: Display missing backups
+      debug:
+        msg: "⚠️  Warning: Backup for {{ item.dest }} not found on network volume"
+      loop: "{{ missing_backups }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      when: 
+        - dotfiles_list | length > 0
+        - missing_backups | length > 0
+    
+    - name: Restore each dotfile
+      include_tasks: ../tasks/restore_dotfile.yml
+      loop: "{{ restorable_dotfiles }}"
+      loop_control:
+        loop_var: dotfile_item
+        label: "{{ dotfile_item.dest }}"
+      when: restorable_dotfiles | length > 0
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Dotfiles restore complete!
+          📝 Restored {{ restorable_dotfiles | length }} dotfiles to {{ ansible_facts['env']['HOME'] }}/
+      when: restorable_dotfiles | length > 0

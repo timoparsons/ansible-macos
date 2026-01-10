@@ -1,0 +1,42 @@
+# ============================================================================
+# File: tasks/restore_dotfile.yml
+# Restores a single dotfile from network storage
+# Called by restore-dotfiles.yml, not run directly
+# ============================================================================
+---
+- name: "Check if source exists: {{ dotfile_item.src }}"
+  stat:
+    path: "{{ dotfiles_source }}/{{ dotfile_item.src }}"
+  register: source_check
+
+- name: "Skip {{ dotfile_item.dest }} - source not found"
+  debug:
+    msg: "⏭️  Skipping {{ dotfile_item.dest }} - source not found at {{ dotfiles_source }}/{{ dotfile_item.src }}"
+  when: not source_check.stat.exists
+
+- name: "Restore {{ dotfile_item.dest }}"
+  when: source_check.stat.exists
+  block:
+    - name: "Ensure parent directory exists for {{ dotfile_item.dest }}"
+      file:
+        path: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest | dirname }}"
+        state: directory
+        mode: '0755'
+      when: (dotfile_item.dest | dirname) != '' and (dotfile_item.dest | dirname) != '.'
+    
+    - name: "Restore file: {{ dotfile_item.dest }}"
+      copy:
+        src: "{{ dotfiles_source }}/{{ dotfile_item.src }}"
+        dest: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}"
+        mode: "{{ dotfile_item.mode | default('0644') }}"
+        backup: yes
+      when: not source_check.stat.isdir
+    
+    - name: "Restore directory: {{ dotfile_item.dest }}"
+      synchronize:
+        src: "{{ dotfiles_source }}/{{ dotfile_item.src }}/"
+        dest: "{{ ansible_facts['env']['HOME'] }}/{{ dotfile_item.dest }}/"
+        recursive: yes
+        delete: no
+      delegate_to: "{{ inventory_hostname }}"
+      when: source_check.stat.isdir

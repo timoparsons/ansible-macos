@@ -39,7 +39,7 @@
           🎯 Destination: {{ backup_base }}/{{ machine_type }}/
     
     - name: Backup applications
-      include_tasks: ../../tasks/backup_single_app.yml
+      include_tasks: ../../tasks/backup_app.yml
       loop: "{{ apps_to_backup }}"
       loop_control:
         loop_var: app_key

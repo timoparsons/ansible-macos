@@ -1,0 +1,97 @@
+# ============================================================================
+# File: playbooks/backup-dotfiles.yml
+# Backup dotfiles to network volume
+# Usage: ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Backup Dotfiles to Network Volume
+  hosts: all
+  become: false
+  
+  vars:
+    backup_base: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+  
+  tasks:
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+    
+    - name: Get dotfiles list for this machine type
+      set_fact:
+        dotfiles_list: "{{ lookup('vars', machine_type + '_dotfiles_files', default=dotfiles_files) }}"
+    
+    - name: Display backup summary
+      debug:
+        msg: |
+          📦 Backing up dotfiles for {{ machine_type }} machine
+          📁 Destination: {{ backup_base }}/
+          📝 Files to backup: {{ dotfiles_list | length }}
+          {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
+    
+    - name: Skip if no dotfiles configured
+      debug:
+        msg: "⏭️  No dotfiles configured for {{ machine_type }} machine type"
+      when: dotfiles_list | length == 0
+    
+    - name: Create backup directory
+      file:
+        path: "{{ backup_base }}"
+        state: directory
+        mode: '0755'
+      when: dotfiles_list | length > 0
+    
+    - name: Create timestamped backup directory
+      file:
+        path: "{{ backup_base }}/backups/{{ backup_timestamp }}"
+        state: directory
+        mode: '0755'
+      when: 
+        - backup_create_timestamped | default(false) | bool
+        - dotfiles_list | length > 0
+    
+    - name: Check which dotfiles exist
+      stat:
+        path: "{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
+      register: dotfile_check
+      loop: "{{ dotfiles_list }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      when: dotfiles_list | length > 0
+    
+    - name: Create list of existing dotfiles
+      set_fact:
+        existing_dotfiles: "{{ dotfile_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        missing_dotfiles: "{{ dotfile_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+      when: dotfiles_list | length > 0
+    
+    - name: Display missing dotfiles
+      debug:
+        msg: "⏭️  Skipping {{ item.dest }} - does not exist"
+      loop: "{{ missing_dotfiles }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      when: 
+        - dotfiles_list | length > 0
+        - missing_dotfiles | length > 0
+    
+    - name: Backup each dotfile
+      include_tasks: ../tasks/backup_dotfile.yml
+      loop: "{{ existing_dotfiles }}"
+      loop_control:
+        loop_var: dotfile_item
+        label: "{{ dotfile_item.dest }}"
+      when: dotfiles_list | length > 0
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Dotfiles backup complete!
+          📁 Location: {{ backup_base }}/
+          📝 Backed up {{ existing_dotfiles | default([]) | length }} dotfiles
+          {% if backup_create_timestamped %}
+          🕒 Timestamped backup: {{ backup_base }}/backups/{{ backup_timestamp }}/
+          {% endif %}
+      when: dotfiles_list | length > 0

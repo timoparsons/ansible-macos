@@ -20,7 +20,7 @@
     app_is_installed: "{{ app_check_results.results | selectattr('stat.exists') | list | length > 0 }}"
 
 - name: "Restore {{ app_backup_definitions[app_key].name }} settings"
-  include_tasks: restore_single_app.yml
+  include_tasks: restore_app.yml
   when: app_is_installed
 
 - name: "Skip {{ app_backup_definitions[app_key].name }} - not installed"

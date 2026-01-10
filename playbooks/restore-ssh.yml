@@ -1,0 +1,54 @@
+# ============================================================================
+# File: playbooks/restore-ssh.yml
+# Restore SSH keys and config from network volume
+# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Restore SSH Configuration from Network Volume
+  hosts: all
+  become: false
+  
+  vars:
+    ssh_backup_base: "{{ macos_network_base }}/ssh/{{ machine_type }}"
+    ssh_dest_dir: "{{ ansible_facts['env']['HOME'] }}/.ssh"
+  
+  tasks:
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+
+    - name: Ensure local .ssh directory exists with correct permissions
+      file:
+        path: "{{ ssh_dest_dir }}"
+        state: directory
+        mode: '0700'
+
+    - name: Check for SSH backup on network
+      stat:
+        path: "{{ ssh_backup_base }}"
+      register: ssh_backup_check
+
+    - name: Fail if no SSH backup found
+      fail:
+        msg: "❌ No SSH backup found at {{ ssh_backup_base }}"
+      when: not ssh_backup_check.stat.exists
+
+    - name: Restore SSH files
+      shell: |
+        rsync -av --progress "{{ ssh_backup_base }}/" "{{ ssh_dest_dir }}/"
+      register: rsync_result
+      changed_when: "'incrementing' in rsync_result.stdout"
+
+    - name: Fix permissions on restored SSH private keys
+      shell: |
+        find {{ ssh_dest_dir }} -type f -not -name "*.pub" -not -name "known_hosts" -not -name "config" -exec chmod 600 {} \;
+        find {{ ssh_dest_dir }} -type f -name "*.pub" -exec chmod 644 {} \;
+        chmod 644 {{ ssh_dest_dir }}/config || true
+      args:
+        executable: /bin/bash
+      
+    - name: Display completion message
+      debug:
+        msg: "✅ SSH restoration complete. Permissions have been hardened."
