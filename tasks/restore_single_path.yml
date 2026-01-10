@@ -20,7 +20,7 @@
     
     - name: "Check if source path should be a file (has extension)"
       set_fact:
-        src_is_file: "{{ path_item.src | basename | regex_search('\\.[a-zA-Z0-9]+$') }}"
+        src_is_file: "{{ (path_item.src | basename | regex_search('\\.[a-zA-Z0-9]+$')) is not none }}"
     
     # If source is a file (like .plist), find and copy the actual file from backup
     - name: "Find file in backup directory"
