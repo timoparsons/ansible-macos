@@ -12,18 +12,53 @@
   register: ssh_source_check
   when: macos_network_base is defined
 
+- name: Check which SSH files exist on network volume
+  stat:
+    path: "{{ macos_network_base }}/ssh/{{ machine_type }}/{{ item.src }}"
+  register: ssh_file_exists_check
+  loop: "{{ ssh_files | default([]) }}"
+  loop_control:
+    label: "{{ item.src }}"
+  when:
+    - macos_network_base is defined
+    - ssh_source_check.stat.exists
+    - ssh_files is defined
+    - ssh_files | length > 0
+
+- name: Create list of available SSH files
+  set_fact:
+    available_ssh_files: "{{ ssh_file_exists_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+    missing_ssh_files: "{{ ssh_file_exists_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+  when:
+    - macos_network_base is defined
+    - ssh_source_check.stat.exists
+    - ssh_files is defined
+    - ssh_files | length > 0
+
+- name: Display missing SSH files warning
+  debug:
+    msg: "⚠️  Skipping {{ item.src }} - not found in backup"
+  loop: "{{ missing_ssh_files | default([]) }}"
+  loop_control:
+    label: "{{ item.src }}"
+  when:
+    - missing_ssh_files is defined
+    - missing_ssh_files | length > 0
+
 - name: Copy SSH files from network volume
   copy:
     src: "{{ macos_network_base }}/ssh/{{ machine_type }}/{{ item.src }}"
     dest: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.dest }}"
     mode: "{{ item.mode }}"
     backup: yes
-  loop: "{{ ssh_files | default([]) }}"
+  loop: "{{ available_ssh_files | default([]) }}"
+  loop_control:
+    label: "{{ item.dest }}"
   when: 
     - macos_network_base is defined
     - ssh_source_check.stat.exists
-    - ssh_files is defined
-    - ssh_files | length > 0
+    - available_ssh_files is defined
+    - available_ssh_files | length > 0
   no_log: true
 
 - name: Ensure correct permissions on .ssh directory

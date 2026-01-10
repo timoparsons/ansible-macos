@@ -13,18 +13,53 @@
     - macos_network_base is defined
     - dotfiles_check is defined
 
+- name: Check which dotfiles exist on network volume
+  stat:
+    path: "{{ macos_network_base }}/dotfiles/{{ machine_type }}/{{ item.src }}"
+  register: dotfile_exists_check
+  loop: "{{ dotfiles_files | default([]) }}"
+  loop_control:
+    label: "{{ item.src }}"
+  when:
+    - macos_network_base is defined
+    - dotfiles_check.stat.exists
+    - dotfiles_files is defined
+    - dotfiles_files | length > 0
+
+- name: Create list of available dotfiles
+  set_fact:
+    available_dotfiles: "{{ dotfile_exists_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+    missing_dotfiles: "{{ dotfile_exists_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+  when:
+    - macos_network_base is defined
+    - dotfiles_check.stat.exists
+    - dotfiles_files is defined
+    - dotfiles_files | length > 0
+
+- name: Display missing dotfiles warning
+  debug:
+    msg: "⚠️  Skipping {{ item.src }} - not found in backup"
+  loop: "{{ missing_dotfiles | default([]) }}"
+  loop_control:
+    label: "{{ item.src }}"
+  when:
+    - missing_dotfiles is defined
+    - missing_dotfiles | length > 0
+
 - name: Copy dotfiles from network volume
   copy:
     src: "{{ macos_network_base }}/dotfiles/{{ machine_type }}/{{ item.src }}"
     dest: "{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
     mode: "{{ item.mode | default('0644') }}"
     backup: yes
-  loop: "{{ dotfiles_files | default([]) }}"
+  loop: "{{ available_dotfiles | default([]) }}"
+  loop_control:
+    label: "{{ item.src }}"
   when: 
     - macos_network_base is defined
     - dotfiles_check.stat.exists
-    - dotfiles_files is defined
-    - dotfiles_files | length > 0
+    - available_dotfiles is defined
+    - available_dotfiles | length > 0
 
 - name: No dotfiles configured message
   debug:
