@@ -10,17 +10,19 @@
         path: "/Applications/{{ dmg_item.name }}.app"
       register: app_check
 
-    - name: Installation Block
-      when: not app_check.stat.exists or (force_install | default(false))
-      block:
-        - name: Mount DMG
-          command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
-          register: mount_result
-          changed_when: false
+    # EXIT EARLY if app exists and force is not set
+    - name: End task if app already installed
+      meta: end_host  # or use a block-wide 'when'
+      when: app_check.stat.exists and not (force_install | default(false))
 
-        - name: Set mount point
-          set_fact:
-            mount_point: "/Volumes/{{ dmg_item.volume }}"
+    - name: Mount DMG
+      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
+      register: mount_result
+      changed_when: false
+
+    - name: Set mount point
+      set_fact:
+        mount_point: "/Volumes/{{ dmg_item.volume }}"
 
     - name: Verify mount point exists
       stat:
