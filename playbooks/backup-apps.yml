@@ -1,0 +1,45 @@
+# ============================================================================
+# File: playbooks/backup-apps.yml
+# Master playbook to backup application settings
+# Usage: ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Backup Application Settings
+  hosts: all
+  become: false
+  
+  vars_files:
+    - ../vars/app_backups.yml
+  
+  vars:
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+    backup_base: "{{ macos_network_base }}/apps"
+    apps_to_backup: "{{ lookup('vars', machine_type + '_apps_to_backup', default=[]) }}"
+  
+  tasks:
+    - name: Verify backup volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: backup_volume
+      failed_when: not backup_volume.stat.exists
+    
+    - name: Display backup summary
+      debug:
+        msg: |
+          📦 Backing up {{ apps_to_backup | length }} applications for {{ machine_type }} machine
+          📁 Destination: {{ backup_base }}/{{ machine_type }}/
+          {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
+    
+    - name: Create timestamped backup directory
+      file:
+        path: "{{ backup_base }}/{{ machine_type }}/backups/{{ backup_timestamp }}"
+        state: directory
+        mode: '0755'
+      when: backup_create_timestamped | default(false) | bool
+    
+    - name: Backup applications
+      include_tasks: ../tasks/backup_single_app.yml
+      loop: "{{ apps_to_backup }}"
+      loop_control:
+        loop_var: app_key
+        label: "{{ app_backup_definitions[app_key].name }}"

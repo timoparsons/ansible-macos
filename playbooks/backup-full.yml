@@ -1,0 +1,35 @@
+# ============================================================================
+# File: playbooks/backup-full.yml
+# Backup everything: SSH, apps, and dotfiles
+# Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Full System Backup
+  hosts: all
+  become: false
+  
+  tasks:
+    - name: Display full backup notice
+      debug:
+        msg: |
+          🔄 Starting full system backup
+          This will backup:
+            - SSH keys and config
+            - Application settings and data
+            - Dotfiles
+          
+          Machine type: {{ machine_type }}
+    
+    - name: Backup SSH configuration
+      import_playbook: backup-ssh.yml
+      tags: ['ssh']
+    
+    - name: Backup application settings
+      import_playbook: backup-apps.yml
+      tags: ['apps']
+    
+    - name: Completion message
+      debug:
+        msg: |
+          ✅ Full backup complete!
+          📁 Location: {{ backup_base }}/{{ machine_type }}/

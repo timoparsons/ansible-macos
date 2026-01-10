@@ -49,9 +49,11 @@
   when: common_mas_apps is defined and common_mas_apps | length > 0
 
 - name: Install common apps from DMG/PKG files
-  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
-  vars:
-    dmg_pkg_apps: "{{ common_dmg_pkg_apps }}"
+  include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
+  loop: "{{ common_dmg_pkg_apps }}"  # Each item has name, url, and volume
+  loop_control:
+    loop_var: dmg_item
+    label: "{{ dmg_item.name }}"
   when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
 
 - name: Display common apps requiring manual installation

@@ -1,0 +1,44 @@
+# ============================================================================
+# File: tasks/restore_single_path.yml
+# Restores a single path (file or directory)
+# Called by restore_single_app.yml, not run directly
+# ============================================================================
+---
+- name: "Check if backup exists: {{ path_item.dest }}"
+  stat:
+    path: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}"
+  register: backup_check
+
+- name: "Restore {{ path_item.dest }}"
+  when: backup_check.stat.exists
+  block:
+    - name: "Ensure parent directory exists"
+      file:
+        path: "{{ (path_item.src | expanduser) | dirname }}"
+        state: directory
+        mode: '0755'
+    
+    - name: "Determine if backup is file or directory"
+      set_fact:
+        is_directory: "{{ backup_check.stat.isdir }}"
+    
+    - name: "Restore directory: {{ path_item.src }}"
+      synchronize:
+        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        dest: "{{ path_item.src | expanduser }}/"
+        recursive: yes
+        delete: no
+      delegate_to: "{{ inventory_hostname }}"
+      when: is_directory
+    
+    - name: "Restore file: {{ path_item.src }}"
+      copy:
+        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}"
+        dest: "{{ path_item.src | expanduser }}"
+        mode: preserve
+      when: not is_directory
+
+- name: "Warning: Backup not found: {{ path_item.dest }}"
+  debug:
+    msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist"
+  when: not backup_check.stat.exists

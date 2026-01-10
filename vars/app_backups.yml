@@ -1,0 +1,357 @@
+# ============================================================================
+# File: group_vars/all.yml (add this section)
+# ============================================================================
+
+# Base backup configuration
+backup_base: "/Volumes/backup_proxmox/macos/apps"
+backup_create_timestamped: false  # Set to true for versioned backups
+
+# ============================================================================
+# File: vars/app_backups.yml
+# Define all app backup paths in one easy-to-edit file
+# ============================================================================
+
+app_backup_definitions:
+  
+  # ==========================================================================
+  # PRODUCTIVITY APPS
+  # ==========================================================================
+  
+  raycast:
+    name: "Raycast"
+    paths:
+      - src: "~/Library/Application Support/com.raycast.macos"
+        dest: "raycast/application-support"
+        exclude:
+          - "Cache"
+          - "Logs"
+          - "*/Cache"
+      - src: "~/Library/Preferences/com.raycast.macos.plist"
+        dest: "raycast/preferences"
+  
+  loop:
+    name: "Loop Window Manager"
+    paths:
+      - src: "~/Library/Preferences/com.MrKai77.Loop.plist"
+        dest: "loop"
+  
+  ice:
+    name: "Ice Menu Bar Manager"
+    paths:
+      - src: "~/Library/Preferences/com.jordanbaird.Ice.plist"
+        dest: "ice"
+      - src: "~/Library/Application Support/Ice"
+        dest: "ice/application-support"
+  
+  pronotes:
+    name: "ProNotes"
+    paths:
+      - src: "~/Library/Containers/com.aristocratapps.pronotes"
+        dest: "pronotes/container"
+        exclude:
+          - "Data/Library/Caches"
+  
+  bloom:
+    name: "Bloom"
+    paths:
+      - src: "~/Library/Containers/com.striving.bloom"
+        dest: "bloom/container"
+        exclude:
+          - "Data/Library/Caches"
+  
+  # ==========================================================================
+  # DEVELOPMENT TOOLS
+  # ==========================================================================
+  
+  vscode:
+    name: "Visual Studio Code"
+    paths:
+      - src: "~/Library/Application Support/Code/User"
+        dest: "vscode/user"
+        exclude:
+          - "workspaceStorage"
+          - "globalStorage"
+      - src: "~/.vscode/extensions"
+        dest: "vscode/extensions"
+  
+  github-desktop:
+    name: "GitHub Desktop"
+    paths:
+      - src: "~/Library/Application Support/GitHub Desktop"
+        dest: "github-desktop"
+        exclude:
+          - "logs"
+  
+  # ==========================================================================
+  # ADOBE CREATIVE SUITE
+  # ==========================================================================
+  
+  lightroom:
+    name: "Adobe Lightroom Classic"
+    paths:
+      - src: "~/Library/Preferences/com.adobe.Lightroom*.plist"
+        dest: "adobe/lightroom/preferences"
+      - src: "~/Library/Application Support/Adobe/Lightroom/Develop Presets"
+        dest: "adobe/lightroom/develop-presets"
+      - src: "~/Library/Application Support/Adobe/Lightroom/Export Presets"
+        dest: "adobe/lightroom/export-presets"
+      - src: "~/Library/Application Support/Adobe/Lightroom/Import Presets"
+        dest: "adobe/lightroom/import-presets"
+      - src: "~/Library/Application Support/Adobe/Lightroom/Print Templates"
+        dest: "adobe/lightroom/print-templates"
+      - src: "~/Library/Application Support/Adobe/Lightroom/Web Galleries"
+        dest: "adobe/lightroom/web-galleries"
+  
+  photoshop:
+    name: "Adobe Photoshop"
+    paths:
+      - src: "~/Library/Preferences/Adobe Photoshop*/Presets"
+        dest: "adobe/photoshop/presets"
+      - src: "~/Library/Application Support/Adobe/Adobe Photoshop*/Presets"
+        dest: "adobe/photoshop/application-support-presets"
+  
+  # ==========================================================================
+  # AFFINITY SUITE
+  # ==========================================================================
+  
+  affinity-designer:
+    name: "Affinity Designer"
+    paths:
+      - src: "~/Library/Application Support/Affinity Designer"
+        dest: "affinity/designer"
+        exclude:
+          - "Caches"
+      - src: "~/Library/Preferences/com.seriflabs.affinitydesigner.plist"
+        dest: "affinity/designer"
+  
+  affinity-photo:
+    name: "Affinity Photo"
+    paths:
+      - src: "~/Library/Application Support/Affinity Photo"
+        dest: "affinity/photo"
+        exclude:
+          - "Caches"
+      - src: "~/Library/Preferences/com.seriflabs.affinityphoto.plist"
+        dest: "affinity/photo"
+  
+  affinity-publisher:
+    name: "Affinity Publisher"
+    paths:
+      - src: "~/Library/Application Support/Affinity Publisher"
+        dest: "affinity/publisher"
+        exclude:
+          - "Caches"
+      - src: "~/Library/Preferences/com.seriflabs.affinitypublisher.plist"
+        dest: "affinity/publisher"
+  
+  # ==========================================================================
+  # VIDEO PRODUCTION
+  # ==========================================================================
+  
+  davinci-resolve:
+    name: "DaVinci Resolve Studio"
+    paths:
+      - src: "~/Library/Preferences/com.blackmagicdesign.resolve*"
+        dest: "davinci-resolve/preferences"
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/configs"
+        dest: "davinci-resolve/configs"
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/LUT"
+        dest: "davinci-resolve/luts"
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/User/PowerGrade"
+        dest: "davinci-resolve/powergrades"
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/User/Project Templates"
+        dest: "davinci-resolve/project-templates"
+  
+  handbrake:
+    name: "HandBrake"
+    paths:
+      - src: "~/Library/Application Support/HandBrake"
+        dest: "handbrake"
+      - src: "~/Library/Preferences/fr.handbrake.HandBrake.plist"
+        dest: "handbrake"
+  
+  # ==========================================================================
+  # ASSET MANAGEMENT
+  # ==========================================================================
+  
+  eagle:
+    name: "Eagle"
+    paths:
+      - src: "~/Library/Application Support/Eagle"
+        dest: "eagle"
+        exclude:
+          - "Cache"
+          - "logs"
+      - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
+        dest: "eagle"
+  
+  neofinder:
+    name: "NeoFinder"
+    paths:
+      - src: "~/Library/Application Support/NeoFinder"
+        dest: "neofinder"
+      - src: "~/Library/Preferences/de.wfs-apps.NeoFinder.plist"
+        dest: "neofinder"
+  
+  fontbase:
+    name: "FontBase"
+    paths:
+      - src: "~/Library/Application Support/FontBase"
+        dest: "fontbase"
+        exclude:
+          - "Cache"
+      - src: "~/Library/Preferences/com.dominiklevitsky.fontbase.plist"
+        dest: "fontbase"
+  
+  # ==========================================================================
+  # UTILITIES
+  # ==========================================================================
+  
+  carbon-copy-cloner:
+    name: "Carbon Copy Cloner"
+    paths:
+      - src: "~/Library/Application Support/com.bombich.ccc"
+        dest: "carbon-copy-cloner"
+      - src: "~/Library/Preferences/com.bombich.ccc.plist"
+        dest: "carbon-copy-cloner"
+  
+  automounter:
+    name: "AutoMounter"
+    paths:
+      - src: "~/Library/Preferences/com.pixeleyes.AutoMounter.plist"
+        dest: "automounter"
+  
+  strongbox:
+    name: "Strongbox Pro"
+    paths:
+      - src: "~/Library/Group Containers/*.Strongbox"
+        dest: "strongbox"
+        exclude:
+          - "Caches"
+  
+  tailscale:
+    name: "Tailscale"
+    paths:
+      - src: "~/Library/Application Support/Tailscale"
+        dest: "tailscale"
+      - src: "~/Library/Preferences/io.tailscale.ipn.macsys.plist"
+        dest: "tailscale"
+  
+  lulu:
+    name: "LuLu Firewall"
+    paths:
+      - src: "~/Library/Preferences/com.objective-see.lulu.plist"
+        dest: "lulu"
+      - src: "~/Library/Application Support/com.objective-see.lulu"
+        dest: "lulu/application-support"
+  
+  mqtt-explorer:
+    name: "MQTT Explorer"
+    paths:
+      - src: "~/Library/Application Support/MQTT-Explorer"
+        dest: "mqtt-explorer"
+  
+  superwhisper:
+    name: "superwhisper"
+    paths:
+      - src: "~/Library/Application Support/superwhisper"
+        dest: "superwhisper"
+        exclude:
+          - "Cache"
+  
+  # ==========================================================================
+  # 3D / DESIGN
+  # ==========================================================================
+  
+  blender:
+    name: "Blender"
+    paths:
+      - src: "~/Library/Application Support/Blender"
+        dest: "blender"
+        exclude:
+          - "*/cache"
+  
+  sketchup:
+    name: "SketchUp"
+    paths:
+      - src: "~/Library/Application Support/SketchUp"
+        dest: "sketchup"
+      - src: "~/Library/Preferences/com.sketchup.SketchUp.*.plist"
+        dest: "sketchup"
+  
+  # ==========================================================================
+  # LEGACY / SPECIALIZED
+  # ==========================================================================
+  
+  argest:
+    name: "ArGest Backup"
+    paths:
+      - src: "~/Library/Preferences/com.jeremyvizzini.ArGest*.plist"
+        dest: "argest"
+      - src: "~/Library/Application Support/ArGest"
+        dest: "argest/application-support"
+  
+  offshoot:
+    name: "OffShoot"
+    paths:
+      - src: "~/Library/Preferences/com.hedge.OffShoot.plist"
+        dest: "offshoot"
+      - src: "~/Library/Application Support/OffShoot"
+        dest: "offshoot/application-support"
+  
+  crossover:
+    name: "CrossOver"
+    paths:
+      - src: "~/Library/Application Support/CrossOver"
+        dest: "crossover"
+        exclude:
+          - "Bottles/*/drive_c/users"  # Exclude user files, keep bottle configs
+
+
+# ============================================================================
+# MACHINE-SPECIFIC APP LISTS
+# ============================================================================
+
+# Personal machine backs up everything
+personal_apps_to_backup:
+  - raycast
+  - loop
+  - ice
+  - pronotes
+  - bloom
+  - vscode
+  - github-desktop
+  - lightroom
+  - photoshop
+  - affinity-designer
+  - affinity-photo
+  - affinity-publisher
+  - davinci-resolve
+  - handbrake
+  - eagle
+  - neofinder
+  - fontbase
+  - carbon-copy-cloner
+  - automounter
+  - strongbox
+  - tailscale
+  - lulu
+  - mqtt-explorer
+  - superwhisper
+  - blender
+  - sketchup
+  - argest
+  - crossover
+
+# Video machine only needs production tools
+video_apps_to_backup:
+  - davinci-resolve
+  - handbrake
+  - eagle
+  - neofinder
+  - offshoot
+  - automounter
+  - tailscale
+
+# Family machine minimal
+family_apps_to_backup: []

@@ -1,0 +1,43 @@
+# ============================================================================
+# File: playbooks/restore-apps.yml
+# Master playbook to restore application settings
+# Usage: ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit personal
+# ============================================================================
+---
+- name: Restore Application Settings
+  hosts: all
+  become: false
+  
+  vars_files:
+    - ../vars/app_backups.yml
+  
+  vars:
+    backup_base: "{{ macos_network_base }}/apps"
+    apps_to_restore: "{{ lookup('vars', machine_type + '_apps_to_backup', default=[]) }}"
+  
+  tasks:
+    - name: Verify backup exists
+      stat:
+        path: "{{ backup_base }}/{{ machine_type }}"
+      register: backup_check
+      failed_when: not backup_check.stat.exists
+    
+    - name: Display restore summary
+      debug:
+        msg: |
+          📥 Restoring {{ apps_to_restore | length }} applications for {{ machine_type }} machine
+          📁 Source: {{ backup_base }}/{{ machine_type }}/
+          
+          ⚠️  WARNING: This will overwrite existing app settings!
+    
+    - name: Confirm restore
+      pause:
+        prompt: "Press ENTER to continue or Ctrl+C to cancel"
+      when: not (auto_confirm | default(false))
+    
+    - name: Restore applications
+      include_tasks: ../tasks/restore_single_app.yml
+      loop: "{{ apps_to_restore }}"
+      loop_control:
+        loop_var: app_key
+        label: "{{ app_backup_definitions[app_key].name }}"

@@ -21,9 +21,11 @@
   when: personal_mas_apps is defined and personal_mas_apps | length > 0
 
 - name: Install personal apps from DMG/PKG files
-  include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
-  vars:
-    dmg_pkg_apps: "{{ personal_dmg_pkg_apps }}"
+  include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
+  loop: "{{ personal_dmg_pkg_apps }}"  # Each item has name, url, and volume
+  loop_control:
+    loop_var: dmg_item
+    label: "{{ dmg_item.name }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
 
 

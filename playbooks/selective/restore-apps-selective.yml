@@ -1,0 +1,51 @@
+# ============================================================================
+# File: playbooks/selective/restore-apps-selective.yml
+# Restore specific apps only
+# Usage: ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit personal -e "apps_list=raycast,vscode"
+# ============================================================================
+---
+- name: Selective Application Restore
+  hosts: all
+  become: false
+  
+  vars_files:
+    - ../../vars/app_backups.yml
+  
+  vars:
+    backup_base: "{{ macos_network_base }}/apps"
+  
+  tasks:
+    - name: Fail if apps_list not provided
+      fail:
+        msg: "Please provide apps_list variable: -e 'apps_list=raycast,vscode'"
+      when: apps_list is not defined
+    
+    - name: Parse apps list
+      set_fact:
+        apps_to_restore: "{{ apps_list.split(',') | map('trim') | list }}"
+    
+    - name: Validate app keys exist
+      fail:
+        msg: "App '{{ item }}' not found in app_backup_definitions"
+      when: item not in app_backup_definitions
+      loop: "{{ apps_to_restore }}"
+    
+    - name: Display restore summary
+      debug:
+        msg: |
+          📥 Restoring {{ apps_to_restore | length }} selected applications
+          📁 Apps: {{ apps_to_restore | join(', ') }}
+          
+          ⚠️  WARNING: This will overwrite existing app settings!
+    
+    - name: Confirm restore
+      pause:
+        prompt: "Press ENTER to continue or Ctrl+C to cancel"
+      when: not (auto_confirm | default(false))
+    
+    - name: Restore applications
+      include_tasks: ../../tasks/restore_single_app.yml
+      loop: "{{ apps_to_restore }}"
+      loop_control:
+        loop_var: app_key
+        label: "{{ app_backup_definitions[app_key].name }}"

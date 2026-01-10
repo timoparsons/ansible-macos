@@ -1,0 +1,47 @@
+# ============================================================================
+# File: tasks/backup_single_path.yml
+# Backs up a single path (file or directory)
+# Called by backup_single_app.yml, not run directly
+# ============================================================================
+---
+- name: "Check if source exists: {{ path_item.src }}"
+  stat:
+    path: "{{ path_item.src | expanduser }}"
+  register: source_check
+
+- name: "Backup {{ path_item.src }}"
+  when: source_check.stat.exists
+  block:
+    - name: "Determine if source is file or directory"
+      set_fact:
+        is_directory: "{{ source_check.stat.isdir }}"
+    
+    - name: "Backup directory: {{ path_item.src }}"
+      synchronize:
+        src: "{{ path_item.src | expanduser }}/"
+        dest: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        recursive: yes
+        delete: no
+        rsync_opts: "{{ ['--exclude=' + item for item in path_item.exclude] if path_item.exclude is defined else [] }}"
+      delegate_to: "{{ inventory_hostname }}"
+      when: is_directory
+    
+    - name: "Backup file: {{ path_item.src }}"
+      copy:
+        src: "{{ path_item.src | expanduser }}"
+        dest: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        mode: preserve
+      when: not is_directory
+    
+    - name: "Create timestamped copy"
+      synchronize:
+        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        dest: "{{ backup_base }}/{{ machine_type }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
+        recursive: yes
+      delegate_to: "{{ inventory_hostname }}"
+      when: backup_create_timestamped | default(false) | bool
+
+- name: "Warning: Source not found: {{ path_item.src }}"
+  debug:
+    msg: "⚠️  Skipping {{ path_item.src }} - does not exist"
+  when: not source_check.stat.exists

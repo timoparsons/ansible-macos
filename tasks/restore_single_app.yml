@@ -1,0 +1,18 @@
+# ============================================================================
+# File: tasks/restore_single_app.yml
+# Reusable task to restore a single application
+# Called by restore playbooks, not run directly
+# ============================================================================
+---
+- name: "Restore {{ app_backup_definitions[app_key].name }}"
+  block:
+    - name: Set app definition
+      set_fact:
+        app_def: "{{ app_backup_definitions[app_key] }}"
+    
+    - name: "Restore paths for {{ app_def.name }}"
+      include_tasks: restore_single_path.yml
+      loop: "{{ app_def.paths }}"
+      loop_control:
+        loop_var: path_item
+        label: "{{ path_item.src }}"
