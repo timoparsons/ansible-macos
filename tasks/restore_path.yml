@@ -18,17 +18,22 @@
         state: directory
         mode: '0755'
 
-    # Determine if the backup source is a directory or file using the stat result
+    # 1. Try to find if there is a file inside the backup folder
+    - name: "Check for file inside backup directory"
+      find:
+        paths: "{{ backup_base }}/{{ path_item.dest }}"
+        file_type: file
+      register: found_files
+
+    # 2. If a file exists, it's a file-based backup (even if no extension)
     - name: "Restore as File"
       copy:
-        # If it's a directory in backup, we need to find the file inside it 
-        # (Assuming your backup structure puts the file inside a folder named after dest)
-        src: "{{ backup_base }}/{{ path_item.dest }}/{{ path_item.src | basename }}"
+        src: "{{ found_files.files[0].path }}"
         dest: "{{ path_item.src | expanduser }}"
         mode: preserve
-      when: backup_check.stat.isdir
+      when: found_files.matched > 0
 
-    # This handles cases where you actually backed up a full directory
+    # 3. If no files were found directly in that folder, treat as directory sync
     - name: "Restore as Directory"
       synchronize:
         src: "{{ backup_base }}/{{ path_item.dest }}/"
@@ -36,7 +41,7 @@
         recursive: yes
         delete: no
       delegate_to: "{{ inventory_hostname }}"
-      when: not backup_check.stat.isdir
+      when: found_files.matched == 0
 
 
 - name: "Warning: Backup not found: {{ path_item.dest }}"
