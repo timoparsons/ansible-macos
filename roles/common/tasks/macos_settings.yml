@@ -27,6 +27,15 @@
     state: present
   notify: Refresh Preferences
 
+- name: Automatically quit printer app when jobs complete
+  community.general.osx_defaults:
+    domain: com.apple.print.PrintingPrefs
+    key: "Quit When Finished"
+    type: bool
+    value: true
+    state: present
+  notify: Refresh Preferences
+
 ###############################################################################
 # Language & Region (NZ Specific)
 ###############################################################################
@@ -45,6 +54,84 @@
     - { key: 'AppleTemperatureUnit', type: 'string', value: 'Celsius' }
   notify: Refresh Preferences
 
+- name: Set first day of week to Monday
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleFirstWeekday
+    type: dict
+    value:
+      gregorian: 2
+    state: present
+  notify: Refresh Preferences
+
+###############################################################################
+# Menu Bar
+###############################################################################
+- name: Configure menu bar clock
+  community.general.osx_defaults:
+    domain: com.apple.menuextra.clock
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'ShowDate', type: 'int', value: 1 }
+  notify: Restart SystemUIServer
+
+###############################################################################
+# Trackpad & Mouse
+###############################################################################
+- name: Enable tap to click
+  community.general.osx_defaults:
+    domain: "{{ item.domain }}"
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'Clicking', type: 'bool', value: true }
+    - { domain: 'NSGlobalDomain', key: 'com.apple.mouse.tapBehavior', type: 'int', value: 1 }
+  notify: Restart SystemUIServer
+
+- name: Enable trackpad right-click with two fingers
+  community.general.osx_defaults:
+    domain: "{{ item.domain }}"
+    key: "{{ item.key }}"
+    type: bool
+    value: true
+    state: present
+  loop:
+    - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'TrackpadRightClick' }
+    - { domain: 'com.apple.AppleMultitouchTrackpad', key: 'TrackpadRightClick' }
+    - { domain: 'NSGlobalDomain', key: 'ContextMenuGesture' }
+  notify: Restart SystemUIServer
+
+###############################################################################
+# Keyboard & Text
+###############################################################################
+- name: Disable text substitutions (smart quotes, dashes, etc)
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: "{{ item }}"
+    type: bool
+    value: false
+    state: present
+  loop:
+    - NSAutomaticSpellingCorrectionEnabled
+    - NSAutomaticQuoteSubstitutionEnabled
+    - NSAutomaticDashSubstitutionEnabled
+    - NSAutomaticPeriodSubstitutionEnabled
+  notify: Refresh Preferences
+
+- name: Use F1, F2, etc. as standard function keys
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: com.apple.keyboard.fnState
+    type: bool
+    value: true
+    state: present
+  notify: Refresh Preferences
+
 ###############################################################################
 # Finder Settings
 ###############################################################################
@@ -58,11 +145,63 @@
   loop:
     - { key: 'ShowExternalHardDrivesOnDesktop', value: true }
     - { key: 'ShowHardDrivesOnDesktop', value: true }
+    - { key: 'ShowMountedServersOnDesktop', value: true }
+    - { key: 'ShowRemovableMediaOnDesktop', value: true }
     - { key: 'ShowStatusBar', value: true }
     - { key: 'ShowPathbar', value: true }
     - { key: 'FXEnableExtensionChangeWarning', value: false }
     - { key: 'FXPreferredViewStyle', type: 'string', value: 'clmv' }
+    - { key: '_FXSortFoldersFirst', value: true }
+    - { key: 'QLEnableTextSelection', value: true }
+    - { key: 'FXDefaultSearchScope', type: 'string', value: 'SCcf' }
+    - { key: 'NewWindowTarget', type: 'string', value: 'PfDe' }
   notify: Restart Finder
+
+- name: Enable spring loading for directories
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'com.apple.springing.enabled', type: 'bool', value: true }
+    - { key: 'com.apple.springing.delay', type: 'float', value: 0.1 }
+  notify: Restart Finder
+
+- name: Avoid creating .DS_Store files on network volumes
+  community.general.osx_defaults:
+    domain: com.apple.desktopservices
+    key: DSDontWriteNetworkStores
+    type: bool
+    value: true
+    state: present
+  notify: Restart Finder
+
+- name: Show ~/Library folder
+  ansible.builtin.command: chflags nohidden ~/Library
+  changed_when: false
+
+- name: Show all filename extensions
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleShowAllExtensions
+    type: bool
+    value: true
+    state: present
+  notify: Restart Finder
+
+###############################################################################
+# Desktop & Stage Manager
+###############################################################################
+- name: Disable click wallpaper to reveal desktop
+  community.general.osx_defaults:
+    domain: com.apple.WindowManager
+    key: EnableStandardClickToShowDesktop
+    type: bool
+    value: false
+    state: present
+  notify: Restart Dock
 
 ###############################################################################
 # Dock & Mission Control
@@ -80,6 +219,8 @@
     - { key: 'minimize-to-application', value: true }
     - { key: 'mineffect', type: 'string', value: 'scale' }
     - { key: 'expose-animation-duration', type: 'float', value: 0.15 }
+    - { key: 'autohide-time-modifier', type: 'float', value: 0.5 }
+    - { key: 'showhidden', value: true }
   notify: Restart Dock
 
 ###############################################################################
@@ -98,3 +239,67 @@
     - { key: 'wvous-bl-corner', value: 10 }
     - { key: 'wvous-bl-modifier', value: 0 }
   notify: Restart Dock
+
+###############################################################################
+# Screenshots
+###############################################################################
+- name: Configure screenshot settings
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'location', type: 'string', value: '~/Desktop' }
+    - { key: 'type', type: 'string', value: 'png' }
+    - { key: 'disable-shadow', type: 'bool', value: true }
+  notify: Restart SystemUIServer
+
+###############################################################################
+# Photos
+###############################################################################
+- name: Prevent Photos from opening when devices are plugged in
+  community.general.osx_defaults:
+    domain: com.apple.ImageCapture
+    host: currentHost
+    key: disableHotPlug
+    type: bool
+    value: true
+    state: present
+  notify: Refresh Preferences
+
+###############################################################################
+# Safari
+###############################################################################
+- name: Prevent Safari from auto-opening safe files
+  community.general.osx_defaults:
+    domain: com.apple.Safari
+    key: AutoOpenSafeDownloads
+    type: bool
+    value: false
+    state: present
+
+###############################################################################
+# Messages
+###############################################################################
+- name: Disable smart features in Messages
+  community.general.osx_defaults:
+    domain: com.apple.messageshelper.MessageController
+    key: SOInputLineSettings
+    type: dict
+    value:
+      automaticQuoteSubstitutionEnabled: false
+      continuousSpellCheckingEnabled: false
+    state: present
+
+###############################################################################
+# App Store
+###############################################################################
+- name: Disable in-app rating requests
+  community.general.osx_defaults:
+    domain: com.apple.appstore
+    key: InAppReviewEnabled
+    type: int
+    value: 0
+    state: present

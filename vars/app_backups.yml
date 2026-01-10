@@ -260,6 +260,12 @@ app_backup_definitions:
       - src: "~/Library/Preferences/io.tailscale.ipn.macsys.plist"
         dest: "tailscale"
   
+  terminal:
+    name: "Terminal"
+    paths:
+      - src: "~/Library/Preferences/com.apple.Terminal.plist"
+        dest: "terminal"
+
   vscode:
     name: "Visual Studio Code"
     paths:
@@ -306,6 +312,7 @@ personal_apps_to_backup:
   - strongbox
   - superwhisper
   - tailscale
+  - terminal
   - vscode
 
 # Video machine only needs production tools

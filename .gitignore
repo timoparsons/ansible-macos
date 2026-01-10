@@ -1,0 +1,7 @@
+# License files - should be on network drive, never in repo
+licenses/
+*.license
+*.lic
+*.key
+*-key.txt
+*serial*.txt

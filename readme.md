@@ -299,8 +299,14 @@ Personal and Video machines use network storage for:
 - SSH key distribution
 - Application setting backups
 - Dotfile synchronization
+- **License storage** (see `docs/licenses.md`)
 
 **Required:** Mount `/Volumes/backup_proxmox` before running.
+
+**License Management:** 
+- Licenses stored at `/Volumes/backup_proxmox/macos/licenses/`
+- See [docs/licenses.md](docs/licenses.md) for activation instructions
+- See [docs/deactivation.md](docs/deactivation.md) before wiping machine
 
 ## Customization
 
