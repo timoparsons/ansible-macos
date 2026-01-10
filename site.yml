@@ -32,3 +32,66 @@
     - name: Configure Dock (after all apps installed)
       import_tasks: roles/common/tasks/dock.yml
       tags: ['dock', 'config']
+    
+    - name: Wait for apps to settle
+      pause:
+        seconds: 3
+        prompt: "Allowing apps to finish installing..."
+      when: 
+        - restore_app_settings | default(true)
+        - macos_network_base is defined
+      tags: ['restore', 'config']
+    
+    - name: Check if app settings backup exists
+      stat:
+        path: "{{ macos_network_base }}/apps/{{ machine_type }}"
+      register: app_backup_check
+      when: 
+        - restore_app_settings | default(true)
+        - macos_network_base is defined
+      tags: ['restore', 'config']
+    
+    - name: Load app backup definitions
+      include_vars:
+        file: "{{ playbook_dir }}/vars/app_backups.yml"
+      when:
+        - restore_app_settings | default(true)
+        - macos_network_base is defined
+      tags: ['restore', 'config']
+    
+    - name: Restore settings for installed apps
+      include_tasks: tasks/restore_app_if_exists.yml
+      loop: "{{ lookup('vars', machine_type + '_apps_to_backup', default=[]) }}"
+      loop_control:
+        loop_var: app_key
+        label: "{{ app_backup_definitions[app_key].name }}"
+      vars:
+        backup_base: "{{ macos_network_base }}/apps/{{ machine_type }}"
+      when:
+        - restore_app_settings | default(true)
+        - app_backup_check.stat.exists
+        - macos_network_base is defined
+      tags: ['restore', 'config']
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Provisioning complete!
+          
+          {% if restore_app_settings | default(true) and macos_network_base is defined %}
+          📦 Application settings restored for installed apps
+          
+          For manually installed apps, restore settings with:
+            ansible-playbook site.yml -i inventory.ini --limit {{ machine_type }} --tags restore
+          
+          Or restore specific apps:
+            ansible-playbook playbooks/selective/restore-apps-selective.yml \
+              -i inventory.ini --limit {{ machine_type }} \
+              -e "apps_list=raycast,vscode"
+          {% else %}
+          💡 App settings were NOT restored. To restore them:
+             ansible-playbook site.yml -i inventory.ini --limit {{ machine_type }} --tags restore
+          {% endif %}
+          
+          ⚠️  Remember to log out and back in for all settings to take effect
+      tags: ['always']

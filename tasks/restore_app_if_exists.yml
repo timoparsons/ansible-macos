@@ -1,0 +1,29 @@
+---
+# tasks/restore_app_if_exists.yml
+# Only restore settings if the app is actually installed
+# Called with app_key variable
+
+- name: "Determine app path for {{ app_backup_definitions[app_key].name }}"
+  set_fact:
+    app_paths_to_check:
+      - "/Applications/{{ app_backup_definitions[app_key].name }}.app"
+      - "{{ ansible_facts['env']['HOME'] }}/Applications/{{ app_backup_definitions[app_key].name }}.app"
+
+- name: "Check if {{ app_backup_definitions[app_key].name }} is installed"
+  stat:
+    path: "{{ item }}"
+  register: app_check_results
+  loop: "{{ app_paths_to_check }}"
+
+- name: "Set installation status for {{ app_backup_definitions[app_key].name }}"
+  set_fact:
+    app_is_installed: "{{ app_check_results.results | selectattr('stat.exists') | list | length > 0 }}"
+
+- name: "Restore {{ app_backup_definitions[app_key].name }} settings"
+  include_tasks: restore_single_app.yml
+  when: app_is_installed
+
+- name: "Skip {{ app_backup_definitions[app_key].name }} - not installed"
+  debug:
+    msg: "⏭️  Skipping {{ app_backup_definitions[app_key].name }} - app not installed"
+  when: not app_is_installed

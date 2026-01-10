@@ -1,6 +1,6 @@
 # macOS Provisioning with Ansible
 
-Automated macOS setup using Ansible for consistent machine provisioning across Personal, Video Production, and Family configurations.
+Automated macOS setup using Ansible for consistent machine provisioning across Personal, Video Production, and Family configurations. Includes application installation, system configuration, and automatic settings restore.
 
 ## Quick Start
 
@@ -16,6 +16,14 @@ Automated macOS setup using Ansible for consistent machine provisioning across P
 # 3) Family (Basic + Restrictions)
 ```
 
+The provisioning will:
+1. Install all applications (Homebrew, Mac App Store, DMG/PKG)
+2. Configure macOS system preferences
+3. Set up the Dock
+4. **Automatically restore app settings for installed apps** (from network backup)
+
+⚠️ **Important:** Log out and back in after provisioning for keyboard shortcuts to take effect.
+
 ### Manual Run
 
 ```bash
@@ -26,14 +34,17 @@ cd ~/mac-setup
 ### Using Ansible Directly
 
 ```bash
-# Full provision
+# Full provision (apps + config + restore settings)
 ansible-playbook site.yml -i inventory.ini --limit personal -K
 
-# Install only apps
+# Install apps only, skip configuration
 ansible-playbook site.yml -i inventory.ini --limit personal --tags apps
 
-# Only configuration
-ansible-playbook site.yml -i inventory.ini --limit personal --tags config
+# Install apps + restore settings, skip system config
+ansible-playbook site.yml -i inventory.ini --limit personal --tags apps,restore
+
+# Just restore app settings (useful after manual installs)
+ansible-playbook site.yml -i inventory.ini --limit personal --tags restore
 ```
 
 ## Project Structure
@@ -46,7 +57,14 @@ ansible-macos/
 │   └── mac-software-audit.sh     # Audit existing apps
 ├── roles/
 │   ├── common/                   # Apps/config for all machines
+│   │   ├── tasks/
+│   │   │   ├── macos_settings.yml    # Baseline macOS defaults
+│   │   │   └── dock.yml              # Dock configuration
+│   │   └── handlers/             # Service restart handlers
 │   ├── personal/                 # Personal machine specifics
+│   │   ├── tasks/
+│   │   │   └── macos_settings.yml    # Personal overrides (Spotlight, etc)
+│   │   └── handlers/             # Personal-specific handlers
 │   ├── video/                    # Video production tools
 │   └── family/                   # Family machine restrictions
 ├── group_vars/
@@ -57,26 +75,36 @@ ansible-macos/
 ├── playbooks/
 │   ├── backup-ssh.yml            # Backup SSH keys
 │   ├── backup-apps.yml           # Backup app settings
-│   └── restore-apps.yml          # Restore app settings
+│   ├── restore-apps.yml          # Restore app settings
+│   └── selective/                # Selective backup/restore
+│       ├── backup-apps-selective.yml
+│       └── restore-apps-selective.yml
 ├── tasks/                        # Reusable task files
+│   ├── restore_app_if_exists.yml # Smart restore (only installed apps)
+│   ├── restore_single_app.yml
+│   └── backup_single_app.yml
 ├── vars/
 │   └── app_backups.yml           # App backup definitions
 ├── site.yml                      # Main playbook
 └── inventory.ini                 # Machine definitions
 ```
 
-## What Gets Installed
+## What Gets Installed & Configured
 
 ### Common (All Machines)
 - **CLI Tools:** dockutil, git, mas
 - **Apps:** Affinity Suite, Loop, Spotify, VLC, WhatsApp
-- **System:** macOS defaults, Dock configuration
+- **System Config:** 
+  - macOS defaults (NZ locale, trackpad, keyboard, Finder, Dock, screenshots, etc.)
+  - Dock configuration
+  - App settings restore (automatic for installed apps)
 
 ### Personal Machine
 - **Development:** VS Code, GitHub Desktop
 - **Creative:** Adobe CC, Blender, FontBase
 - **Video:** HandBrake, DaVinci Resolve (via Video role)
 - **Utilities:** Raycast, Carbon Copy Cloner, Tailscale
+- **Config:** Spotlight/Finder keyboard shortcuts disabled (for Raycast)
 
 ### Video Production Machine
 - **Video:** HandBrake, OffShoot, IINA
@@ -98,21 +126,17 @@ Control exactly what gets installed/configured:
 --tags cask          # Homebrew GUI apps
 --tags mas           # Mac App Store apps
 --tags dmg           # DMG/PKG installers
-```
-
-### Application Types
-```bash
---tags cli           # Command-line tools
---tags gui           # GUI applications
+--tags apps          # ALL apps (brew + mas + dmg)
 ```
 
 ### Configuration
 ```bash
---tags config        # All configuration tasks
+--tags config        # All configuration (ssh, dotfiles, macos_defaults, dock, restore)
 --tags ssh           # SSH keys only
 --tags dotfiles      # Dotfiles only
---tags macos_defaults # System preferences
---tags dock          # Dock configuration
+--tags macos_defaults # System preferences only
+--tags dock          # Dock configuration only
+--tags restore       # App settings restore only
 ```
 
 ### Common Use Cases
@@ -120,11 +144,17 @@ Control exactly what gets installed/configured:
 # Install only Homebrew apps (fastest)
 ansible-playbook site.yml -i inventory.ini --limit personal --tags brew
 
-# Install all apps, skip configuration
+# Install all apps, skip all configuration
 ansible-playbook site.yml -i inventory.ini --limit personal --tags apps
 
-# Reconfigure Dock after manual installs
-ansible-playbook site.yml -i inventory.ini --limit personal --tags dock
+# Reconfigure system and restore app settings (no app installation)
+ansible-playbook site.yml -i inventory.ini --limit personal --tags config
+
+# Just restore app settings (e.g., after manual app installs)
+ansible-playbook site.yml -i inventory.ini --limit personal --tags restore
+
+# Skip app settings restore (apps + system config only)
+ansible-playbook site.yml -i inventory.ini --limit personal --skip-tags restore
 
 # Skip slow DMG installations
 ansible-playbook site.yml -i inventory.ini --limit personal --skip-tags dmg
@@ -133,16 +163,112 @@ ansible-playbook site.yml -i inventory.ini --limit personal --skip-tags dmg
 ansible-playbook site.yml -i inventory.ini --limit personal --skip-tags mas
 ```
 
-## Network Storage Integration
+## macOS System Configuration
 
-Personal and Video machines use network storage for:
-- SSH key distribution
-- Application setting backups
-- Dotfile synchronization
+The playbook automatically configures macOS system preferences using the `osx_defaults` module for reliability and idempotency. All machines receive baseline settings, with role-specific overrides available.
 
-**Required:** Mount `/Volumes/backup_proxmox` before running.
+### Baseline Settings (All Machines)
+
+**General UI/UX:**
+- Expand save/print panels by default
+- Save to disk (not iCloud) by default
+
+**Language & Region:**
+- NZ English locale and measurement units
+- Metric system, Celsius
+
+**Trackpad & Mouse:**
+- Tap to click enabled
+- Two-finger right-click
+
+**Keyboard & Text:**
+- Disable smart quotes and dashes (better for coding)
+- F1-F12 as standard function keys (not media controls)
+
+**Finder:**
+- Show all drives, servers, and removable media on desktop
+- Show status bar and path bar
+- Column view by default
+- Search current folder (not "This Mac")
+- Show ~/Library folder
+- No .DS_Store files on network volumes
+- Spring loading enabled
+
+**Dock:**
+- Auto-hide enabled
+- Minimize to application icon
+- No recent apps
+- Translucent hidden apps
+
+**Hot Corners:**
+- Top right: Desktop
+- Bottom left: Sleep display
+
+**Screenshots:**
+- Save to Desktop as PNG
+- No shadow
+
+**Other:**
+- Photos app won't auto-open when devices plugged in
+- Disable click wallpaper to reveal desktop
+
+### Personal Machine Overrides
+
+**Keyboard Shortcuts:**
+- Spotlight (Cmd+Space) disabled - frees it for Raycast
+- Finder search (Cmd+Option+Space) disabled
+
+⚠️ **Requires logout** for keyboard shortcuts to take effect.
+
+### Modifying Settings
+
+Edit `roles/common/tasks/macos_settings.yml` for baseline settings, or create `roles/{machine_type}/tasks/macos_settings.yml` for role-specific overrides.
+
+### Testing macOS Defaults
+
+```bash
+# Apply only macOS system preferences
+ansible-playbook site.yml -i inventory.ini --limit personal --tags macos_defaults
+
+# Dry run to see what would change
+ansible-playbook site.yml -i inventory.ini --limit personal --tags macos_defaults --check
+```
+
+## Application Settings Backup & Restore
+
+Application settings are automatically backed up to and restored from network storage at `/Volumes/backup_proxmox/macos/apps/{machine_type}/`.
+
+### Automatic Restore During Provisioning
+
+When you run the main playbook, app settings are **automatically restored** for any apps that are installed:
+
+```bash
+# Full provision - apps are installed, then settings restored
+ansible-playbook site.yml -i inventory.ini --limit personal -K
+
+# Skip automatic restore
+ansible-playbook site.yml -i inventory.ini --limit personal -K --skip-tags restore
+# OR
+ansible-playbook site.yml -i inventory.ini --limit personal -K -e "restore_app_settings=false"
+```
+
+**Smart Restore:** Only apps that are actually installed get their settings restored. Apps that failed to install or were skipped are automatically skipped during restore.
+
+### Manual Restore (After Installing Apps Manually)
+
+If you install apps manually after the initial provisioning, restore their settings:
+
+```bash
+# Restore settings for all installed apps
+ansible-playbook site.yml -i inventory.ini --limit personal --tags restore
+
+# Restore specific apps only
+ansible-playbook playbooks/selective/restore-apps-selective.yml \
+  -i inventory.ini --limit personal -e "apps_list=raycast,vscode"
+```
 
 ### Backup Commands
+
 ```bash
 # Backup SSH keys
 ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit personal
@@ -155,15 +281,26 @@ ansible-playbook playbooks/selective/backup-apps-selective.yml \
   -i inventory.ini --limit personal -e "apps_list=raycast,vscode"
 ```
 
-### Restore Commands
-```bash
-# Restore all app settings
-ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit personal
+### Viewing Available Apps
 
-# Restore specific apps
-ansible-playbook playbooks/selective/restore-apps-selective.yml \
-  -i inventory.ini --limit personal -e "apps_list=raycast,vscode"
+To see which apps have backup definitions:
+
+```bash
+# View app_backup_definitions in vars/app_backups.yml
+cat vars/app_backups.yml | grep -A1 "^  [a-z-]*:" | grep "name:"
+
+# Or check which apps are backed up for your machine type
+grep -A50 "personal_apps_to_backup:" vars/app_backups.yml
 ```
+
+## Network Storage Integration
+
+Personal and Video machines use network storage for:
+- SSH key distribution
+- Application setting backups
+- Dotfile synchronization
+
+**Required:** Mount `/Volumes/backup_proxmox` before running.
 
 ## Customization
 
@@ -211,10 +348,6 @@ personal_apps_to_backup:
   - myapp
 ```
 
-### Modifying macOS Defaults
-
-Edit `roles/common/files/macos-defaults.sh` for global changes, or create role-specific scripts at `roles/{role}/files/macos-defaults.sh`.
-
 ## Utilities
 
 ### Software Audit
@@ -249,6 +382,7 @@ ansible-playbook site.yml -i inventory.ini --limit personal --check
 - **Network volumes:** Personal/Video machines check for mounted volumes before running
 - **DMG installations:** Slower than Homebrew, consider using `--skip-tags dmg` for faster testing
 - **Mac App Store:** Requires Apple ID to be logged in
+- **Logout required:** Keyboard shortcut changes need logout to take effect
 
 ## Troubleshooting
 
@@ -277,10 +411,13 @@ ansible-playbook site.yml -i inventory.ini --limit personal --tags dmg -v
 sudo -n true && echo "OK" || echo "Not configured"
 ```
 
+**Keyboard shortcuts not working:**
+```bash
+# Log out and back in for changes to take effect
+# This is required for Spotlight/Finder shortcut changes
+```
+
 ## License
 
 Personal project - use at your own risk.
 
-## Author
-
-Tim Parsons
