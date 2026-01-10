@@ -6,12 +6,14 @@
     name: "{{ personal_formula_apps }}"
     state: present
   when: personal_formula_apps is defined and personal_formula_apps | length > 0
+  tags: ['brew', 'formula', 'cli']
 
 - name: Install personal cask apps
   community.general.homebrew_cask:
     name: "{{ personal_cask_apps }}"
     state: present
   when: personal_cask_apps is defined and personal_cask_apps | length > 0
+  tags: ['brew', 'cask', 'gui']
 
 - name: Install personal Mac App Store apps
   community.general.mas:
@@ -19,14 +21,13 @@
     state: present
   loop: "{{ personal_mas_apps }}"
   when: personal_mas_apps is defined and personal_mas_apps | length > 0
+  tags: ['mas', 'gui']
 
 - name: Install personal apps from DMG/PKG files
-  tags: ["dmg"]
-  block:
-    - name: Install personal apps from DMG/PKG files
-      include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
-      loop: "{{ personal_dmg_pkg_apps }}"
-      loop_control:
-        loop_var: dmg_item
-        label: "{{ dmg_item.name }}"
-      when: personal_dmg_pkg_apps is defined
+  include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
+  loop: "{{ personal_dmg_pkg_apps }}"
+  loop_control:
+    loop_var: dmg_item
+    label: "{{ dmg_item.name }}"
+  when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
+  tags: ['dmg', 'gui']

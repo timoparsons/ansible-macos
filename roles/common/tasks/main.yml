@@ -7,39 +7,46 @@
   when: ansible_facts['architecture'] == "arm64"
   args:
     creates: /Library/Apple/usr/share/rosetta/rosetta
+  tags: ['always']
 
 - name: Check for Homebrew (Apple Silicon)
   stat:
     path: /opt/homebrew/bin/brew
   register: homebrew_arm
   changed_when: false
+  tags: ['always']
 
 - name: Check for Homebrew (Intel)
   stat:
     path: /usr/local/bin/brew
   register: homebrew_intel
   changed_when: false
+  tags: ['always']
 
 - name: Fail if Homebrew is not installed
   fail:
     msg: "Homebrew is not installed. Please run bootstrap.sh first."
   when: not homebrew_arm.stat.exists and not homebrew_intel.stat.exists
+  tags: ['always']
 
 - name: Update Homebrew
   community.general.homebrew:
     update_homebrew: yes
+  tags: ['brew', 'update']
 
 - name: Install common formula apps
   community.general.homebrew:
     name: "{{ common_formula_apps }}"
     state: present
   when: common_formula_apps is defined and common_formula_apps | length > 0
+  tags: ['brew', 'formula', 'cli']
 
 - name: Install common cask apps
   community.general.homebrew_cask:
     name: "{{ common_cask_apps }}"
     state: present
   when: common_cask_apps is defined and common_cask_apps | length > 0
+  tags: ['brew', 'cask', 'gui']
 
 - name: Install common Mac App Store apps
   community.general.mas:
@@ -47,24 +54,25 @@
     state: present
   loop: "{{ common_mas_apps }}"
   when: common_mas_apps is defined and common_mas_apps | length > 0
+  tags: ['mas', 'gui']
 
 - name: Install common apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
-  loop: "{{ common_dmg_pkg_apps }}"  # Each item has name, url, and volume
+  loop: "{{ common_dmg_pkg_apps }}"
   loop_control:
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
-  tags: ["dmg"]
+  tags: ['dmg', 'gui']
 
 - name: Setup SSH keys
   include_tasks: setup_ssh.yml
-  tags: ['ssh']
+  tags: ['ssh', 'config', 'dotfiles']
   when: ssh_files is defined and ssh_files | length > 0
 
 - name: Setup dotfiles
   include_tasks: setup_dotfiles.yml
-  tags: ['dotfiles']
+  tags: ['dotfiles', 'config']
   when: dotfiles_files is defined and dotfiles_files | length > 0
   
 # Apply macOS defaults - common for all machine types
@@ -72,7 +80,7 @@
   ansible.builtin.script: "{{ role_path }}/files/macos-defaults.sh"
   register: macos_defaults_result
   changed_when: "'Please log out' in macos_defaults_result.stdout"
-  tags: ['macos_defaults']
+  tags: ['macos_defaults', 'config', 'system']
 
 # Apply role-specific macOS defaults if they exist
 - name: Check if role-specific macOS defaults script exists
@@ -81,12 +89,13 @@
   register: role_defaults_script
   delegate_to: localhost
   when: machine_type != 'common'
+  tags: ['macos_defaults', 'config', 'system']
 
 - name: Apply role-specific macOS defaults
   ansible.builtin.script: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
   register: role_defaults_result
   changed_when: "'Please log out' in role_defaults_result.stdout"
-  tags: ['macos_defaults']
+  tags: ['macos_defaults', 'config', 'system']
   when: 
     - machine_type != 'common'
     - role_defaults_script.stat.exists

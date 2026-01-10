@@ -10,26 +10,25 @@
         required_volumes:
           - backup_proxmox
       when: machine_type in ['video', 'personal']
-      tags: always
+      tags: ['always']
 
   roles:
     - role: common
-      tags: common
+      tags: ['common', 'apps']
       
     - role: video
       when: machine_type in ['video', 'personal']
-      tags: video
+      tags: ['video', 'apps']
       
     - role: personal
       when: machine_type == 'personal'
-      tags: personal
+      tags: ['personal', 'apps']
       
     - role: family
       when: machine_type == 'family'
-      tags: family
+      tags: ['family', 'apps']
 
   post_tasks:
     - name: Configure Dock (after all apps installed)
       import_tasks: roles/common/tasks/dock.yml
-      tags: ['dock']
-    
+      tags: ['dock', 'config']

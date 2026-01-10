@@ -108,23 +108,6 @@ personal_dmg_pkg_apps:
     volume: "Swinsian 3.0.4"    
 
 
-# Crossover
-# Sketchup
-# Opentabletdriver
-
-
-personal_manual_installs:
-  - name: "DJI Assistant 2 (Ronin Series)"
-    url: "https://www.dji.com/nz/downloads/softwares/dji-assistant-2-ronin-series"
-
-
-
-# No longer used
-# Creation Date Batch Change
-# Quickres
-# IWLTBAP LUT Generator
-
-
 personal_dock_apps:
   - path: "/Applications/Bloom.app"
   - path: "/Applications/Brave Browser.app"

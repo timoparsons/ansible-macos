@@ -1,21 +1,26 @@
 ---
+# roles/video/tasks/main.yml
+
 - name: Install video formula apps
   community.general.homebrew:
     name: "{{ video_formula_apps }}"
     state: present
   when: video_formula_apps is defined and video_formula_apps | length > 0
+  tags: ['brew', 'formula', 'cli']
 
 - name: Install video cask apps
   community.general.homebrew_cask:
     name: "{{ video_cask_apps }}"
     state: present
   when: video_cask_apps is defined and video_cask_apps | length > 0
+  tags: ['brew', 'cask', 'gui']
 
 - name: Check if video Mac App Store apps are already installed
   ansible.builtin.command: mas list
   register: mas_installed
   changed_when: false
   failed_when: false
+  tags: ['mas', 'gui']
 
 - name: Install video Mac App Store apps
   ansible.builtin.shell: |
@@ -29,6 +34,7 @@
     - item.id | string not in mas_installed.stdout
   register: mas_install
   changed_when: true
+  tags: ['mas', 'gui']
 
 - name: Verify video Mac App Store apps were installed
   ansible.builtin.command: mas list
@@ -38,6 +44,7 @@
   when: 
     - video_mas_apps is defined
     - video_mas_apps | length > 0
+  tags: ['mas', 'gui']
 
 - name: Report any failed video Mac App Store installations
   ansible.builtin.debug:
@@ -49,12 +56,13 @@
     - mas_verify is defined
     - mas_verify.rc == 0
     - item.id | string not in mas_verify.stdout
+  tags: ['mas', 'gui']
 
 - name: Install video apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
-  loop: "{{ video_dmg_pkg_apps }}"  # Each item has name, url, and volume
+  loop: "{{ video_dmg_pkg_apps }}"
   loop_control:
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
-  tags: ["dmg"]
+  tags: ['dmg', 'gui']
