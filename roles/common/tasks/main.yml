@@ -75,16 +75,22 @@
   tags: ['dotfiles', 'config']
   when: dotfiles_files is defined and dotfiles_files | length > 0
   
-# 1. Always apply the global baseline
-- name: Apply baseline macOS system defaults
-  include_tasks: macos_settings.yml
-  tags: ['macos_defaults', 'config', 'system']
 
-# 2. Attempt to apply role-specific overrides
-- name: Apply role-specific macOS overrides
+# 1. Apply baseline behavior (autohide, NZ locale, etc.)
+- name: Apply baseline macOS settings
+  include_tasks: macos_settings.yml
+  tags: ['macos_defaults', 'config']
+
+# 2. Apply Dock layout (the dockutil logic)
+- name: Configure Dock layout
+  include_tasks: dock.yml
+  tags: ['dock', 'config']
+
+# 3. Apply role-specific overrides (Personal, Video, etc.)
+- name: Apply role-specific overrides
   include_tasks: "{{ item }}"
   with_first_found:
     - files:
         - "{{ playbook_dir }}/roles/{{ machine_type }}/tasks/macos_settings.yml"
-      skip: true  # If the file isn't there, just move on silently
-  tags: ['macos_defaults', 'config', 'system']
+      skip: true
+  tags: ['macos_defaults', 'config']
