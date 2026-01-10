@@ -16,6 +16,7 @@ personal_formula_apps:
   - gnu-tar
   - immich-go
   - mkvtoolnix
+  - starship
   - tree
 
 
@@ -41,7 +42,6 @@ personal_cask_apps:
   - heroic
   - imageoptim
   #- imazing DO I HAVE AN OLDER LICENSE??
-  # - jump-desktop Joy Inc App Store License
   #- keka
   - loopback
   - lulu
@@ -116,7 +116,7 @@ personal_manual_installs:
 
 personal_dock_apps:
   - path: "/Applications/Bloom.app"
-  - path: "/Applications/Brave.app"
+  - path: "/Applications/Brave Browser.app"
   - path: "/System/Applications/Messages.app"
   - path: "/System/Applications/Notes.app"
   - path: "/System/Applications/Reminders.app"
