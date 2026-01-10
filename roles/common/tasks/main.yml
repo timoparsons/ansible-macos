@@ -39,14 +39,14 @@
     name: "{{ common_formula_apps }}"
     state: present
   when: common_formula_apps is defined and common_formula_apps | length > 0
-  tags: ['brew', 'formula', 'cli']
+  tags: ['brew', 'formula', 'cli', 'apps']
 
 - name: Install common cask apps
   community.general.homebrew_cask:
     name: "{{ common_cask_apps }}"
     state: present
   when: common_cask_apps is defined and common_cask_apps | length > 0
-  tags: ['brew', 'cask', 'gui']
+  tags: ['brew', 'cask', 'gui', 'apps']
 
 - name: Install common Mac App Store apps
   community.general.mas:
@@ -54,7 +54,7 @@
     state: present
   loop: "{{ common_mas_apps }}"
   when: common_mas_apps is defined and common_mas_apps | length > 0
-  tags: ['mas', 'gui']
+  tags: ['mas', 'gui', 'apps']
 
 - name: Install common apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
@@ -63,31 +63,26 @@
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
-  tags: ['dmg', 'gui']
+  tags: ['dmg', 'gui', 'apps']
 
 - name: Setup SSH keys
   include_tasks: setup_ssh.yml
-  tags: ['ssh', 'config', 'dotfiles']
+  tags: ['ssh', 'config']
   when: ssh_files is defined and ssh_files | length > 0
 
 - name: Setup dotfiles
   include_tasks: setup_dotfiles.yml
   tags: ['dotfiles', 'config']
   when: dotfiles_files is defined and dotfiles_files | length > 0
-  
 
-# 1. Apply baseline behavior (autohide, NZ locale, etc.)
+# Apply baseline macOS settings (common to all machines)
 - name: Apply baseline macOS settings
   include_tasks: macos_settings.yml
   tags: ['macos_defaults', 'config']
 
-# 2. Apply Dock layout (the dockutil logic)
-- name: Configure Dock layout
-  include_tasks: dock.yml
-  tags: ['dock', 'config']
-
-# 3. Apply role-specific overrides (Personal, Video, etc.)
-- name: Apply role-specific overrides
+# Apply role-specific macOS overrides (Personal, Video, etc.)
+# This runs AFTER baseline settings
+- name: Apply role-specific macOS overrides
   include_tasks: "{{ item }}"
   with_first_found:
     - files:

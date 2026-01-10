@@ -6,14 +6,14 @@
     name: "{{ personal_formula_apps }}"
     state: present
   when: personal_formula_apps is defined and personal_formula_apps | length > 0
-  tags: ['brew', 'formula', 'cli']
+  tags: ['brew', 'formula', 'cli', 'apps']
 
 - name: Install personal cask apps
   community.general.homebrew_cask:
     name: "{{ personal_cask_apps }}"
     state: present
   when: personal_cask_apps is defined and personal_cask_apps | length > 0
-  tags: ['brew', 'cask', 'gui']
+  tags: ['brew', 'cask', 'gui', 'apps']
 
 - name: Install personal Mac App Store apps
   community.general.mas:
@@ -21,7 +21,7 @@
     state: present
   loop: "{{ personal_mas_apps }}"
   when: personal_mas_apps is defined and personal_mas_apps | length > 0
-  tags: ['mas', 'gui']
+  tags: ['mas', 'gui', 'apps']
 
 - name: Install personal apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_single_dmg.yml"
@@ -30,4 +30,7 @@
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
-  tags: ['dmg', 'gui']
+  tags: ['dmg', 'gui', 'apps']
+
+# Personal-specific macOS settings are handled by common role's include
+# which looks for roles/{machine_type}/tasks/macos_settings.yml
