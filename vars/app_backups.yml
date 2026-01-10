@@ -69,10 +69,12 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.brave.Browser.plist"
         dest: "brave-browser"
+      # Extension settings (as discussed before)
       - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Local Extension Settings"
         dest: "brave-browser/extension-settings"
-      - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Extension State"
-        dest: "brave-browser/extension-state"
+      # UI Layout (Vertical Tabs, Sidebar, Toolbar, etc.)
+      - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences"
+        dest: "brave-browser/profile-prefs"        
 
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"
