@@ -90,7 +90,7 @@
     - { domain: 'NSGlobalDomain', key: 'com.apple.mouse.tapBehavior', type: 'int', value: 1 }
   notify: Restart SystemUIServer
 
-- name: Enable trackpad right-click with two fingers
+- name: Enable trackpad right-click with two fingers (boolean settings)
   community.general.osx_defaults:
     domain: "{{ item.domain }}"
     key: "{{ item.key }}"
@@ -100,7 +100,15 @@
   loop:
     - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'TrackpadRightClick' }
     - { domain: 'com.apple.AppleMultitouchTrackpad', key: 'TrackpadRightClick' }
-    - { domain: 'NSGlobalDomain', key: 'ContextMenuGesture' }
+  notify: Restart SystemUIServer
+
+- name: Enable trackpad right-click gesture (integer setting)
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: ContextMenuGesture
+    type: int
+    value: 1
+    state: present
   notify: Restart SystemUIServer
 
 ###############################################################################
