@@ -1,6 +1,7 @@
 # ============================================================================
 # File: playbooks/restore-ssh.yml
 # Restore SSH keys and config from network volume
+# Respects machine-specific ssh_files configuration
 # Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit personal
 # ============================================================================
 ---
@@ -35,20 +36,62 @@
         msg: "❌ No SSH backup found at {{ ssh_backup_base }}"
       when: not ssh_backup_check.stat.exists
 
-    - name: Restore SSH files
-      shell: |
-        rsync -av --progress "{{ ssh_backup_base }}/" "{{ ssh_dest_dir }}/"
-      register: rsync_result
-      changed_when: "'incrementing' in rsync_result.stdout"
+    - name: Get SSH files to restore for this machine type
+      set_fact:
+        files_to_restore: "{{ ssh_files | default([]) }}"
+    
+    - name: Display restore summary
+      debug:
+        msg: |
+          📥 Restoring SSH files for {{ machine_type }} machine
+          📂 Source: {{ ssh_backup_base }}/
+          📝 Files to restore: {{ files_to_restore | length }}
+          {% if machine_type == 'personal' %}
+          🔑 Restoring full SSH keys (private + public)
+          {% else %}
+          🔓 Restoring public keys only (for SSH host mode)
+          {% endif %}
+    
+    - name: Check which backup files exist
+      stat:
+        path: "{{ ssh_backup_base }}/{{ item.src }}"
+      register: backup_file_check
+      loop: "{{ files_to_restore }}"
+      loop_control:
+        label: "{{ item.src }}"
+      when: files_to_restore | length > 0
+    
+    - name: Create list of restorable files
+      set_fact:
+        restorable_files: "{{ backup_file_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        missing_backups: "{{ backup_file_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+      when: files_to_restore | length > 0
+    
+    - name: Display missing backups
+      debug:
+        msg: "⚠️  Warning: Backup for {{ item.src }} not found"
+      loop: "{{ missing_backups }}"
+      loop_control:
+        label: "{{ item.src }}"
+      when: 
+        - files_to_restore | length > 0
+        - missing_backups | length > 0
 
-    - name: Fix permissions on restored SSH private keys
-      shell: |
-        find {{ ssh_dest_dir }} -type f -not -name "*.pub" -not -name "known_hosts" -not -name "config" -exec chmod 600 {} \;
-        find {{ ssh_dest_dir }} -type f -name "*.pub" -exec chmod 644 {} \;
-        chmod 644 {{ ssh_dest_dir }}/config || true
-      args:
-        executable: /bin/bash
+    - name: Restore SSH files
+      copy:
+        src: "{{ ssh_backup_base }}/{{ item.src }}"
+        dest: "{{ ssh_dest_dir }}/{{ item.dest }}"
+        mode: "{{ item.mode }}"
+        backup: yes
+      loop: "{{ restorable_files }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      when: restorable_files | length > 0
+      no_log: true
       
     - name: Display completion message
       debug:
-        msg: "✅ SSH restoration complete. Permissions have been hardened."
+        msg: |
+          ✅ SSH restoration complete!
+          📁 Restored {{ restorable_files | default([]) | length }} files to {{ ssh_dest_dir }}/
+          🔒 Permissions have been set correctly
