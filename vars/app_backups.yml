@@ -64,6 +64,16 @@ app_backup_definitions:
       - src: "~/Library/Preferences/com.asiafu.Bloom.plist"
         dest: "bloom"
   
+  brave-browser:
+    name: "Brave Browser"
+    paths:
+      - src: "~/Library/Preferences/com.brave.Browser.plist"
+        dest: "brave-browser"
+      - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Local Extension Settings"
+        dest: "brave-browser/extension-settings"
+      - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Extension State"
+        dest: "brave-browser/extension-state"
+
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"
     paths:
