@@ -18,15 +18,15 @@
   tasks:
     - name: Verify backup exists
       stat:
-        path: "{{ backup_base }}/{{ machine_type }}"
+        path: "{{ backup_base }}"
       register: backup_check
       failed_when: not backup_check.stat.exists
     
     - name: Display restore summary
       debug:
         msg: |
-          📥 Restoring {{ apps_to_restore | length }} applications for {{ machine_type }} machine
-          📁 Source: {{ backup_base }}/{{ machine_type }}/
+          📥 Restoring {{ apps_to_restore | length }} applications
+          📁 Source: {{ backup_base }}/
           
           ⚠️  WARNING: This will overwrite existing app settings!
     
@@ -36,7 +36,7 @@
       when: not (auto_confirm | default(false))
     
     - name: Restore applications
-      include_tasks: ../tasks/restore_single_app.yml
+      include_tasks: ../tasks/restore_app.yml
       loop: "{{ apps_to_restore }}"
       loop_control:
         loop_var: app_key

@@ -33,24 +33,6 @@
       import_tasks: roles/common/tasks/dock.yml
       tags: ['dock', 'config']
     
-    # Restore SSH keys from network backup
-    - name: Restore SSH keys
-      import_tasks: playbooks/restore-ssh.yml
-      when: 
-        - restore_ssh_keys | default(true)
-        - macos_network_base is defined
-        - ssh_files is defined
-        - ssh_files | length > 0
-      tags: ['restore', 'ssh', 'config']
-    
-    # Restore dotfiles from network backup
-    - name: Restore dotfiles
-      import_tasks: playbooks/restore-dotfiles.yml
-      when: 
-        - restore_dotfiles | default(true)
-        - macos_network_base is defined
-      tags: ['restore', 'dotfiles', 'config']
-    
     # Wait for apps to settle before restoring settings
     - name: Wait for apps to settle
       pause:
@@ -64,7 +46,7 @@
     # Smart restore - only restore settings for apps that are actually installed
     - name: Check if app settings backup exists
       stat:
-        path: "{{ macos_network_base }}/apps/{{ machine_type }}"
+        path: "{{ macos_network_base }}/apps"
       register: app_backup_check
       when: 
         - restore_app_settings | default(true)
@@ -86,7 +68,7 @@
         loop_var: app_key
         label: "{{ app_backup_definitions[app_key].name }}"
       vars:
-        backup_base: "{{ macos_network_base }}/apps/{{ machine_type }}"
+        backup_base: "{{ macos_network_base }}/apps"
       when:
         - restore_app_settings | default(true)
         - app_backup_check.stat.exists

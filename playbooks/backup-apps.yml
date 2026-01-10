@@ -27,12 +27,12 @@
       debug:
         msg: |
           📦 Backing up {{ apps_to_backup | length }} applications for {{ machine_type }} machine
-          📁 Destination: {{ backup_base }}/{{ machine_type }}/
+          📁 Destination: {{ backup_base }}/
           {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
     
     - name: Create timestamped backup directory
       file:
-        path: "{{ backup_base }}/{{ machine_type }}/backups/{{ backup_timestamp }}"
+        path: "{{ backup_base }}/backups/{{ backup_timestamp }}"
         state: directory
         mode: '0755'
       when: backup_create_timestamped | default(false) | bool
