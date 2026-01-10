@@ -6,7 +6,7 @@
 ---
 - name: "Check if backup exists: {{ path_item.dest }}"
   stat:
-    path: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}"
+    path: "{{ backup_base }}/{{ path_item.dest }}"
   register: backup_check
 
 - name: "Restore {{ path_item.dest }}"
@@ -24,7 +24,7 @@
     
     - name: "Restore directory: {{ path_item.src }}"
       synchronize:
-        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        src: "{{ backup_base }}/{{ path_item.dest }}/"
         dest: "{{ path_item.src | expanduser }}/"
         recursive: yes
         delete: no
@@ -33,7 +33,7 @@
     
     - name: "Restore file: {{ path_item.src }}"
       copy:
-        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}"
+        src: "{{ backup_base }}/{{ path_item.dest }}"
         dest: "{{ path_item.src | expanduser }}"
         mode: preserve
       when: not is_directory

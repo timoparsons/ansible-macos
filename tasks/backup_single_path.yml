@@ -16,27 +16,31 @@
       set_fact:
         is_directory: "{{ source_check.stat.isdir }}"
     
+    - name: "Build rsync exclude options"
+      set_fact:
+        rsync_exclude_opts: "{{ path_item.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | list }}"
+    
     - name: "Backup directory: {{ path_item.src }}"
       synchronize:
         src: "{{ path_item.src | expanduser }}/"
-        dest: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        dest: "{{ backup_base }}/{{ path_item.dest }}/"
         recursive: yes
         delete: no
-        rsync_opts: "{{ ['--exclude=' + item for item in path_item.exclude] if path_item.exclude is defined else [] }}"
+        rsync_opts: "{{ rsync_exclude_opts }}"
       delegate_to: "{{ inventory_hostname }}"
       when: is_directory
     
     - name: "Backup file: {{ path_item.src }}"
       copy:
         src: "{{ path_item.src | expanduser }}"
-        dest: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
+        dest: "{{ backup_base }}/{{ path_item.dest }}/"
         mode: preserve
       when: not is_directory
     
     - name: "Create timestamped copy"
       synchronize:
-        src: "{{ backup_base }}/{{ machine_type }}/{{ path_item.dest }}/"
-        dest: "{{ backup_base }}/{{ machine_type }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
+        src: "{{ backup_base }}/{{ path_item.dest }}/"
+        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
         recursive: yes
       delegate_to: "{{ inventory_hostname }}"
       when: backup_create_timestamped | default(false) | bool

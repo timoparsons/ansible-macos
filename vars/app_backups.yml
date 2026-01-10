@@ -1,12 +1,4 @@
 # ============================================================================
-# File: group_vars/all.yml (add this section)
-# ============================================================================
-
-# Base backup configuration
-backup_base: "/Volumes/backup_proxmox/macos/apps"
-backup_create_timestamped: false  # Set to true for versioned backups
-
-# ============================================================================
 # File: vars/app_backups.yml
 # Define all app backup paths in one easy-to-edit file
 # ============================================================================
@@ -26,6 +18,10 @@ app_backup_definitions:
           - "Cache"
           - "Logs"
           - "*/Cache"
+          - "NodeJS"
+          - "RaycastWrapped"
+          - "posthog.*"
+          - "extensions"  # Empty for most users
       - src: "~/Library/Preferences/com.raycast.macos.plist"
         dest: "raycast/preferences"
   

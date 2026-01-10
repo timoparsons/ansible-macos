@@ -12,7 +12,7 @@
     
     - name: "Create backup directory for {{ app_def.name }}"
       file:
-        path: "{{ backup_base }}/{{ machine_type }}/{{ item.dest }}"
+        path: "{{ backup_base }}/{{ item.dest }}"
         state: directory
         mode: '0755'
       loop: "{{ app_def.paths }}"
