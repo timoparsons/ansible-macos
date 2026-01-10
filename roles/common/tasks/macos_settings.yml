@@ -55,13 +55,10 @@
   notify: Refresh Preferences
 
 - name: Set first day of week to Monday
-  community.general.osx_defaults:
-    domain: NSGlobalDomain
-    key: AppleFirstWeekday
-    type: dict
-    value:
-      gregorian: 2
-    state: present
+  ansible.builtin.shell: |
+    defaults write NSGlobalDomain AppleFirstWeekday -dict gregorian 2
+  register: first_weekday_result
+  changed_when: false
   notify: Refresh Preferences
 
 ###############################################################################
