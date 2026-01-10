@@ -92,8 +92,8 @@ personal_mas_apps:
 # Apps to install via DMG/PKG 
 personal_dmg_pkg_apps:
   - name: "Argest - Legacy"
-    url: "/Volumes/common/Software/Installers/Archiving/Argest/ArGest.dmg"
-
+    url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
+    volume: "Argest"
 # Crossover
 # Loopback
 # Sketchup
