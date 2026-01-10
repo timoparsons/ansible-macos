@@ -20,7 +20,7 @@
   loop: "{{ personal_mas_apps }}"
   when: personal_mas_apps is defined and personal_mas_apps | length > 0
 
-- name: DMG Installation Section
+- name: Install personal apps from DMG/PKG files
   tags: ["dmg"]
   block:
     - name: Install personal apps from DMG/PKG files
