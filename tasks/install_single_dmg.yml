@@ -3,32 +3,31 @@
 # Simplified DMG installer - user provides volume name
 # This is a shared task used by all roles
 
-- name: Process DMG installer for {{ dmg_item.name }}
+- name: "Process DMG installer for {{ dmg_item.name }}"
   block:
     - name: Check if app is already installed
       stat:
         path: "/Applications/{{ dmg_item.name }}.app"
       register: app_check
 
-    # EXIT EARLY if app exists and force is not set
-    - name: End task if app already installed
-      meta: end_host  # or use a block-wide 'when'
-      when: app_check.stat.exists and not (force_install | default(false))
+    - name: "Installation logic for {{ dmg_item.name }}"
+      # Only enter this block if the app is missing OR force_install is true
+      when: not app_check.stat.exists or (force_install | default(false))
+      block:
+        - name: Mount DMG
+          command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
+          register: mount_result
+          changed_when: false
 
-    - name: Mount DMG
-      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
-      register: mount_result
-      changed_when: false
+        - name: Set mount point
+          set_fact:
+            mount_point: "/Volumes/{{ dmg_item.volume }}"
 
-    - name: Set mount point
-      set_fact:
-        mount_point: "/Volumes/{{ dmg_item.volume }}"
-
-    - name: Verify mount point exists
-      stat:
-        path: "{{ mount_point }}"
-      register: mount_check
-      failed_when: not mount_check.stat.exists
+        - name: Verify mount point exists
+          stat:
+            path: "{{ mount_point }}"
+          register: mount_check
+          failed_when: not mount_check.stat.exists
 
     - name: Check for .app file in DMG
       find:

@@ -43,7 +43,7 @@ personal_cask_apps:
   - imageoptim
   #- imazing DO I HAVE AN OLDER LICENSE??
   #- keka
-  - loopback
+  #- loopback
   - lulu
   - mactracker
   - macwhisper
