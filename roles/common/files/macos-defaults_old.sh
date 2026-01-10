@@ -146,6 +146,33 @@ defaults write NSGlobalDomain com.apple.keyboard.fnState -bool true
 
 
 
+###############################################################################
+# Keyboard Shortcuts                                                          #
+###############################################################################
+
+# Disable Spotlight keyboard shortcut (Cmd+Space) to free it for Raycast
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 "
+  <dict>
+    <key>enabled</key><false/>
+    <key>value</key><dict>
+      <key>type</key><string>standard</string>
+      <key>parameters</key>
+      <array>
+        <integer>65535</integer>
+        <integer>49</integer>
+        <integer>1048576</integer>
+      </array>
+    </dict>
+  </dict>
+"
+
+# Also disable "Show Finder search window" (Cmd+Option+Space) 
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 "
+  <dict>
+    <key>enabled</key><false/>
+  </dict>
+"
+
 
 ###############################################################################
 # Finder                                                                      #

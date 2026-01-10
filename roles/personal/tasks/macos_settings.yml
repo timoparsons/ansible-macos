@@ -1,0 +1,15 @@
+---
+# This file should only contain tasks, as it is included by the role's main.yml
+
+###############################################################################
+# Keyboard Shortcuts (Spotlight & Finder Search)
+###############################################################################
+
+- name: Disable Spotlight and Finder Search hotkeys (Safe Method)
+  ansible.builtin.shell: |
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add {{ item.id }} "<dict><key>enabled</key><false/></dict>"
+  loop:
+    - { id: 64, name: 'Spotlight' }
+    - { id: 65, name: 'Finder Search' }
+  changed_when: false # Symbolic hotkeys are tricky to check for changes via shell
+  notify: Refresh Preferences

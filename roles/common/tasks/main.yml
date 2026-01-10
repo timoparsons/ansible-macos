@@ -75,27 +75,16 @@
   tags: ['dotfiles', 'config']
   when: dotfiles_files is defined and dotfiles_files | length > 0
   
-# Apply macOS defaults - common for all machine types
-- name: Apply common macOS system defaults
-  ansible.builtin.script: "{{ role_path }}/files/macos-defaults.sh"
-  register: macos_defaults_result
-  changed_when: "'Please log out' in macos_defaults_result.stdout"
+# 1. Always apply the global baseline
+- name: Apply baseline macOS system defaults
+  include_tasks: macos_settings.yml
   tags: ['macos_defaults', 'config', 'system']
 
-# Apply role-specific macOS defaults if they exist
-- name: Check if role-specific macOS defaults script exists
-  stat:
-    path: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
-  register: role_defaults_script
-  delegate_to: localhost
-  when: machine_type != 'common'
+# 2. Attempt to apply role-specific overrides
+- name: Apply role-specific macOS overrides
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ playbook_dir }}/roles/{{ machine_type }}/tasks/macos_settings.yml"
+      skip: true  # If the file isn't there, just move on silently
   tags: ['macos_defaults', 'config', 'system']
-
-- name: Apply role-specific macOS defaults
-  ansible.builtin.script: "{{ playbook_dir }}/roles/{{ machine_type }}/files/macos-defaults.sh"
-  register: role_defaults_result
-  changed_when: "'Please log out' in role_defaults_result.stdout"
-  tags: ['macos_defaults', 'config', 'system']
-  when: 
-    - machine_type != 'common'
-    - role_defaults_script.stat.exists

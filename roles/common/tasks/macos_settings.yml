@@ -1,0 +1,100 @@
+---
+# Baseline settings for all machine types
+
+###############################################################################
+# General UI/UX
+###############################################################################
+- name: Expand save and print panels by default
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: "{{ item }}"
+    type: bool
+    value: true
+    state: present
+  loop:
+    - NSNavPanelExpandedStateForSaveMode
+    - NSNavPanelExpandedStateForSaveMode2
+    - PMPrintingExpandedStateForPrint
+    - PMPrintingExpandedStateForPrint2
+  notify: Refresh Preferences
+
+- name: Save to disk (not iCloud) by default
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSDocumentSaveNewDocumentsToCloud
+    type: bool
+    value: false
+    state: present
+  notify: Refresh Preferences
+
+###############################################################################
+# Language & Region (NZ Specific)
+###############################################################################
+- name: Set Language and Locale to NZ
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'AppleLanguages', type: 'array', value: ["en-NZ", "mi-NZ"] }
+    - { key: 'AppleLocale', type: 'string', value: 'en_NZ' }
+    - { key: 'AppleMeasurementUnits', type: 'string', value: 'Centimeters' }
+    - { key: 'AppleMetricUnits', type: 'bool', value: true }
+    - { key: 'AppleTemperatureUnit', type: 'string', value: 'Celsius' }
+  notify: Refresh Preferences
+
+###############################################################################
+# Finder Settings
+###############################################################################
+- name: Configure Finder UI elements
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: "{{ item.key }}"
+    type: "{{ item.type | default('bool') }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'ShowExternalHardDrivesOnDesktop', value: true }
+    - { key: 'ShowHardDrivesOnDesktop', value: true }
+    - { key: 'ShowStatusBar', value: true }
+    - { key: 'ShowPathbar', value: true }
+    - { key: 'FXEnableExtensionChangeWarning', value: false }
+    - { key: 'FXPreferredViewStyle', type: 'string', value: 'clmv' }
+  notify: Restart Finder
+
+###############################################################################
+# Dock & Mission Control
+###############################################################################
+- name: Configure Dock behavior
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: "{{ item.key }}"
+    type: "{{ item.type | default('bool') }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'autohide', value: true }
+    - { key: 'show-recents', value: false }
+    - { key: 'minimize-to-application', value: true }
+    - { key: 'mineffect', type: 'string', value: 'scale' }
+    - { key: 'expose-animation-duration', type: 'float', value: 0.15 }
+  notify: Restart Dock
+
+###############################################################################
+# Hot Corners
+###############################################################################
+- name: Set Hot Corners
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: "{{ item.key }}"
+    type: int
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: 'wvous-tr-corner', value: 4 }
+    - { key: 'wvous-tr-modifier', value: 0 }
+    - { key: 'wvous-bl-corner', value: 10 }
+    - { key: 'wvous-bl-modifier', value: 0 }
+  notify: Restart Dock
