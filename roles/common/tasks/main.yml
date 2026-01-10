@@ -55,6 +55,7 @@
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
+  tags: dmg
 
 - name: Display common apps requiring manual installation
   debug:
