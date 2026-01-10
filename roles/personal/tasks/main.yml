@@ -27,7 +27,7 @@
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
-  tags: dmg
+  tags: ["dmg"]
 
 
 

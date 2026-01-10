@@ -5,20 +5,22 @@
 
 - name: Process DMG installer for {{ dmg_item.name }}
   block:
-    - name: Check if DMG file exists
+    - name: Check if app is already installed
       stat:
-        path: "{{ dmg_item.url }}"
-      register: dmg_stat
-      failed_when: not dmg_stat.stat.exists
+        path: "/Applications/{{ dmg_item.name }}.app"
+      register: app_check
 
-    - name: Mount DMG
-      command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
-      register: mount_result
-      changed_when: false
+    - name: Installation Block
+      when: not app_check.stat.exists or (force_install | default(false))
+      block:
+        - name: Mount DMG
+          command: hdiutil attach "{{ dmg_item.url }}" -nobrowse -readonly
+          register: mount_result
+          changed_when: false
 
-    - name: Set mount point
-      set_fact:
-        mount_point: "/Volumes/{{ dmg_item.volume }}"
+        - name: Set mount point
+          set_fact:
+            mount_point: "/Volumes/{{ dmg_item.volume }}"
 
     - name: Verify mount point exists
       stat:
