@@ -222,9 +222,12 @@ app_backup_definitions:
           - "RaycastWrapped"
           - "posthog.*"
           - "extensions"
+          - "raycast-enc.sqlite*"
+          - "raycast-emoji.sqlite*"
+          - "raycast-activities-enc.sqlite*"
       - src: "~/Library/Preferences/com.raycast.macos.plist"
         dest: "raycast/preferences"
-  
+        
   sketchup:
     name: "SketchUp"
     paths:
