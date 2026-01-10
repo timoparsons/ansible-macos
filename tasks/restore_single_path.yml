@@ -18,10 +18,29 @@
         state: directory
         mode: '0755'
     
-    - name: "Determine if backup is file or directory"
+    - name: "Check if source path should be a file (has extension)"
       set_fact:
-        is_directory: "{{ backup_check.stat.isdir }}"
+        src_is_file: "{{ path_item.src | basename | regex_search('\\.[a-zA-Z0-9]+$') }}"
     
+    # If source is a file (like .plist), find and copy the actual file from backup
+    - name: "Find file in backup directory"
+      find:
+        paths: "{{ backup_base }}/{{ path_item.dest }}"
+        file_type: file
+        recurse: no
+      register: backup_files
+      when: src_is_file
+    
+    - name: "Restore file: {{ path_item.src }}"
+      copy:
+        src: "{{ backup_files.files[0].path }}"
+        dest: "{{ path_item.src | expanduser }}"
+        mode: preserve
+      when: 
+        - src_is_file
+        - backup_files.matched > 0
+    
+    # If source is a directory, use synchronize
     - name: "Restore directory: {{ path_item.src }}"
       synchronize:
         src: "{{ backup_base }}/{{ path_item.dest }}/"
@@ -29,14 +48,7 @@
         recursive: yes
         delete: no
       delegate_to: "{{ inventory_hostname }}"
-      when: is_directory
-    
-    - name: "Restore file: {{ path_item.src }}"
-      copy:
-        src: "{{ backup_base }}/{{ path_item.dest }}"
-        dest: "{{ path_item.src | expanduser }}"
-        mode: preserve
-      when: not is_directory
+      when: not src_is_file
 
 - name: "Warning: Backup not found: {{ path_item.dest }}"
   debug:
