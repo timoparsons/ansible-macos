@@ -94,6 +94,9 @@ personal_dmg_pkg_apps:
   - name: "Argest - Legacy"
     url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
     volume: "Argest"
+  - name: "Swinsian"
+    url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
+    volume: "Swinsian 3.0.4"    
 # Crossover
 # Loopback
 # Sketchup
