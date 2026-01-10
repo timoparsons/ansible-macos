@@ -95,9 +95,13 @@ personal_dmg_pkg_apps:
     url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
     volume: "Argest"
 
-  - name: "Loopback"
-    url: "/Volumes/backup_proxmox/macos/installers/Loopback_2.4.5.dmg"
-    volume: "Loopback 2.4.5"    
+  - name: "CrossOver"
+    url: "/Volumes/backup_proxmox/macos/installers/CrossOver.dmg"
+    volume: "CrossOver"
+
+#  - name: "Loopback"
+#    url: "/Volumes/backup_proxmox/macos/installers/Loopback_2.4.5.dmg"
+#    volume: "Loopback 2.4.5"    
 
   - name: "Swinsian"
     url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"

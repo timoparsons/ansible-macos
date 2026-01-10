@@ -30,24 +30,3 @@
         loop_var: dmg_item
         label: "{{ dmg_item.name }}"
       when: personal_dmg_pkg_apps is defined
-
-
-
-
-- name: Display personal apps requiring manual installation
-  debug:
-    msg: |
-      
-      =====================================================
-      📋 MANUAL INSTALLATION REQUIRED (personal)
-      =====================================================
-      The following apps need to be installed manually:
-      {% for app in personal_manual_installs %}
-      
-      {{ loop.index }}. {{ app.name }}
-         URL: {{ app.url }}
-         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
-      {% endfor %}
-      
-      =====================================================
-  when: personal_manual_installs is defined and personal_manual_installs | length > 0

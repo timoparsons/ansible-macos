@@ -32,24 +32,6 @@ video_dmg_pkg_apps:
     url: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
     volume: "OffShoot 23.2.4"
 
-# Apps requiring manual installation
-video_manual_installs:
-  - name: Compressor
-    url: "https://apps.apple.com/nz/app/compressor/id424390742"
-    note: "Install in App Store using tim@joy.inc"
-  - name: "DaVinci Resolve Studio"
-    url: "https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion"
-    note: "Requires registration form completion"
-  - name: "Frame.io Transfer"
-    url: "https://frame.io/transfer"
-    note: "Standard download"
-  - name: "slimRAW"
-    url: "https://www.slimraw.com/download.html"
-    note: "Licensed software - download from account"
-  - name: Python
-    url: "https://www.python.org/downloads/macos/"
-    note: "Needed for Resolve as it can't find brew python"
-
 video_dock_apps:
   - path: "/System/Applications/Slack.app"
   - path: "/System/Applications/System Settings.app"

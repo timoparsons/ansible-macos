@@ -28,21 +28,3 @@
     label: "{{ dmg_item.name }}"
   when: family_dmg_pkg_apps is defined and family_dmg_pkg_apps | length > 0
   tags: ["dmg"]
-  
-- name: Display family apps requiring manual installation
-  debug:
-    msg: |
-      
-      =====================================================
-      📋 MANUAL INSTALLATION REQUIRED (FAMILY)
-      =====================================================
-      The following apps need to be installed manually:
-      {% for app in family_manual_installs %}
-      
-      {{ loop.index }}. {{ app.name }}
-         URL: {{ app.url }}
-         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
-      {% endfor %}
-      
-      =====================================================
-  when: family_manual_installs is defined and family_manual_installs | length > 0

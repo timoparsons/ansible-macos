@@ -57,24 +57,6 @@
   when: common_dmg_pkg_apps is defined and common_dmg_pkg_apps | length > 0
   tags: ["dmg"]
 
-- name: Display common apps requiring manual installation
-  debug:
-    msg: |
-      
-      =====================================================
-      📋 MANUAL INSTALLATION REQUIRED (common)
-      =====================================================
-      The following apps need to be installed manually:
-      {% for app in common_manual_installs %}
-      
-      {{ loop.index }}. {{ app.name }}
-         URL: {{ app.url }}
-         {% if app.note is defined %}Note: {{ app.note }}{% endif %}
-      {% endfor %}
-      
-      =====================================================
-  when: common_manual_installs is defined and common_manual_installs | length > 0
-
 - name: Setup SSH keys
   include_tasks: setup_ssh.yml
   tags: ['ssh']
