@@ -17,38 +17,29 @@
         path: "{{ (path_item.src | expanduser) | dirname }}"
         state: directory
         mode: '0755'
-    
-    - name: "Check if source path should be a file (has extension)"
-      set_fact:
-        src_is_file: "{{ (path_item.src | basename | regex_search('\\.[a-zA-Z0-9]+$')) is not none }}"
-    
-    # If source is a file (like .plist), find and copy the actual file from backup
-    - name: "Find file in backup directory"
-      find:
-        paths: "{{ backup_base }}/{{ path_item.dest }}"
-        file_type: file
-        recurse: no
-      register: backup_files
-      when: src_is_file
-    
-    - name: "Restore file: {{ path_item.src }}"
+
+    # Determine if the backup source is a directory or file using the stat result
+    - name: "Restore as File"
       copy:
-        src: "{{ backup_files.files[0].path }}"
+        # If it's a directory in backup, we need to find the file inside it 
+        # (Assuming your backup structure puts the file inside a folder named after dest)
+        src: "{{ backup_base }}/{{ path_item.dest }}/{{ path_item.src | basename }}"
         dest: "{{ path_item.src | expanduser }}"
         mode: preserve
       when: 
-        - src_is_file
+        - backup_check.stat.isdir
         - backup_files.matched > 0
-    
-    # If source is a directory, use synchronize
-    - name: "Restore directory: {{ path_item.src }}"
+
+    # This handles cases where you actually backed up a full directory
+    - name: "Restore as Directory"
       synchronize:
         src: "{{ backup_base }}/{{ path_item.dest }}/"
         dest: "{{ path_item.src | expanduser }}/"
         recursive: yes
         delete: no
       delegate_to: "{{ inventory_hostname }}"
-      when: not src_is_file
+      when: not backup_check.stat.isdir
+
 
 - name: "Warning: Backup not found: {{ path_item.dest }}"
   debug:
