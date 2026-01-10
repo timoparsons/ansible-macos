@@ -26,9 +26,7 @@
         src: "{{ backup_base }}/{{ path_item.dest }}/{{ path_item.src | basename }}"
         dest: "{{ path_item.src | expanduser }}"
         mode: preserve
-      when: 
-        - backup_check.stat.isdir
-        - backup_files.matched > 0
+      when: backup_check.stat.isdir
 
     # This handles cases where you actually backed up a full directory
     - name: "Restore as Directory"
