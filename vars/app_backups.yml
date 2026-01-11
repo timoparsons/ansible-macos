@@ -249,10 +249,17 @@ app_backup_definitions:
   strongbox:
     name: "Strongbox Pro"
     paths:
-      - src: "~/Library/Group Containers/*.Strongbox"
-        dest: "strongbox"
-        exclude:
-          - "Caches"
+    # 1. Main App Preferences (The file we identified earlier)
+      - src: "~/Library/Containers/com.markmcguill.strongbox.pro/Data/Library/Preferences/com.markmcguill.strongbox.pro.plist"
+        dest: "strongbox/preferences/main.plist"
+
+      # 2. Shared Preferences (Contains AutoFill and extension settings)
+      - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/Library/Preferences/group.strongbox.mac.mcguill.plist"
+        dest: "strongbox/preferences/group.plist"
+
+      # 3. Sync Manager (CRITICAL: This keeps track of which databases are linked)
+      - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/sync-manager/"
+        dest: "strongbox/sync-manager"
   
   superwhisper:
     name: "superwhisper"
