@@ -218,7 +218,7 @@ app_backup_definitions:
         dest: "pronotes/container"
         exclude:
           - "Data/Library/Caches"
-  
+
   raycast:
     name: "Raycast"
     paths:
@@ -236,7 +236,7 @@ app_backup_definitions:
           - "raycast-emoji.sqlite*"
           - "raycast-activities-enc.sqlite*"
       - src: "~/Library/Preferences/com.raycast.macos.plist"
-        dest: "raycast/preferences"
+        dest: "raycast/preferences/com.raycast.macos.plist"
         
   sketchup:
     name: "SketchUp"
@@ -245,22 +245,21 @@ app_backup_definitions:
         dest: "sketchup"
       - src: "~/Library/Preferences/com.sketchup.SketchUp.*.plist"
         dest: "sketchup"
+
   
   strongbox:
     name: "Strongbox Pro"
     paths:
-    # 1. Main App Preferences (The file we identified earlier)
       - src: "~/Library/Containers/com.markmcguill.strongbox.pro/Data/Library/Preferences/com.markmcguill.strongbox.pro.plist"
-        dest: "strongbox/preferences/main.plist"
-
-      # 2. Shared Preferences (Contains AutoFill and extension settings)
+        dest: "strongbox/preferences/main.plist"  # ← Full path including filename
+      
       - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/Library/Preferences/group.strongbox.mac.mcguill.plist"
-        dest: "strongbox/preferences/group.plist"
+        dest: "strongbox/preferences/group.plist"  # ← Full path including filename
+      
+      - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/sync-manager"
+        dest: "strongbox/sync-manager"  # ← No trailing slash, just directory name
 
-      # 3. Sync Manager (CRITICAL: This keeps track of which databases are linked)
-      - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/sync-manager/"
-        dest: "strongbox/sync-manager"
-  
+
   superwhisper:
     name: "superwhisper"
     paths:
@@ -281,7 +280,7 @@ app_backup_definitions:
     name: "Terminal"
     paths:
       - src: "~/Library/Preferences/com.apple.Terminal.plist"
-        dest: "terminal"
+        dest: "terminal/com.apple.Terminal.plist"
 
   vscode:
     name: "Visual Studio Code"
@@ -296,6 +295,9 @@ app_backup_definitions:
           - "sync"              
           - "Backups"           
           - "logs"              
+
+
+
 
 # ============================================================================
 # MACHINE-SPECIFIC APP LISTS

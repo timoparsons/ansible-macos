@@ -1,5 +1,5 @@
 # ============================================================================
-# File: tasks/backup_single_path.yml
+# File: tasks/backup_path.yml
 # Backs up a single path (file or directory)
 # Called by backup_single_app.yml, not run directly
 # ============================================================================
@@ -12,13 +12,21 @@
 - name: "Backup {{ path_item.src }}"
   when: source_check.stat.exists
   block:
-    - name: "Determine if source is file or directory"
-      set_fact:
-        is_directory: "{{ source_check.stat.isdir }}"
-    
+    - name: "Ensure backup destination parent directory exists"
+      file:
+        path: "{{ backup_base }}/{{ path_item.dest | dirname }}"
+        state: directory
+        mode: '0755'
+      when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
+
     - name: "Build rsync exclude options"
       set_fact:
         rsync_exclude_opts: "{{ path_item.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | list }}"
+      when: source_check.stat.isdir
+
+    # BACKUP DECISION:
+    # If source is a directory → sync to dest/
+    # If source is a file → copy to dest (preserve filename)
     
     - name: "Backup directory: {{ path_item.src }}"
       synchronize:
@@ -28,22 +36,34 @@
         delete: no
         rsync_opts: "{{ rsync_exclude_opts }}"
       delegate_to: "{{ inventory_hostname }}"
-      when: is_directory
+      when: source_check.stat.isdir
     
     - name: "Backup file: {{ path_item.src }}"
       copy:
         src: "{{ path_item.src | expanduser }}"
-        dest: "{{ backup_base }}/{{ path_item.dest }}/"
+        dest: "{{ backup_base }}/{{ path_item.dest }}"
         mode: preserve
-      when: not is_directory
+        backup: no
+      when: source_check.stat.isreg
     
-    - name: "Create timestamped copy"
+    - name: "Create timestamped directory backup"
       synchronize:
         src: "{{ backup_base }}/{{ path_item.dest }}/"
         dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
         recursive: yes
       delegate_to: "{{ inventory_hostname }}"
-      when: backup_create_timestamped | default(false) | bool
+      when: 
+        - backup_create_timestamped | default(false) | bool
+        - source_check.stat.isdir
+
+    - name: "Create timestamped file backup"
+      copy:
+        src: "{{ backup_base }}/{{ path_item.dest }}"
+        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}"
+        mode: preserve
+      when:
+        - backup_create_timestamped | default(false) | bool
+        - source_check.stat.isreg
 
 - name: "Warning: Source not found: {{ path_item.src }}"
   debug:

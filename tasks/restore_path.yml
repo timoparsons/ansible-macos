@@ -4,47 +4,56 @@
 # Called by restore_app.yml, not run directly
 # ============================================================================
 ---
+- name: "Expand source path for {{ path_item.src }}"
+  set_fact:
+    expanded_src: "{{ path_item.src | expanduser }}"
+
+- name: "Determine source type from path"
+  set_fact:
+    # If src ends with a filename extension or is explicitly a known file, treat as file
+    is_file_path: "{{ (expanded_src | basename) is search('\\.[a-zA-Z0-9]+$') }}"
+
+- name: "Build backup path"
+  set_fact:
+    backup_path: "{{ backup_base }}/{{ path_item.dest }}"
+
 - name: "Check if backup exists: {{ path_item.dest }}"
   stat:
-    path: "{{ backup_base }}/{{ path_item.dest }}"
+    path: "{{ backup_path }}"
   register: backup_check
 
 - name: "Restore {{ path_item.dest }}"
   when: backup_check.stat.exists
   block:
-    - name: "Ensure parent directory exists"
+    - name: "Ensure parent directory exists for {{ expanded_src }}"
       file:
-        path: "{{ (path_item.src | expanduser) | dirname }}"
+        path: "{{ expanded_src | dirname }}"
         state: directory
         mode: '0755'
+      when: (expanded_src | dirname) != expanded_src
 
-    # 1. Try to find if there is a file inside the backup folder
-    - name: "Check for file inside backup directory"
-      find:
-        paths: "{{ backup_base }}/{{ path_item.dest }}"
-        file_type: file
-      register: found_files
-
-    # 2. If a file exists, it's a file-based backup (even if no extension)
-    - name: "Restore as File"
+    # DECISION TREE:
+    # 1. If backup_path is a file (stat.isreg) → restore as file
+    # 2. If backup_path is a directory (stat.isdir) → restore as directory
+    
+    - name: "Restore file: {{ path_item.src }}"
       copy:
-        src: "{{ found_files.files[0].path }}"
-        dest: "{{ path_item.src | expanduser }}"
+        src: "{{ backup_path }}"
+        dest: "{{ expanded_src }}"
         mode: preserve
-      when: found_files.matched > 0
+        backup: yes
+      when: backup_check.stat.isreg
 
-    # 3. If no files were found directly in that folder, treat as directory sync
-    - name: "Restore as Directory"
+    - name: "Restore directory: {{ path_item.src }}"
       synchronize:
-        src: "{{ backup_base }}/{{ path_item.dest }}/"
-        dest: "{{ path_item.src | expanduser }}/"
+        src: "{{ backup_path }}/"
+        dest: "{{ expanded_src }}/"
         recursive: yes
         delete: no
       delegate_to: "{{ inventory_hostname }}"
-      when: found_files.matched == 0
-
+      when: backup_check.stat.isdir
 
 - name: "Warning: Backup not found: {{ path_item.dest }}"
   debug:
-    msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist"
+    msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist at {{ backup_path }}"
   when: not backup_check.stat.exists
