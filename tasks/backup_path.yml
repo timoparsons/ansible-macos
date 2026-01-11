@@ -1,71 +1,120 @@
+---
 # ============================================================================
 # File: tasks/backup_path.yml
 # Backs up a single path (file or directory)
-# Called by backup_app.yml, not run directly
 # ============================================================================
----
 - name: "Check if source exists: {{ path_item.src }}"
   stat:
     path: "{{ path_item.src | expanduser }}"
   register: source_check
 
-- name: "Backup {{ path_item.src }}"
-  when: source_check.stat.exists
-  block:
-    - name: "Ensure backup destination parent directory exists"
-      file:
-        path: "{{ backup_base }}/{{ path_item.dest | dirname }}"
-        state: directory
-        mode: '0755'
-      when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
-
-    - name: "Build rsync exclude options"
-      set_fact:
-        rsync_exclude_opts: "{{ path_item.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | list }}"
-      when: source_check.stat.isdir
-
-    # BACKUP DECISION:
-    # If source is a directory → sync to dest/
-    # If source is a file → copy to dest (preserve filename)
-    
-    - name: "Backup directory: {{ path_item.src }}"
-      synchronize:
-        src: "{{ path_item.src | expanduser }}/"
-        dest: "{{ backup_base }}/{{ path_item.dest }}/"
-        recursive: yes
-        delete: no
-        rsync_opts: "{{ rsync_exclude_opts }}"
-      delegate_to: "{{ inventory_hostname }}"
-      when: source_check.stat.isdir
-    
-    - name: "Backup file: {{ path_item.src }}"
-      copy:
-        src: "{{ path_item.src | expanduser }}"
-        dest: "{{ backup_base }}/{{ path_item.dest }}"
-        mode: preserve
-        backup: no
-      when: source_check.stat.isreg
-    
-    - name: "Create timestamped directory backup"
-      synchronize:
-        src: "{{ backup_base }}/{{ path_item.dest }}/"
-        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
-        recursive: yes
-      delegate_to: "{{ inventory_hostname }}"
-      when: 
-        - backup_create_timestamped | default(false) | bool
-        - source_check.stat.isdir
-
-    - name: "Create timestamped file backup"
-      copy:
-        src: "{{ backup_base }}/{{ path_item.dest }}"
-        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}"
-        mode: preserve
-      when:
-        - backup_create_timestamped | default(false) | bool
-        - source_check.stat.isreg
-
-- name: "Warning: Source not found: {{ path_item.src }}"
+- name: "Skip if source doesn't exist: {{ path_item.src }}"
   debug:
     msg: "⚠️  Skipping {{ path_item.src }} - does not exist"
   when: not source_check.stat.exists
+
+- name: "Backup {{ path_item.src }}"
+  when: source_check.stat.exists
+  block:
+    # ==================================================================
+    # FILE BACKUP
+    # ==================================================================
+    - name: "Backup file: {{ path_item.src }}"
+      when: source_check.stat.isreg | default(false)
+      block:
+        - name: "Create parent directory for file backup"
+          file:
+            path: "{{ backup_base }}/{{ path_item.dest | dirname }}"
+            state: directory
+            mode: '0755'
+          when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
+
+        # Use command instead of copy module to avoid directory creation
+        - name: "Copy file: {{ path_item.src | expanduser }} → {{ backup_base }}/{{ path_item.dest }}"
+          command: >
+            cp -p 
+            "{{ path_item.src | expanduser }}" 
+            "{{ backup_base }}/{{ path_item.dest }}"
+          args:
+            creates: "{{ backup_base }}/{{ path_item.dest }}"
+          register: file_copy
+          changed_when: file_copy.rc == 0
+
+        # Always overwrite if file already exists
+        - name: "Overwrite existing file backup"
+          command: >
+            cp -pf
+            "{{ path_item.src | expanduser }}" 
+            "{{ backup_base }}/{{ path_item.dest }}"
+          when: file_copy is skipped
+          changed_when: true
+
+        - name: "Verify file backup is a file, not directory"
+          stat:
+            path: "{{ backup_base }}/{{ path_item.dest }}"
+          register: verify_file
+
+        - name: "Fail if backup created directory instead of file"
+          fail:
+            msg: "ERROR: {{ backup_base }}/{{ path_item.dest }} is a directory, should be a file!"
+          when: verify_file.stat.isdir | default(false)
+
+    # ==================================================================
+    # DIRECTORY BACKUP
+    # ==================================================================
+    - name: "Backup directory: {{ path_item.src }}"
+      when: source_check.stat.isdir | default(false)
+      block:
+        - name: "Build rsync exclude options"
+          set_fact:
+            rsync_exclude_opts: "{{ path_item.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | list }}"
+
+        - name: "Create destination directory for directory backup"
+          file:
+            path: "{{ backup_base }}/{{ path_item.dest }}"
+            state: directory
+            mode: '0755'
+
+        - name: "Sync directory: {{ path_item.src | expanduser }}/ → {{ backup_base }}/{{ path_item.dest }}/"
+          synchronize:
+            src: "{{ path_item.src | expanduser }}/"
+            dest: "{{ backup_base }}/{{ path_item.dest }}/"
+            recursive: yes
+            delete: no
+            rsync_opts: "{{ rsync_exclude_opts }}"
+          delegate_to: "{{ inventory_hostname }}"
+
+    # ==================================================================
+    # TIMESTAMPED BACKUPS (Optional)
+    # ==================================================================
+    - name: "Create timestamped backup"
+      when: backup_create_timestamped | default(false) | bool
+      block:
+        # For files
+        - name: "Timestamped file backup"
+          when: source_check.stat.isreg
+          block:
+            - name: "Create timestamped parent directory"
+              file:
+                path: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest | dirname }}"
+                state: directory
+                mode: '0755'
+              when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
+
+            - name: "Copy to timestamped location"
+              command: >
+                cp -p
+                "{{ backup_base }}/{{ path_item.dest }}"
+                "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}"
+              changed_when: true
+
+        # For directories
+        - name: "Timestamped directory backup"
+          when: source_check.stat.isdir
+          block:
+            - name: "Sync to timestamped location"
+              synchronize:
+                src: "{{ backup_base }}/{{ path_item.dest }}/"
+                dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ path_item.dest }}/"
+                recursive: yes
+              delegate_to: "{{ inventory_hostname }}"

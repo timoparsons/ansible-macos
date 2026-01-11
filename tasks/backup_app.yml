@@ -10,14 +10,8 @@
       set_fact:
         app_def: "{{ app_backup_definitions[app_key] }}"
     
-    - name: "Create backup directory for {{ app_def.name }}"
-      file:
-        path: "{{ backup_base }}/{{ item.dest }}"
-        state: directory
-        mode: '0755'
-      loop: "{{ app_def.paths }}"
-      loop_control:
-        label: "{{ item.dest }}"
+    # Don't create directories here - let backup_path.yml handle it
+    # based on whether the source is a file or directory
     
     - name: "Backup paths for {{ app_def.name }}"
       include_tasks: backup_path.yml
