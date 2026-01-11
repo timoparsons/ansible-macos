@@ -158,8 +158,7 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.jordanbaird.Ice.plist"
         dest: "ice/com.jordanbaird.Ice.plist"
-      - src: "~/Library/Application Support/Ice"
-        dest: "ice/application-support"
+
   
   lightroom:
     name: "Adobe Lightroom Classic"
