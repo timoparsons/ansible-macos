@@ -223,10 +223,9 @@ app_backup_definitions:
   pronotes:
     name: "ProNotes"
     paths:
-      - src: "~/Library/Containers/com.aristocratapps.pronotes"
-        dest: "pronotes/container"
-        exclude:
-          - "Data/Library/Caches"
+      - src: "~/Library/Preferences//com.dexterleng.ProNotes.plist"
+        dest: "pronotes/com.dexterleng.ProNotes.plist"
+
 
   raycast:
     name: "Raycast"
