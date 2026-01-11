@@ -223,7 +223,7 @@ app_backup_definitions:
   pronotes:
     name: "ProNotes"
     paths:
-      - src: "~/Library/Preferences//com.dexterleng.ProNotes.plist"
+      - src: "~/Library/Preferences/com.dexterleng.ProNotes.plist"
         dest: "pronotes/com.dexterleng.ProNotes.plist"
 
 
