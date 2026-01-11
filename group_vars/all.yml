@@ -44,3 +44,12 @@ common_dock_apps:
   - path: "/System/Applications/System Settings.app"
 
 common_dock_folders: []
+
+# Common login items (all machines)
+common_login_items:
+  - name: "Bloom"
+    path: "/Applications/Bloom.app"
+    hidden: false
+
+# Items to remove (cleanup from previous configs)
+common_remove_login_items: []

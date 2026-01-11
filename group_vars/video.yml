@@ -37,3 +37,14 @@ video_dock_apps:
   - path: "/System/Applications/System Settings.app"
 
 video_dock_folders: []
+
+video_login_items:
+  - name: "AutoMounter"
+    path: "/Applications/AutoMounter.app"
+    hidden: true
+  
+  - name: "Tailscale"
+    path: "/Applications/Tailscale.app"
+    hidden: false
+
+video_remove_login_items: []

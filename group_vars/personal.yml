@@ -133,3 +133,43 @@ personal_dock_apps:
   - path: "/System/Applications/System Settings.app"
 
 personal_dock_folders: []
+
+
+
+personal_login_items:
+  - name: "AutoMounter"
+    path: "/Applications/AutoMounter.app"
+    hidden: true
+
+  - name: "Google Drive"
+    path: "/Applications/Google Drive.app"
+    hidden: true
+
+  - name: "Ice"
+    path: "/Applications/Ice.app"
+    hidden: false
+  
+  - name: "Loop"
+    path: "/Applications/Loop.app"
+    hidden: false
+  
+  - name: "LuLu"
+    path: "/Applications/LuLu.app"
+    hidden: false
+
+  - name: "ProNotes"
+    path: "/Applications/ProNotes.app"
+    hidden: false
+
+  - name: "Raycast"
+    path: "/Applications/Raycast.app"
+    hidden: false
+
+  # Add more as needed
+  # - name: "Synology Drive Client"
+  #   path: "/Applications/Synology Drive Client.app"
+  #   hidden: false
+
+# Optionally remove items
+personal_remove_login_items:
+  - "Spotify"

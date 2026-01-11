@@ -31,3 +31,8 @@ family_dock_folders:
     view: fan
     display: folder
     sort: dateadded
+
+
+family_login_items: []
+
+family_remove_login_items: []

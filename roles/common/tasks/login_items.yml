@@ -1,0 +1,51 @@
+---
+# roles/common/tasks/login_items.yml
+# Configure applications to launch at login
+
+- name: Combine login items for this machine type
+  set_fact:
+    login_items: "{{ common_login_items | default([]) + lookup('vars', machine_type + '_login_items', default=[]) }}"
+    remove_login_items: "{{ common_remove_login_items | default([]) + lookup('vars', machine_type + '_remove_login_items', default=[]) }}"
+
+- name: Display login items configuration
+  debug:
+    msg: |
+      📱 Configuring {{ login_items | length }} login items for {{ machine_type }} machine
+      {% if remove_login_items | length > 0 %}🗑️  Removing {{ remove_login_items | length }} login items{% endif %}
+
+- name: Get current login items
+  ansible.builtin.shell: |
+    osascript -e 'tell application "System Events" to get the name of every login item'
+  register: current_login_items
+  changed_when: false
+  failed_when: false
+
+- name: Display current login items
+  debug:
+    msg: "Current login items: {{ current_login_items.stdout }}"
+
+- name: Add login items
+  ansible.builtin.shell: |
+    osascript -e 'tell application "System Events" to make login item at end with properties {path:"{{ item.path }}", hidden:{{ item.hidden | default(false) | lower }}}'
+  loop: "{{ login_items | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: 
+    - login_items is defined
+    - login_items | length > 0
+    - item.name not in current_login_items.stdout
+  register: login_item_add
+  changed_when: login_item_add.rc == 0
+  failed_when: false
+
+- name: Remove login items (if specified)
+  ansible.builtin.shell: |
+    osascript -e 'tell application "System Events" to delete login item "{{ item }}"'
+  loop: "{{ remove_login_items | default([]) }}"
+  when: 
+    - remove_login_items is defined
+    - remove_login_items | length > 0
+    - item in current_login_items.stdout
+  register: login_item_remove
+  changed_when: login_item_remove.rc == 0
+  failed_when: false

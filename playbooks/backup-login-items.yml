@@ -1,0 +1,64 @@
+---
+# playbooks/backup-login-items.yml
+# Export current login items to a YAML file for easy adding to group_vars
+# Usage: ansible-playbook playbooks/backup-login-items.yml -i inventory.ini --limit personal
+
+- name: Export Current Login Items Configuration
+  hosts: all
+  become: false
+  
+  tasks:
+    - name: Get current login items with full paths
+      ansible.builtin.shell: |
+        osascript <<EOF
+        tell application "System Events"
+          set loginItemsList to {}
+          repeat with loginItem in login items
+            set itemName to name of loginItem
+            set itemPath to path of loginItem
+            set itemHidden to hidden of loginItem
+            set end of loginItemsList to "- name: \"" & itemName & "\"
+          path: \"" & itemPath & "\"
+          hidden: " & itemHidden
+          end repeat
+          return loginItemsList as text
+        end tell
+        EOF
+      register: login_items_raw
+      changed_when: false
+
+    - name: Display current login items as YAML
+      debug:
+        msg: |
+          
+          ========================================
+          Current Login Items for {{ machine_type }} machine
+          ========================================
+          
+          Add this to group_vars/{{ machine_type }}.yml:
+          
+          {{ machine_type }}_login_items:
+          {{ login_items_raw.stdout }}
+          
+          ========================================
+          
+          You can also check System Settings → General → Login Items
+    
+    - name: Save to file
+      copy:
+        content: |
+          # Generated login items for {{ machine_type }} machine
+          # Date: {{ ansible_date_time.iso8601 }}
+          
+          {{ machine_type }}_login_items:
+          {{ login_items_raw.stdout }}
+        dest: "{{ playbook_dir }}/login_items_{{ machine_type }}_{{ ansible_date_time.date }}.yml"
+      delegate_to: localhost
+    
+    - name: Completion message
+      debug:
+        msg: |
+          ✅ Login items exported!
+          📄 File: {{ playbook_dir }}/login_items_{{ machine_type }}_{{ ansible_date_time.date }}.yml
+          
+          Review the file and copy the configuration to group_vars/{{ machine_type }}.yml

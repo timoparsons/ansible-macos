@@ -32,7 +32,12 @@
     - name: Configure Dock (after all apps installed)
       import_tasks: roles/common/tasks/dock.yml
       tags: ['dock', 'config']
-    
+
+    - name: Configure login items (after all apps installed)
+      import_tasks: roles/common/tasks/login_items.yml
+      tags: ['login_items', 'config']
+      when: configure_login_items | default(true)
+
     # Wait for apps to settle before restoring settings
     - name: Wait for apps to settle
       pause:

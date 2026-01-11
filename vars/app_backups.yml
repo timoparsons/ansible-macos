@@ -2,6 +2,10 @@
 # File: vars/app_backups.yml
 # Define all app backup paths in one easy-to-edit file
 # Apps listed alphabetically for easy maintenance
+#
+# IMPORTANT: dest paths for FILES must include the filename!
+#   - For files: dest: "app-name/filename.ext"
+#   - For directories: dest: "app-name/subdirectory"
 # ============================================================================
 
 app_backup_definitions:
@@ -10,31 +14,31 @@ app_backup_definitions:
     name: "Affinity Designer"
     paths:
       - src: "~/Library/Application Support/Affinity Designer"
-        dest: "affinity/designer"
+        dest: "affinity/designer/application-support"
         exclude:
           - "Caches"
       - src: "~/Library/Preferences/com.seriflabs.affinitydesigner.plist"
-        dest: "affinity/designer"
+        dest: "affinity/designer/com.seriflabs.affinitydesigner.plist"
   
   affinity-photo:
     name: "Affinity Photo"
     paths:
       - src: "~/Library/Application Support/Affinity Photo"
-        dest: "affinity/photo"
+        dest: "affinity/photo/application-support"
         exclude:
           - "Caches"
       - src: "~/Library/Preferences/com.seriflabs.affinityphoto.plist"
-        dest: "affinity/photo"
+        dest: "affinity/photo/com.seriflabs.affinityphoto.plist"
   
   affinity-publisher:
     name: "Affinity Publisher"
     paths:
       - src: "~/Library/Application Support/Affinity Publisher"
-        dest: "affinity/publisher"
+        dest: "affinity/publisher/application-support"
         exclude:
           - "Caches"
       - src: "~/Library/Preferences/com.seriflabs.affinitypublisher.plist"
-        dest: "affinity/publisher"
+        dest: "affinity/publisher/com.seriflabs.affinitypublisher.plist"
   
   argest:
     name: "ArGest Backup"
@@ -47,8 +51,8 @@ app_backup_definitions:
   automounter:
     name: "AutoMounter"
     paths:
-      - src: "~/Library/Preferences/com.pixeleyes.AutoMounter.plist"
-        dest: "automounter"
+      - src: "~/Library/Containers/nz.co.pixeleyes.AutoMounter/Data/Library/Preferences/nz.co.pixeleyes.AutoMounter.plist"
+        dest: "automounter/nz.co.pixeleyes.AutoMounter.plist"
   
   blender:
     name: "Blender"
@@ -62,13 +66,13 @@ app_backup_definitions:
     name: "Bloom"
     paths:
       - src: "~/Library/Preferences/com.asiafu.Bloom.plist"
-        dest: "bloom"
+        dest: "bloom/com.asiafu.Bloom.plist"
   
   brave-browser:
     name: "Brave Browser"
     paths:
       - src: "~/Library/Preferences/com.brave.Browser.plist"
-        dest: "brave-browser"
+        dest: "brave-browser/com.brave.Browser.plist"
       # Extension settings (as discussed before)
       - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Local Extension Settings"
         dest: "brave-browser/extension-settings"
@@ -80,9 +84,9 @@ app_backup_definitions:
     name: "Carbon Copy Cloner"
     paths:
       - src: "~/Library/Application Support/com.bombich.ccc"
-        dest: "carbon-copy-cloner"
+        dest: "carbon-copy-cloner/application-support"
       - src: "~/Library/Preferences/com.bombich.ccc.plist"
-        dest: "carbon-copy-cloner"
+        dest: "carbon-copy-cloner/com.bombich.ccc.plist"
   
   crossover:
     name: "CrossOver"
@@ -110,28 +114,28 @@ app_backup_definitions:
     name: "Eagle"
     paths:
       - src: "~/Library/Application Support/Eagle"
-        dest: "eagle"
+        dest: "eagle/application-support"
         exclude:
           - "Cache"
           - "logs"
       - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
-        dest: "eagle"
+        dest: "eagle/tw.ogdesign.eagle.plist"
   
   fontbase:
     name: "FontBase"
     paths:
       - src: "~/Library/Application Support/FontBase"
-        dest: "fontbase"
+        dest: "fontbase/application-support"
         exclude:
           - "Cache"
       - src: "~/Library/Preferences/com.dominiklevitsky.fontbase.plist"
-        dest: "fontbase"
+        dest: "fontbase/com.dominiklevitsky.fontbase.plist"
   
   github-desktop:
     name: "GitHub Desktop"
     paths:
       - src: "~/Library/Application Support/GitHub Desktop"
-        dest: "github-desktop"
+        dest: "github-desktop/application-support"
         exclude:
           - "logs"
   
@@ -139,15 +143,15 @@ app_backup_definitions:
     name: "HandBrake"
     paths:
       - src: "~/Library/Application Support/HandBrake"
-        dest: "handbrake"
+        dest: "handbrake/application-support"
       - src: "~/Library/Preferences/fr.handbrake.HandBrake.plist"
-        dest: "handbrake"
+        dest: "handbrake/fr.handbrake.HandBrake.plist"
   
   ice:
     name: "Ice Menu Bar Manager"
     paths:
       - src: "~/Library/Preferences/com.jordanbaird.Ice.plist"
-        dest: "ice"
+        dest: "ice/com.jordanbaird.Ice.plist"
       - src: "~/Library/Application Support/Ice"
         dest: "ice/application-support"
   
@@ -171,13 +175,13 @@ app_backup_definitions:
     name: "Loop Window Manager"
     paths:
       - src: "~/Library/Preferences/com.MrKai77.Loop.plist"
-        dest: "loop"
+        dest: "loop/com.MrKai77.Loop.plist"
   
   lulu:
     name: "LuLu Firewall"
     paths:
       - src: "~/Library/Preferences/com.objective-see.lulu.plist"
-        dest: "lulu"
+        dest: "lulu/com.objective-see.lulu.plist"
       - src: "~/Library/Application Support/com.objective-see.lulu"
         dest: "lulu/application-support"
   
@@ -185,21 +189,21 @@ app_backup_definitions:
     name: "MQTT Explorer"
     paths:
       - src: "~/Library/Application Support/MQTT-Explorer"
-        dest: "mqtt-explorer"
+        dest: "mqtt-explorer/application-support"
   
   neofinder:
     name: "NeoFinder"
     paths:
       - src: "~/Library/Application Support/NeoFinder"
-        dest: "neofinder"
+        dest: "neofinder/application-support"
       - src: "~/Library/Preferences/de.wfs-apps.NeoFinder.plist"
-        dest: "neofinder"
+        dest: "neofinder/de.wfs-apps.NeoFinder.plist"
   
   offshoot:
     name: "OffShoot"
     paths:
       - src: "~/Library/Preferences/com.hedge.OffShoot.plist"
-        dest: "offshoot"
+        dest: "offshoot/com.hedge.OffShoot.plist"
       - src: "~/Library/Application Support/OffShoot"
         dest: "offshoot/application-support"
   
@@ -242,9 +246,9 @@ app_backup_definitions:
     name: "SketchUp"
     paths:
       - src: "~/Library/Application Support/SketchUp"
-        dest: "sketchup"
+        dest: "sketchup/application-support"
       - src: "~/Library/Preferences/com.sketchup.SketchUp.*.plist"
-        dest: "sketchup"
+        dest: "sketchup/preferences"
 
   
   strongbox:
@@ -264,7 +268,7 @@ app_backup_definitions:
     name: "superwhisper"
     paths:
       - src: "~/Library/Application Support/superwhisper"
-        dest: "superwhisper"
+        dest: "superwhisper/application-support"
         exclude:
           - "Cache"
   
@@ -272,9 +276,9 @@ app_backup_definitions:
     name: "Tailscale"
     paths:
       - src: "~/Library/Application Support/Tailscale"
-        dest: "tailscale"
+        dest: "tailscale/application-support"
       - src: "~/Library/Preferences/io.tailscale.ipn.macsys.plist"
-        dest: "tailscale"
+        dest: "tailscale/io.tailscale.ipn.macsys.plist"
   
   terminal:
     name: "Terminal"
@@ -314,7 +318,7 @@ personal_apps_to_backup:
   - blender
   - bloom
   - carbon-copy-cloner
-  - crossover
+#  - crossover
   - davinci-resolve
   - eagle
   - fontbase
@@ -326,12 +330,13 @@ personal_apps_to_backup:
   - lulu
   - mqtt-explorer
   - neofinder
+  - offshoot
   - photoshop
   - pronotes
   - raycast
   - sketchup
   - strongbox
-  - superwhisper
+#  - superwhisper
   - tailscale
   - terminal
   - vscode
