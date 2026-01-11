@@ -1,7 +1,7 @@
 # ============================================================================
 # File: tasks/backup_path.yml
 # Backs up a single path (file or directory)
-# Called by backup_single_app.yml, not run directly
+# Called by backup_app.yml, not run directly
 # ============================================================================
 ---
 - name: "Check if source exists: {{ path_item.src }}"

@@ -22,6 +22,15 @@
     path: "{{ backup_path }}"
   register: backup_check
 
+- name: "Debug backup check for {{ path_item.dest }}"
+  debug:
+    msg: |
+      Backup path: {{ backup_path }}
+      Exists: {{ backup_check.stat.exists }}
+      Is file: {{ backup_check.stat.isreg | default(false) }}
+      Is directory: {{ backup_check.stat.isdir | default(false) }}
+  when: backup_check.stat.exists
+
 - name: "Restore {{ path_item.dest }}"
   when: backup_check.stat.exists
   block:
@@ -33,8 +42,8 @@
       when: (expanded_src | dirname) != expanded_src
 
     # DECISION TREE:
-    # 1. If backup_path is a file (stat.isreg) → restore as file
-    # 2. If backup_path is a directory (stat.isdir) → restore as directory
+    # 1. If backup_path is a regular file → restore as file
+    # 2. If backup_path is a directory → restore as directory
     
     - name: "Restore file: {{ path_item.src }}"
       copy:
@@ -42,7 +51,7 @@
         dest: "{{ expanded_src }}"
         mode: preserve
         backup: yes
-      when: backup_check.stat.isreg
+      when: backup_check.stat.isreg | default(false)
 
     - name: "Restore directory: {{ path_item.src }}"
       synchronize:
@@ -51,7 +60,7 @@
         recursive: yes
         delete: no
       delegate_to: "{{ inventory_hostname }}"
-      when: backup_check.stat.isdir
+      when: backup_check.stat.isdir | default(false)
 
 - name: "Warning: Backup not found: {{ path_item.dest }}"
   debug:
