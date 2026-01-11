@@ -1,0 +1,8 @@
+# tasks/quit_app.yml
+---
+- name: "Quit {{ app_name }} if running"
+  ansible.builtin.shell: |
+    killall "{{ app_name }}" 2>/dev/null || true
+    sleep 2
+  changed_when: false
+  failed_when: false

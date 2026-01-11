@@ -19,6 +19,13 @@
   set_fact:
     app_is_installed: "{{ app_check_results.results | selectattr('stat.exists') | list | length > 0 }}"
 
+- name: "Quit {{ app_backup_definitions[app_key].name }} before restore"
+  ansible.builtin.shell: |
+    killall "{{ app_backup_definitions[app_key].name }}" 2>/dev/null || true
+  changed_when: false
+  failed_when: false
+  when: app_is_installed
+  
 - name: "Restore {{ app_backup_definitions[app_key].name }} settings"
   include_tasks: restore_app.yml
   when: app_is_installed
