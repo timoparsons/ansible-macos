@@ -35,6 +35,19 @@
         prompt: "Press ENTER to continue or Ctrl+C to cancel"
       when: not (auto_confirm | default(false))
     
+    - name: Quit all apps before restore
+      include_tasks: ../tasks/quit_app.yml
+      vars:
+        app_name: "{{ app_backup_definitions[item].name }}"
+      loop: "{{ apps_to_restore }}"
+      loop_control:
+        label: "{{ app_backup_definitions[item].name }}"
+    
+    - name: Wait for apps to fully quit
+      pause:
+        seconds: 3
+        prompt: "Waiting for apps to close..."
+    
     - name: Restore applications
       include_tasks: ../tasks/restore_app.yml
       loop: "{{ apps_to_restore }}"
