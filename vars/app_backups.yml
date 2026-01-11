@@ -83,11 +83,17 @@ app_backup_definitions:
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"
     paths:
-      - src: "~/Library/Application Support/com.bombich.ccc"
-        dest: "carbon-copy-cloner/application-support"
+      #- src: "~/Library/Application Support/com.bombich.ccc"
+      #  dest: "carbon-copy-cloner/application-support"
+      - src: "/Library/Application Support/com.bombich.ccc/GlobalDefaults.plist"
+        dest: "carbon-copy-cloner/GlobalDefaults.plist"
+      - src: "/Library/Application Support/com.bombich.ccc/Scripts"
+        dest: "carbon-copy-cloner/Scripts"
       - src: "~/Library/Preferences/com.bombich.ccc.plist"
         dest: "carbon-copy-cloner/com.bombich.ccc.plist"
-  
+      - src: "~/Library/Preferences/com.bombich.cccdashboard.plist"
+        dest: "carbon-copy-cloner/com.bombich.cccdashboard.plist"
+
   crossover:
     name: "CrossOver"
     paths:
