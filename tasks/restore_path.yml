@@ -32,45 +32,48 @@
       Is directory: {{ backup_check.stat.isdir | default(false) }}
   when: backup_check.stat.exists
 
-- name: "Detect if restore requires system permissions"
-  set_fact:
-    needs_sudo: "{{ expanded_src.startswith('/Library') or expanded_src.startswith('/private') }}"
-
-- name: "Restore {{ path_item.dest }}"
-  when: backup_check.stat.exists
+- name: "Handle restore based on backup existence"
   block:
-    - name: "Ensure parent directory exists for {{ expanded_src }}"
-      file:
-        path: "{{ expanded_src | dirname }}"
-        state: directory
-        mode: '0755'
-      become: "{{ needs_sudo }}"
-      when: (expanded_src | dirname) != expanded_src
+    - name: "Detect if restore requires system permissions"
+      set_fact:
+        needs_sudo: "{{ expanded_src.startswith('/Library') or expanded_src.startswith('/private') }}"
+      when: backup_check.stat.exists
 
-    # DECISION TREE:
-    # 1. If backup_path is a regular file → restore as file
-    # 2. If backup_path is a directory → restore as directory
-    
-    - name: "Restore file: {{ path_item.src }}"
-      copy:
-        src: "{{ backup_path }}"
-        dest: "{{ expanded_src }}"
-        mode: preserve
-        backup: yes
-      become: "{{ needs_sudo }}"
-      when: backup_check.stat.isreg | default(false)
+    - name: "Restore {{ path_item.dest }}"
+      when: backup_check.stat.exists
+      block:
+        - name: "Ensure parent directory exists for {{ expanded_src }}"
+          file:
+            path: "{{ expanded_src | dirname }}"
+            state: directory
+            mode: '0755'
+          become: "{{ needs_sudo }}"
+          when: (expanded_src | dirname) != expanded_src
 
-    - name: "Restore directory: {{ path_item.src }}"
-      synchronize:
-        src: "{{ backup_path }}/"
-        dest: "{{ expanded_src }}/"
-        recursive: yes
-        delete: no
-      become: "{{ needs_sudo }}"
-      delegate_to: "{{ inventory_hostname }}"
-      when: backup_check.stat.isdir | default(false)
+        # DECISION TREE:
+        # 1. If backup_path is a regular file → restore as file
+        # 2. If backup_path is a directory → restore as directory
+        
+        - name: "Restore file: {{ path_item.src }}"
+          copy:
+            src: "{{ backup_path }}"
+            dest: "{{ expanded_src }}"
+            mode: preserve
+            backup: yes
+          become: "{{ needs_sudo }}"
+          when: backup_check.stat.isreg | default(false)
 
-- name: "Warning: Backup not found: {{ path_item.dest }}"
-  debug:
-    msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist at {{ backup_path }}"
-  when: not backup_check.stat.exists
+        - name: "Restore directory: {{ path_item.src }}"
+          synchronize:
+            src: "{{ backup_path }}/"
+            dest: "{{ expanded_src }}/"
+            recursive: yes
+            delete: no
+          become: "{{ needs_sudo }}"
+          delegate_to: "{{ inventory_hostname }}"
+          when: backup_check.stat.isdir | default(false)
+
+    - name: "Warning: Backup not found: {{ path_item.dest }}"
+      debug:
+        msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist at {{ backup_path }}"
+      when: not backup_check.stat.exists
