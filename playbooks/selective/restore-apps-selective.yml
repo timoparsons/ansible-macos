@@ -14,6 +14,14 @@
   vars:
     backup_base: "{{ macos_network_base }}/apps"
   
+  pre_tasks:
+    - name: Check required network volumes are mounted
+      include_tasks: "../../tasks/check_network_volumes.yml"
+      vars:
+        required_volumes:
+          - backup_proxmox
+      when: machine_type in ['video', 'personal']
+  
   tasks:
     - name: Fail if apps_list not provided
       fail:
