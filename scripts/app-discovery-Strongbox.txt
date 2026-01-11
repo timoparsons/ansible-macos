@@ -1,0 +1,54 @@
+Found: /Applications/Strongbox.app
+Bundle ID: com.markmcguill.strongbox.pro
+Location: ~/Library/Preferences
+Searching for: *Strongbox* and *com.markmcguill.strongbox.pro*
+
+[1;33m✗ No matches found[0m
+
+[1;33m✗ No matches found[0m
+Location: ~/Library/Application Support
+
+[1;33m✗ No matches found[0m
+
+[1;33m✗ No matches found[0m
+Location: ~/Library/Containers
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro.autofill (1 files)
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro (13 files)
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro.autofill (1 files)
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro (13 files)
+Location: ~/Library/Group Containers
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Group Containers/group.strongbox.mac.mcguill (27 files)
+
+Found: /Applications/Strongbox.app
+Bundle ID: com.markmcguill.strongbox.pro
+Location: ~/Library/Preferences
+Searching for: *Strongbox* and *com.markmcguill.strongbox.pro*
+
+[1;33m✗ No matches found[0m
+
+[1;33m✗ No matches found[0m
+Location: ~/Library/Application Support
+
+[1;33m✗ No matches found[0m
+
+[1;33m✗ No matches found[0m
+Location: ~/Library/Containers
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro.autofill (1 files)
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro (13 files)
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro.autofill (1 files)
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.markmcguill.strongbox.pro (13 files)
+Location: ~/Library/Group Containers
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Group Containers/group.strongbox.mac.mcguill (27 files)
+

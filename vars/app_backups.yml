@@ -251,10 +251,10 @@ app_backup_definitions:
     name: "Strongbox Pro"
     paths:
       - src: "~/Library/Containers/com.markmcguill.strongbox.pro/Data/Library/Preferences/com.markmcguill.strongbox.pro.plist"
-        dest: "strongbox/preferences/main.plist"  # ← Full path including filename
+        dest: "strongbox/preferences/com.markmcguill.strongbox.pro.plist"  # ← Full path including filename
       
       - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/Library/Preferences/group.strongbox.mac.mcguill.plist"
-        dest: "strongbox/preferences/group.plist"  # ← Full path including filename
+        dest: "strongbox/preferences/group.strongbox.mac.mcguill.plist"  # ← Full path including filename
       
       - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/sync-manager"
         dest: "strongbox/sync-manager"  # ← No trailing slash, just directory name
