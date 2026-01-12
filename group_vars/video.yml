@@ -1,5 +1,9 @@
 # group_vars/video.yml
 
+# ============================================================================
+# Applications
+# ============================================================================
+
 # Command Line Tools (Brew Formulae)
 video_formula_apps:
   - ffmpeg
@@ -26,11 +30,19 @@ video_dmg_pkg_apps:
     url: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
     volume: "OffShoot 23.2.4"
 
+# ============================================================================
+# Dock Configuration
+# ============================================================================
+
 video_dock_apps:
   - path: "/System/Applications/Slack.app"
   - path: "/System/Applications/System Settings.app"
 
 video_dock_folders: []
+
+# ============================================================================
+# Login Items
+# ============================================================================
 
 video_login_items:
   - name: "AutoMounter"
