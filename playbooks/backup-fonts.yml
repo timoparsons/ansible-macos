@@ -1,0 +1,115 @@
+---
+# ============================================================================
+# File: playbooks/backup-fonts.yml
+# Backup user fonts to network volume
+# WARNING: This REPLACES the entire fonts backup folder
+# Usage: ansible-playbook playbooks/backup-fonts.yml -i inventory.ini --limit personal
+# ============================================================================
+- name: Backup User Fonts to Network Volume
+  hosts: all
+  become: false
+  
+  vars:
+    fonts_source: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"
+    fonts_backup: "{{ macos_network_base }}/fonts"
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+  
+  tasks:
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+    
+    - name: Check if user fonts directory exists
+      stat:
+        path: "{{ fonts_source }}"
+      register: fonts_check
+    
+    - name: Fail if no fonts to backup
+      fail:
+        msg: "❌ No fonts directory found at {{ fonts_source }}"
+      when: not fonts_check.stat.exists
+    
+    - name: Count fonts to backup
+      find:
+        paths: "{{ fonts_source }}"
+        patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+        recurse: yes
+      register: font_files
+    
+    - name: Display backup summary
+      debug:
+        msg: |
+          📦 Backing up user fonts
+          📁 Source: {{ fonts_source }}/
+          🎯 Destination: {{ fonts_backup }}/
+          🔢 Font files found: {{ font_files.matched }}
+          
+          ⚠️  WARNING: This will REPLACE all fonts in the backup!
+    
+    - name: Confirm destructive backup
+      pause:
+        prompt: "Press ENTER to continue or Ctrl+C to cancel"
+      when: not (auto_confirm | default(false))
+    
+    - name: Create timestamped backup of old fonts (if exists)
+      block:
+        - name: Check if existing backup exists
+          stat:
+            path: "{{ fonts_backup }}"
+          register: existing_backup
+        
+        - name: Archive existing fonts before replacing
+          synchronize:
+            src: "{{ fonts_backup }}/"
+            dest: "{{ fonts_backup }}.backup.{{ backup_timestamp }}/"
+            recursive: yes
+          delegate_to: "{{ inventory_hostname }}"
+          when: existing_backup.stat.exists
+        
+        - name: Display archive location
+          debug:
+            msg: "📦 Previous backup archived to: {{ fonts_backup }}.backup.{{ backup_timestamp }}/"
+          when: existing_backup.stat.exists
+      when: backup_create_timestamped | default(false)
+    
+    - name: Remove existing fonts backup
+      file:
+        path: "{{ fonts_backup }}"
+        state: absent
+    
+    - name: Create fresh fonts backup directory
+      file:
+        path: "{{ fonts_backup }}"
+        state: directory
+        mode: '0755'
+    
+    - name: Sync fonts to network backup (replacing all)
+      synchronize:
+        src: "{{ fonts_source }}/"
+        dest: "{{ fonts_backup }}/"
+        recursive: yes
+        delete: yes
+        rsync_opts:
+          - "--exclude=.DS_Store"
+          - "--exclude=Thumbs.db"
+      delegate_to: "{{ inventory_hostname }}"
+    
+    - name: Verify backup
+      find:
+        paths: "{{ fonts_backup }}"
+        patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+        recurse: yes
+      register: backed_up_fonts
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Font backup complete!
+          📁 Location: {{ fonts_backup }}/
+          🔢 Fonts backed up: {{ backed_up_fonts.matched }}
+          
+          {% if backup_create_timestamped and existing_backup.stat.exists %}
+          💾 Previous backup saved to: {{ fonts_backup }}.backup.{{ backup_timestamp }}/
+          {% endif %}

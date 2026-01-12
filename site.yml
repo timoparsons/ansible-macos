@@ -2,7 +2,11 @@
 - name: Provision macOS
   hosts: all
   become: false
-  
+
+  # ========================================================================
+  # PRE-TASKS
+  # ========================================================================
+
   pre_tasks:
     - name: Check required network volumes are mounted
       include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
@@ -11,6 +15,10 @@
           - backup_proxmox
       when: machine_type in ['video', 'personal']
       tags: ['always']
+
+  # ========================================================================
+  # PROVISION ROLES
+  # ========================================================================
 
   roles:
     - role: common
@@ -27,6 +35,10 @@
     - role: family
       when: machine_type == 'family'
       tags: ['family', 'apps']
+
+  # ========================================================================
+  # POST-TASKS
+  # ========================================================================
 
   post_tasks:
     - name: Configure Dock (after all apps installed)
@@ -47,8 +59,79 @@
         - restore_app_settings | default(true)
         - macos_network_base is defined
       tags: ['restore', 'config']
+
+    # ========================================================================
+    # FONTS: Restore BEFORE app settings
+    # Apps like Terminal, VS Code, etc. may reference fonts in their prefs
+    # ========================================================================
+
+    - name: Check if fonts backup exists
+      stat:
+        path: "{{ macos_network_base }}/fonts"
+      register: fonts_backup_check
+      when: 
+        - restore_fonts | default(true)
+        - machine_type in ['personal', 'video']
+        - macos_network_base is defined
+      tags: ['fonts', 'restore', 'config']
     
-    # Smart restore - only restore settings for apps that are actually installed
+    - name: Restore user fonts (before app settings)
+      block:
+        - name: Count fonts in backup
+          find:
+            paths: "{{ macos_network_base }}/fonts"
+            patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+            recurse: yes
+          register: backup_font_files
+        
+        - name: Display font restore info
+          debug:
+            msg: "📥 Restoring {{ backup_font_files.matched }} fonts from network backup (before app settings)"
+        
+        - name: Ensure user fonts directory exists
+          file:
+            path: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"
+            state: directory
+            mode: '0755'
+        
+        - name: Clear existing fonts
+          shell: rm -rf "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"/*
+          args:
+            warn: false
+          changed_when: true
+        
+        - name: Restore fonts
+          synchronize:
+            src: "{{ macos_network_base }}/fonts/"
+            dest: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts/"
+            recursive: yes
+            delete: yes
+            rsync_opts:
+              - "--exclude=.DS_Store"
+              - "--exclude=Thumbs.db"
+          delegate_to: "{{ inventory_hostname }}"
+        
+        - name: Rebuild font cache
+          shell: |
+            atsutil databases -remove
+            atsutil server -shutdown
+            atsutil server -ping
+          changed_when: false
+          failed_when: false
+        
+        - name: Wait for font cache to rebuild
+          pause:
+            seconds: 2
+            prompt: "Allowing font cache to rebuild..."
+      when:
+        - fonts_backup_check.stat.exists
+        - backup_font_files.matched > 0
+      tags: ['fonts', 'restore', 'config']
+
+    # ========================================================================
+    # APP SETTINGS
+    # ========================================================================
+
     - name: Check if app settings backup exists
       stat:
         path: "{{ macos_network_base }}/apps"
@@ -79,7 +162,11 @@
         - app_backup_check.stat.exists
         - macos_network_base is defined
       tags: ['restore', 'config']
-    
+
+    # ========================================================================
+    # NOTIFICATION
+    # ========================================================================
+
     - name: Display completion message
       debug:
         msg: |

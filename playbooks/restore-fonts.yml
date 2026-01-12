@@ -1,0 +1,133 @@
+---
+# ============================================================================
+# File: playbooks/restore-fonts.yml
+# Restore user fonts from network volume
+# WARNING: This REPLACES all fonts in ~/Library/Fonts
+# Usage: ansible-playbook playbooks/restore-fonts.yml -i inventory.ini --limit personal
+# ============================================================================
+- name: Restore User Fonts from Network Volume
+  hosts: all
+  become: false
+  
+  vars:
+    fonts_backup: "{{ macos_network_base }}/fonts"
+    fonts_dest: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+  
+  tasks:
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+    
+    - name: Check if fonts backup exists
+      stat:
+        path: "{{ fonts_backup }}"
+      register: fonts_backup_check
+    
+    - name: Fail if no fonts backup found
+      fail:
+        msg: "❌ No fonts backup found at {{ fonts_backup }}"
+      when: not fonts_backup_check.stat.exists
+    
+    - name: Count fonts in backup
+      find:
+        paths: "{{ fonts_backup }}"
+        patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+        recurse: yes
+      register: backup_font_files
+    
+    - name: Display restore summary
+      debug:
+        msg: |
+          📥 Restoring user fonts
+          📁 Source: {{ fonts_backup }}/
+          🎯 Destination: {{ fonts_dest }}/
+          🔢 Font files in backup: {{ backup_font_files.matched }}
+          
+          ⚠️  WARNING: This will REPLACE all fonts in ~/Library/Fonts!
+    
+    - name: Confirm destructive restore
+      pause:
+        prompt: "Press ENTER to continue or Ctrl+C to cancel"
+      when: not (auto_confirm | default(false))
+    
+    - name: Create timestamped backup of current fonts
+      block:
+        - name: Check if current fonts directory exists
+          stat:
+            path: "{{ fonts_dest }}"
+          register: current_fonts
+        
+        - name: Archive current fonts before replacing
+          synchronize:
+            src: "{{ fonts_dest }}/"
+            dest: "{{ fonts_dest }}.backup.{{ backup_timestamp }}/"
+            recursive: yes
+          delegate_to: "{{ inventory_hostname }}"
+          when: current_fonts.stat.exists
+        
+        - name: Display archive location
+          debug:
+            msg: "💾 Current fonts archived to: {{ fonts_dest }}.backup.{{ backup_timestamp }}/"
+          when: current_fonts.stat.exists
+      when: backup_create_timestamped | default(false)
+    
+    - name: Ensure user fonts directory exists
+      file:
+        path: "{{ fonts_dest }}"
+        state: directory
+        mode: '0755'
+    
+    - name: Clear existing fonts
+      shell: rm -rf "{{ fonts_dest }}"/*
+      args:
+        warn: false
+      changed_when: true
+    
+    - name: Restore fonts from network backup
+      synchronize:
+        src: "{{ fonts_backup }}/"
+        dest: "{{ fonts_dest }}/"
+        recursive: yes
+        delete: yes
+        rsync_opts:
+          - "--exclude=.DS_Store"
+          - "--exclude=Thumbs.db"
+      delegate_to: "{{ inventory_hostname }}"
+    
+    - name: Set correct permissions on restored fonts
+      file:
+        path: "{{ fonts_dest }}"
+        mode: '0755'
+        recurse: yes
+    
+    - name: Verify restore
+      find:
+        paths: "{{ fonts_dest }}"
+        patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+        recurse: yes
+      register: restored_fonts
+    
+    - name: Rebuild font cache
+      shell: |
+        atsutil databases -remove
+        atsutil server -shutdown
+        atsutil server -ping
+      changed_when: false
+      failed_when: false
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Font restore complete!
+          📁 Location: {{ fonts_dest }}/
+          🔢 Fonts restored: {{ restored_fonts.matched }}
+          
+          {% if backup_create_timestamped and current_fonts.stat.exists %}
+          💾 Previous fonts saved to: {{ fonts_dest }}.backup.{{ backup_timestamp }}/
+          {% endif %}
+          
+          💡 Font cache has been rebuilt
+          ⚠️  You may need to restart applications for new fonts to appear
