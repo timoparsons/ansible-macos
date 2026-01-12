@@ -273,10 +273,9 @@ app_backup_definitions:
   superwhisper:
     name: "superwhisper"
     paths:
-      - src: "~/Library/Application Support/superwhisper"
-        dest: "superwhisper/application-support"
-        exclude:
-          - "Cache"
+      - src: "~/Library/Preferences/com.superduper.superwhisper.plist"
+        dest: "superwhisper/com.superduper.superwhisper.plist"
+        
   
   tailscale:
     name: "Tailscale"
