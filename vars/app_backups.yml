@@ -63,10 +63,15 @@ app_backup_definitions:
   argest:
     name: "ArGest Backup"
     paths:
-      - src: "~/Library/Preferences/com.jeremyvizzini.ArGest*.plist"
-        dest: "argest"
-      - src: "~/Library/Application Support/ArGest"
+      - src: "~/Library/Preferences/com.owc.bru.argestbackup.plist"
+        dest: "argest/com.owc.bru.argestbackup.plist"
+      - src: "~/Library/Preferences/com.owc.argestbackup.pref"
+        dest: "argest/com.owc.argestbackup.pref"
+      - src: "/Library/Application Support/ArGest Backup"
         dest: "argest/application-support"
+        exclude:
+          - "/*tmp"
+
   
   automounter:
     name: "AutoMounter"
