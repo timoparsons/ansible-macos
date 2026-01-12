@@ -66,12 +66,12 @@
   tags: ['dmg', 'gui', 'apps']
 
 - name: Setup SSH keys
-  include_tasks: setup_ssh.yml
+  ansible.builtin.import_tasks: setup_ssh.yml
   tags: ['ssh', 'config']
   #when: ssh_files is defined and ssh_files | length > 0
 
 - name: Setup dotfiles
-  include_tasks: setup_dotfiles.yml
+  ansible.builtin.import_tasks: setup_ssh.yml
   tags: ['dotfiles', 'config']
   when: dotfiles_files is defined and dotfiles_files | length > 0
 
