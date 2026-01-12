@@ -1,20 +1,50 @@
 # tasks/setup_ssh.yml
 ---
+- name: Debug - Show SSH configuration
+  debug:
+    msg: |
+      Machine type: {{ machine_type }}
+      macos_network_base defined: {{ macos_network_base is defined }}
+      {% if macos_network_base is defined %}macos_network_base: {{ macos_network_base }}{% endif %}
+      ssh_source_override: {{ ssh_source_override | default('NOT SET') }}
+      ssh_files count: {{ ssh_files | default([]) | length }}
+
 - name: Ensure .ssh directory exists
   file:
     path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
     state: directory
     mode: '0700'
 
+# Determine SSH source directory
+# - Personal machines: /ssh/personal (includes private keys)  
+# - Video/Family machines: /ssh/personal (public keys only via ssh_files in all.yml)
+# - Can override with ssh_source_override variable
+- name: Set SSH source directory
+  set_fact:
+    ssh_source_dir: "{{ ssh_source_override | default(macos_network_base + '/ssh/personal') }}"
+  when: macos_network_base is defined
+
+- name: Debug - Show computed SSH source
+  debug:
+    msg: "SSH source directory: {{ ssh_source_dir | default('NOT COMPUTED') }}"
+  when: macos_network_base is defined
+
 - name: Check if SSH source directory exists on network volume
   stat:
-    path: "{{ macos_network_base }}/ssh/{{ machine_type }}"
+    path: "{{ ssh_source_dir }}"
   register: ssh_source_check
   when: macos_network_base is defined
 
+- name: Display SSH source location
+  debug:
+    msg: "SSH source: {{ ssh_source_dir }} ({{ ssh_files | default([]) | length }} files configured)"
+  when: 
+    - macos_network_base is defined
+    - ssh_source_check.stat.exists
+
 - name: Check which SSH files exist on network volume
   stat:
-    path: "{{ macos_network_base }}/ssh/{{ machine_type }}/{{ item.src }}"
+    path: "{{ ssh_source_dir }}/{{ item.src }}"
   register: ssh_file_exists_check
   loop: "{{ ssh_files | default([]) }}"
   loop_control:
@@ -37,7 +67,7 @@
 
 - name: Display missing SSH files warning
   debug:
-    msg: "⚠️  Skipping {{ item.src }} - not found in backup"
+    msg: "⚠️  Skipping {{ item.src }} - not found in backup at {{ ssh_source_dir }}"
   loop: "{{ missing_ssh_files | default([]) }}"
   loop_control:
     label: "{{ item.src }}"
@@ -47,7 +77,7 @@
 
 - name: Copy SSH files from network volume
   copy:
-    src: "{{ macos_network_base }}/ssh/{{ machine_type }}/{{ item.src }}"
+    src: "{{ ssh_source_dir }}/{{ item.src }}"
     dest: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.dest }}"
     mode: "{{ item.mode }}"
     backup: yes
@@ -60,6 +90,15 @@
     - available_ssh_files is defined
     - available_ssh_files | length > 0
   no_log: true
+
+- name: Display SSH copy summary
+  debug:
+    msg: "✅ Copied {{ available_ssh_files | default([]) | length }} SSH files to ~/.ssh/"
+  when:
+    - macos_network_base is defined
+    - ssh_source_check.stat.exists
+    - available_ssh_files is defined
+    - available_ssh_files | length > 0
 
 - name: Ensure correct permissions on .ssh directory
   file:
