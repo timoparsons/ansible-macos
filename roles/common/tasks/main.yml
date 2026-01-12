@@ -68,7 +68,7 @@
 - name: Setup SSH keys
   include_tasks: setup_ssh.yml
   tags: ['ssh', 'config']
-  when: ssh_files is defined and ssh_files | length > 0
+  #when: ssh_files is defined and ssh_files | length > 0
 
 - name: Setup dotfiles
   include_tasks: setup_dotfiles.yml
