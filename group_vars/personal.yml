@@ -183,6 +183,10 @@ personal_login_items:
     path: "/Applications/Raycast.app"
     hidden: false
 
+  - name: "superwhisper"
+    path: "/Applications/superwhisper.app"
+    hidden: false
+
   # Add more as needed
   # - name: "Synology Drive Client"
   #   path: "/Applications/Synology Drive Client.app"

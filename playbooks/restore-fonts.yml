@@ -82,8 +82,6 @@
     
     - name: Clear existing fonts
       shell: rm -rf "{{ fonts_dest }}"/*
-      args:
-        warn: false
       changed_when: true
     
     - name: Restore fonts from network backup
