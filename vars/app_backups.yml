@@ -9,7 +9,27 @@
 # ============================================================================
 
 app_backup_definitions:
-  
+
+
+
+  affinity:
+    name: "Affinity"
+    paths:
+      - src: "~/Library/Preferences/com.canva.affinity.plist"
+        dest: "affinity/com.canva.affinity.plist"
+      - src: "~/Library/Application Support/Affinity/preferences.dat"
+        dest: "affinity/preferences.dat"
+      - src: "~/Library/Application Support/Affinity/studios3.dat"
+        dest: "affinity/studios3.dat"
+      - src: "~/Library/Application Support/Affinity/mru3.dat"
+        dest: "affinity/mru3.dat"
+      - src: "~/Library/Application Support/Affinity/home_favourites3.dat"
+        dest: "affinity/home_favourites3.dat"
+      - src: "~/Library/Application Support/Affinity/notificationoptions.dat"
+        dest: "affinity/notificationoptions.dat"
+      - src: "~/Library/Colors"
+        dest: "affinity/colors"
+
   affinity-designer:
     name: "Affinity Designer"
     paths:
@@ -193,8 +213,8 @@ app_backup_definitions:
   mqtt-explorer:
     name: "MQTT Explorer"
     paths:
-      - src: "~/Library/Application Support/MQTT-Explorer"
-        dest: "mqtt-explorer/application-support"
+      - src: "~/Library/Containers/de.t7n.apps.mqtt-explorer/Data/Library/Preferences/de.t7n.apps.mqtt-explorer.plist"
+        dest: "mqtt-explorer/de.t7n.apps.mqtt-explorer.plist"
   
   neofinder:
     name: "NeoFinder"
