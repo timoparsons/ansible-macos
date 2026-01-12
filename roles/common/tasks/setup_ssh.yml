@@ -1,5 +1,15 @@
 # tasks/setup_ssh.yml
 ---
+- name: ALWAYS DEBUG - Show what we have
+  debug:
+    msg: |
+      === SSH SETUP DEBUG ===
+      ssh_files defined: {{ ssh_files is defined }}
+      ssh_files: {{ ssh_files | default('UNDEFINED') }}
+      macos_network_base defined: {{ macos_network_base is defined }}
+      macos_network_base: {{ macos_network_base | default('UNDEFINED') }}
+      machine_type: {{ machine_type | default('UNDEFINED') }}
+  
 - name: Debug - Show SSH configuration
   debug:
     msg: |
