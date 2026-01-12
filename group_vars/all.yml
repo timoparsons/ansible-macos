@@ -9,8 +9,26 @@ macos_network_base: "/Volumes/backup_proxmox/macos"
 # Backup configuration
 backup_create_timestamped: false  # Set to true for versioned backups
 
-# Dotfiles configuration
+# ============================================================================
+# SSH Configuration (Common to all machines)
+# ============================================================================
+# All machines get public keys from personal backup for SSH access
+# Personal machines override this in their group_vars to include private keys
+ssh_source_base: "{{ macos_network_base }}/ssh/personal"
+
+ssh_files:
+  - { src: "id_ed25519.pub", dest: "id_ed25519.pub", mode: '0644' }
+  - { src: "id_rsa.pub", dest: "id_rsa.pub", mode: '0644' }
+  - { src: "authorized_keys", dest: "authorized_keys", mode: '0600' }
+
+# ============================================================================
+# Dotfiles Configuration
+# ============================================================================
 dotfiles_files: []
+
+# ============================================================================
+# Common Applications (All Machines)
+# ============================================================================
 
 # Command Line Tools (Brew Formulae)
 common_formula_apps:
@@ -33,6 +51,9 @@ common_cask_apps:
 common_mas_apps:
   - { id: 411643860, name: 'DaisyDisk' }
 
+# ============================================================================
+# Dock Configuration
+# ============================================================================
 configure_dock: true
 dock_clear_all: true
 
@@ -44,6 +65,10 @@ common_dock_apps:
   - path: "/System/Applications/System Settings.app"
 
 common_dock_folders: []
+
+# ============================================================================
+# Login Items Configuration
+# ============================================================================
 
 # Common login items (all machines)
 common_login_items:

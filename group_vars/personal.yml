@@ -1,6 +1,12 @@
 # group_vars/personal.yml
 
-# Personal gets full SSH keys (private + public) - MASTER
+# ============================================================================
+# SSH Configuration (Personal Override)
+# ============================================================================
+# Personal machines get FULL SSH keys (private + public) from their own backup
+# This overrides the default in all.yml which only gets public keys
+ssh_source_base: "{{ macos_network_base }}/ssh/personal"
+
 ssh_files:
   - { src: "id_ed25519", dest: "id_ed25519", mode: '0600' }
   - { src: "id_ed25519.pub", dest: "id_ed25519.pub", mode: '0644' }
@@ -9,6 +15,9 @@ ssh_files:
   - { src: "config", dest: "config", mode: '0600' }
   - { src: "authorized_keys", dest: "authorized_keys", mode: '0600' }
 
+# ============================================================================
+# Dotfiles Configuration
+# ============================================================================
 
 dotfiles_files:
   # Essential shell config
@@ -26,6 +35,10 @@ dotfiles_files:
   - { src: ".config/vscode_projects.json", dest: ".config/vscode_projects.json", mode: '0644' }
 
 
+# ============================================================================
+# Applications
+# ============================================================================
+
 # Command Line Tools (Brew Formulae)
 personal_formula_apps:
   - exiftool
@@ -38,7 +51,7 @@ personal_formula_apps:
 
 # GUI Applications (Brew Casks)
 personal_cask_apps:
-  #- 4k-video-downloader
+  #- 4k-video-downloader+
   - adobe-creative-cloud
   - angry-ip-scanner
   #- audacity ?
@@ -123,6 +136,9 @@ personal_dmg_pkg_apps:
     url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
     volume: "Swinsian 3.0.4"    
 
+# ============================================================================
+# Dock Configuration
+# ============================================================================
 
 personal_dock_apps:
   - path: "/Applications/Bloom.app"
@@ -134,7 +150,9 @@ personal_dock_apps:
 
 personal_dock_folders: []
 
-
+# ============================================================================
+# Login Items
+# ============================================================================
 
 personal_login_items:
   - name: "AutoMounter"

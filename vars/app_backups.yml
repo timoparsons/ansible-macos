@@ -201,9 +201,11 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/NeoFinder"
         dest: "neofinder/application-support"
-      - src: "~/Library/Preferences/de.wfs-apps.NeoFinder.plist"
-        dest: "neofinder/de.wfs-apps.NeoFinder.plist"
-  
+      - src: "~/Library/Preferences/de.wfs-apps.neofinder.plist"
+        dest: "neofinder/de.wfs-apps.neofinder.plist"
+      - src: "~/Library/Preferences/de.wfs-apps.neofinder.statusBar.plist"
+        dest: "neofinder/de.wfs-apps.neofinder.statusBar.plist"
+
   offshoot:
     name: "OffShoot"
     paths:

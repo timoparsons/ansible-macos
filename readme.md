@@ -295,11 +295,16 @@ grep -A50 "personal_apps_to_backup:" vars/app_backups.yml
 
 ## Network Storage Integration
 
-Personal and Video machines use network storage for:
-- SSH key distribution
-- Application setting backups
-- Dotfile synchronization
+All machines use network storage for:
+- **SSH key distribution** - All machines get public keys for SSH access
+- **Application setting backups** (Personal/Video)
+- **Dotfile synchronization** (Personal)
 - **License storage** (see `docs/licenses.md`)
+
+**SSH Key Strategy:**
+- **All machines** receive public keys (`id_ed25519.pub`, `id_rsa.pub`, `authorized_keys`) from personal backup
+- **Personal machine only** receives private keys (`id_ed25519`, `id_rsa`, `config`)
+- This allows SSH access to video/family machines from personal machine
 
 **Required:** Mount `/Volumes/backup_proxmox` before running.
 
