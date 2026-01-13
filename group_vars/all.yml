@@ -35,6 +35,7 @@ common_formula_apps:
   - dockutil
   - git
   - mas
+  - zstd
 
 # GUI Applications (Brew Casks)
 common_cask_apps:

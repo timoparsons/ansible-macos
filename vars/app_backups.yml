@@ -10,8 +10,6 @@
 
 app_backup_definitions:
 
-
-
   affinity:
     name: "Affinity"
     paths:
@@ -30,36 +28,78 @@ app_backup_definitions:
       - src: "~/Library/Colors"
         dest: "affinity/colors"
 
-  affinity-designer:
-    name: "Affinity Designer"
+  affinity-designer-2:
+    name: "Affinity Designer 2"
     paths:
-      - src: "~/Library/Application Support/Affinity Designer"
-        dest: "affinity/designer/application-support"
+      - src: "~/Library/Containers/com.seriflabs.affinitydesigner2/Data/Library/Preferences/com.seriflabs.affinitydesigner2.plist"
+        dest: "affinity2/designer/com.seriflabs.affinitydesigner2.plist"
+      - src: "~/Library/Containers/com.seriflabs.affinitydesigner2/Data/Library/Application Support"
+        dest: "affinity2/designer/application-support"
         exclude:
-          - "Caches"
-      - src: "~/Library/Preferences/com.seriflabs.affinitydesigner.plist"
-        dest: "affinity/designer/com.seriflabs.affinitydesigner.plist"
-  
-  affinity-photo:
-    name: "Affinity Photo"
+          - "AddressBook"
+          - "iCloud"  
+          - "SyncServices"
+          - "autosave"           # Auto-save files (document-specific)
+          - "backup"             # Backup files (document-specific)
+          - "CrashReporter"      # Crash logs
+          - "*.log"              # Log files
+          - "Log*"
+          - "NSDataCache"        # Cache data
+          - "previews"           # Document preview thumbnails
+          - "sess.db*"           # Session database (regenerates)
+          - "temp"               # Temporary files
+          - "temp-critical"      # Temporary files
+          - "shunt"              # Temporary processing data
+          - "*Cache*"
+
+  affinity-photo-2:
+    name: "Affinity Photo 2"
     paths:
-      - src: "~/Library/Application Support/Affinity Photo"
-        dest: "affinity/photo/application-support"
+      - src: "~/Library/Containers/com.seriflabs.affinityphoto2/Data/Library/Preferences/com.seriflabs.affinityphoto2.plist"
+        dest: "affinity2/photo/com.seriflabs.affinityphoto2.plist"
+      - src: "~/Library/Containers/com.seriflabs.affinityphoto2/Data/Library/Application Support"
+        dest: "affinity2/photo/application-support"
         exclude:
-          - "Caches"
-      - src: "~/Library/Preferences/com.seriflabs.affinityphoto.plist"
-        dest: "affinity/photo/com.seriflabs.affinityphoto.plist"
-  
-  affinity-publisher:
-    name: "Affinity Publisher"
+          - "AddressBook"
+          - "iCloud"  
+          - "SyncServices"
+          - "autosave"           # Auto-save files (document-specific)
+          - "backup"             # Backup files (document-specific)
+          - "CrashReporter"      # Crash logs
+          - "*.log"              # Log files
+          - "Log*"
+          - "NSDataCache"        # Cache data
+          - "previews"           # Document preview thumbnails
+          - "sess.db*"           # Session database (regenerates)
+          - "temp"               # Temporary files
+          - "temp-critical"      # Temporary files
+          - "shunt"              # Temporary processing data
+          - "*Cache*"
+
+  affinity-publisher-2:
+    name: "Affinity Publisher 2"
     paths:
-      - src: "~/Library/Application Support/Affinity Publisher"
-        dest: "affinity/publisher/application-support"
+      - src: "~/Library/Containers/com.seriflabs.affinitypublisher2/Data/Library/Preferences/com.seriflabs.affinitypublisher2.plist"
+        dest: "affinity2/publisher/com.seriflabs.affinitypublisher2.plist"
+      - src: "~/Library/Containers/com.seriflabs.affinitypublisher2/Data/Library/Application Support"
+        dest: "affinity2/publisher/application-support"
         exclude:
-          - "Caches"
-      - src: "~/Library/Preferences/com.seriflabs.affinitypublisher.plist"
-        dest: "affinity/publisher/com.seriflabs.affinitypublisher.plist"
-  
+          - "AddressBook"
+          - "iCloud"  
+          - "SyncServices"
+          - "autosave"           # Auto-save files (document-specific)
+          - "backup"             # Backup files (document-specific)
+          - "CrashReporter"      # Crash logs
+          - "*.log"              # Log files
+          - "Log*"
+          - "NSDataCache"        # Cache data
+          - "previews"           # Document preview thumbnails
+          - "sess.db*"           # Session database (regenerates)
+          - "temp"               # Temporary files
+          - "temp-critical"      # Temporary files
+          - "shunt"              # Temporary processing data
+          - "*Cache*"
+
   argest:
     name: "ArGest Backup"
     paths:
@@ -122,11 +162,21 @@ app_backup_definitions:
   crossover:
     name: "CrossOver"
     paths:
+      - src: "~/Applications/CrossOver"
+        dest: "crossover/applications"
+      - src: "~/Library/Preferences/com.codeweavers.CrossOver.license"
+        dest: "crossover/com.codeweavers.CrossOver.license"
+      - src: "~/Library/Preferences/com.codeweavers.CrossOver.plist"
+        dest: "crossover/com.codeweavers.CrossOver.plist"  
+      - src: "~/Library/Preferences/com.codeweavers.CrossOver.sha256"
+        dest: "crossover/com.codeweavers.CrossOver.sha256"
+      - src: "~/Library/Preferences/com.codeweavers.CrossOver.wineloader.plist"
+        dest: "crossover/com.codeweavers.CrossOver.wineloader.plist"
       - src: "~/Library/Application Support/CrossOver"
-        dest: "crossover"
-        exclude:
-          - "Bottles/*/drive_c/users"
-  
+        dest: "crossover/application-support"
+        compress: true 
+
+
   davinci-resolve:
     name: "DaVinci Resolve Studio"
     paths:
@@ -307,8 +357,8 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/Tailscale"
         dest: "tailscale/application-support"
-      - src: "~/Library/Preferences/io.tailscale.ipn.macsys.plist"
-        dest: "tailscale/io.tailscale.ipn.macsys.plist"
+      - src: "~/Library/Containers/io.tailscale.ipn.macos/Data/Library/Preferences/io.tailscale.ipn.macos.plist"
+        dest: "tailscale/io.tailscale.ipn.macos.plist"
   
   terminal:
     name: "Terminal"
@@ -340,9 +390,9 @@ app_backup_definitions:
 
 # Personal machine backs up everything
 personal_apps_to_backup:
-  - affinity-designer
-  - affinity-photo
-  - affinity-publisher
+  - affinity-designer-2
+  - affinity-photo-2
+  - affinity-publisher-2
   - argest
   - automounter
   - blender
@@ -377,6 +427,7 @@ video_apps_to_backup:
   - davinci-resolve
   - eagle
   - handbrake
+  - mediahuman-audio-converter
   - neofinder
   - offshoot
   - tailscale

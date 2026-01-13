@@ -1,0 +1,78 @@
+---
+# tasks/backup_compressed_directory.yml
+- name: "Check if source exists: {{ path_item.src }}"
+  stat:
+    path: "{{ path_item.src | expanduser }}"
+  register: compress_source_check
+
+- name: "Backup compressed directory: {{ path_item.src }}"
+  when: compress_source_check.stat.exists and compress_source_check.stat.isdir
+  block:
+    - name: "Create parent directory"
+      file:
+        path: "{{ backup_base }}/{{ path_item.dest | dirname }}"
+        state: directory
+        mode: '0755'
+      when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
+
+    - name: "Build exclude options for tar"
+      set_fact:
+        tar_exclude_opts: "{{ path_item.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | join(' ') }}"
+
+    - name: "Check if zstd is available"
+      command: which zstd
+      register: zstd_check
+      changed_when: false
+      failed_when: false
+
+    - name: "Fail if zstd not installed"
+      fail:
+        msg: "zstd is not installed. Install with: brew install zstd"
+      when: zstd_check.rc != 0
+
+    - name: "Generate temp filename"
+      set_fact:
+        temp_archive: "/tmp/ansible-backup-{{ path_item.dest | basename }}-{{ ansible_date_time.epoch }}.tar.zst"
+        final_archive: "{{ backup_base }}/{{ path_item.dest }}.tar.zst"
+
+    - name: "Compress directory to local temp (faster)"
+      shell: |
+        cd "{{ path_item.src | expanduser | dirname }}"
+        tar {{ tar_exclude_opts }} -cf - "{{ path_item.src | expanduser | basename }}" | zstd -T0 -10 -q -o "{{ temp_archive }}"
+      args:
+        creates: "{{ final_archive }}"
+      register: tar_result
+
+    - name: "Get compressed file size"
+      stat:
+        path: "{{ temp_archive }}"
+      register: temp_stats
+
+    - name: "Get original directory size"
+      shell: du -sk "{{ path_item.src | expanduser }}" | cut -f1
+      register: original_size
+      changed_when: false
+
+    - name: "Display compression info"
+      debug:
+        msg: |
+          ✅ Compressed {{ path_item.src }} to temp location
+          📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
+          💾 Compressed: {{ (temp_stats.stat.size / 1024 / 1024) | round(2) }} MB
+          📉 Ratio: {{ ((1 - (temp_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}%
+
+    - name: "Move compressed archive to network destination"
+      command: mv "{{ temp_archive }}" "{{ final_archive }}"
+      register: move_result
+      changed_when: move_result.rc == 0
+
+    - name: "Display final location"
+      debug:
+        msg: "📁 Backup saved to: {{ final_archive }}"
+
+  always:
+    - name: "Cleanup temp file if move failed"
+      file:
+        path: "{{ temp_archive }}"
+        state: absent
+      failed_when: false

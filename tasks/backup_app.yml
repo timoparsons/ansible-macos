@@ -9,13 +9,11 @@
     - name: Set app definition
       set_fact:
         app_def: "{{ app_backup_definitions[app_key] }}"
-    
-    # Don't create directories here - let backup_path.yml handle it
-    # based on whether the source is a file or directory
+
     
     - name: "Backup paths for {{ app_def.name }}"
-      include_tasks: backup_path.yml
+      include_tasks: "{{ 'backup_compressed_directory.yml' if path_item.compress | default(false) else 'backup_path.yml' }}"
       loop: "{{ app_def.paths }}"
       loop_control:
         loop_var: path_item
-        label: "{{ path_item.src }}"
+        label: "{{ path_item.src }}"        

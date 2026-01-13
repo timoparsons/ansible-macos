@@ -1,79 +1,61 @@
-# ============================================================================
-# File: tasks/restore_path.yml
-# Restores a single path (file or directory)
-# Called by restore_app.yml, not run directly
-# Supports both user-level (~) and system-level (/Library) paths
-# ============================================================================
 ---
-- name: "Expand source path for {{ path_item.src }}"
-  set_fact:
-    expanded_src: "{{ path_item.src | expanduser }}"
-
-- name: "Determine source type from path"
-  set_fact:
-    # If src ends with a filename extension or is explicitly a known file, treat as file
-    is_file_path: "{{ (expanded_src | basename) is search('\\.[a-zA-Z0-9]+$') }}"
-
-- name: "Build backup path"
+# tasks/restore_path.yml (just the compressed section)
+- name: "Build backup paths"
   set_fact:
     backup_path: "{{ backup_base }}/{{ path_item.dest }}"
+    backup_path_compressed_zst: "{{ backup_base }}/{{ path_item.dest }}.tar.zst"
+    backup_path_compressed_gz: "{{ backup_base }}/{{ path_item.dest }}.tar.gz"
+    backup_path_compressed_zip: "{{ backup_base }}/{{ path_item.dest }}.zip"
 
-- name: "Check if backup exists: {{ path_item.dest }}"
+- name: "Check for compressed backups"
   stat:
-    path: "{{ backup_path }}"
-  register: backup_check
+    path: "{{ item }}"
+  register: compressed_checks
+  loop:
+    - "{{ backup_path_compressed_zst }}"
+    - "{{ backup_path_compressed_gz }}"
+    - "{{ backup_path_compressed_zip }}"
 
-- name: "Debug backup check for {{ path_item.dest }}"
-  debug:
-    msg: |
-      Backup path: {{ backup_path }}
-      Exists: {{ backup_check.stat.exists }}
-      Is file: {{ backup_check.stat.isreg | default(false) }}
-      Is directory: {{ backup_check.stat.isdir | default(false) }}
-  when: backup_check.stat.exists
+- name: "Determine backup type"
+  set_fact:
+    backup_compressed_zst: "{{ compressed_checks.results[0].stat.exists }}"
+    backup_compressed_gz: "{{ compressed_checks.results[1].stat.exists }}"
+    backup_compressed_zip: "{{ compressed_checks.results[2].stat.exists }}"
+    is_compressed: "{{ compressed_checks.results | selectattr('stat.exists') | list | length > 0 }}"
 
-- name: "Handle restore based on backup existence"
+# ... existing uncompressed backup check ...
+
+- name: "Restore from compressed backup"
+  when: is_compressed
   block:
-    - name: "Detect if restore requires system permissions"
-      set_fact:
-        needs_sudo: "{{ expanded_src.startswith('/Library') or expanded_src.startswith('/private') }}"
-      when: backup_check.stat.exists
+    - name: "Ensure parent directory exists"
+      file:
+        path: "{{ expanded_src | dirname }}"
+        state: directory
+        mode: '0755'
+      become: "{{ needs_sudo }}"
 
-    - name: "Restore {{ path_item.dest }}"
-      when: backup_check.stat.exists
-      block:
-        - name: "Ensure parent directory exists for {{ expanded_src }}"
-          file:
-            path: "{{ expanded_src | dirname }}"
-            state: directory
-            mode: '0755'
-          become: "{{ needs_sudo }}"
-          when: (expanded_src | dirname) != expanded_src
+    # TAR.ZST (preferred)
+    - name: "Extract tar.zst backup"
+      shell: |
+        zstd -d -c "{{ backup_path_compressed_zst }}" | tar -xf - -C "{{ expanded_src | dirname }}"
+      when: backup_compressed_zst
+      become: "{{ needs_sudo }}"
 
-        # DECISION TREE:
-        # 1. If backup_path is a regular file → restore as file
-        # 2. If backup_path is a directory → restore as directory
-        
-        - name: "Restore file: {{ path_item.src }}"
-          copy:
-            src: "{{ backup_path }}"
-            dest: "{{ expanded_src }}"
-            mode: preserve
-            backup: yes
-          become: "{{ needs_sudo }}"
-          when: backup_check.stat.isreg | default(false)
+    # TAR.GZ (fallback)
+    - name: "Extract tar.gz backup"
+      unarchive:
+        src: "{{ backup_path_compressed_gz }}"
+        dest: "{{ expanded_src | dirname }}"
+        remote_src: yes
+      when: backup_compressed_gz and not backup_compressed_zst
+      become: "{{ needs_sudo }}"
 
-        - name: "Restore directory: {{ path_item.src }}"
-          synchronize:
-            src: "{{ backup_path }}/"
-            dest: "{{ expanded_src }}/"
-            recursive: yes
-            delete: no
-          become: "{{ needs_sudo }}"
-          delegate_to: "{{ inventory_hostname }}"
-          when: backup_check.stat.isdir | default(false)
-
-    - name: "Warning: Backup not found: {{ path_item.dest }}"
-      debug:
-        msg: "⚠️  Skipping {{ path_item.dest }} - backup does not exist at {{ backup_path }}"
-      when: not backup_check.stat.exists
+    # ZIP (legacy fallback)
+    - name: "Extract zip backup"
+      unarchive:
+        src: "{{ backup_path_compressed_zip }}"
+        dest: "{{ expanded_src | dirname }}"
+        remote_src: yes
+      when: backup_compressed_zip and not backup_compressed_zst and not backup_compressed_gz
+      become: "{{ needs_sudo }}"
