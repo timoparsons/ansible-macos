@@ -27,39 +27,6 @@
     state: present
   notify: Refresh Preferences
 
-- name: Automatically quit printer app when jobs complete
-  community.general.osx_defaults:
-    domain: com.apple.print.PrintingPrefs
-    key: "Quit When Finished"
-    type: bool
-    value: true
-    state: present
-  notify: Refresh Preferences
-
-###############################################################################
-# Language & Region (NZ Specific)
-###############################################################################
-- name: Set Language and Locale to NZ
-  community.general.osx_defaults:
-    domain: NSGlobalDomain
-    key: "{{ item.key }}"
-    type: "{{ item.type }}"
-    value: "{{ item.value }}"
-    state: present
-  loop:
-    - { key: 'AppleLanguages', type: 'array', value: ["en-NZ", "mi-NZ"] }
-    - { key: 'AppleLocale', type: 'string', value: 'en_NZ' }
-    - { key: 'AppleMeasurementUnits', type: 'string', value: 'Centimeters' }
-    - { key: 'AppleMetricUnits', type: 'bool', value: true }
-    - { key: 'AppleTemperatureUnit', type: 'string', value: 'Celsius' }
-  notify: Refresh Preferences
-
-- name: Set first day of week to Monday
-  ansible.builtin.shell: |
-    defaults write NSGlobalDomain AppleFirstWeekday -dict gregorian 2
-  register: first_weekday_result
-  changed_when: false
-  notify: Refresh Preferences
 
 ###############################################################################
 # Menu Bar
@@ -148,10 +115,10 @@
     value: "{{ item.value }}"
     state: present
   loop:
-    - { key: 'ShowExternalHardDrivesOnDesktop', value: true }
-    - { key: 'ShowHardDrivesOnDesktop', value: true }
-    - { key: 'ShowMountedServersOnDesktop', value: true }
-    - { key: 'ShowRemovableMediaOnDesktop', value: true }
+    - { key: 'ShowExternalHardDrivesOnDesktop', value: false }
+    - { key: 'ShowHardDrivesOnDesktop', value: false }
+    - { key: 'ShowMountedServersOnDesktop', value: false }
+    - { key: 'ShowRemovableMediaOnDesktop', value: false }
     - { key: 'ShowStatusBar', value: true }
     - { key: 'ShowPathbar', value: true }
     - { key: 'FXEnableExtensionChangeWarning', value: false }

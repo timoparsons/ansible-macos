@@ -190,7 +190,15 @@ app_backup_definitions:
         dest: "davinci-resolve/powergrades"
       - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/User/Project Templates"
         dest: "davinci-resolve/project-templates"
-  
+
+  downie:
+    name: "Downie 4"
+    paths:
+      - src: "~/Library/Preferences/com.charliemonroe.Downie-4.plist"
+        dest: "downie/com.charliemonroe.Downie-4.plist"
+
+
+
   eagle:
     name: "Eagle"
     paths:
