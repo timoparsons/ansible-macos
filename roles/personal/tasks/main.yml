@@ -32,5 +32,14 @@
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
   tags: ['dmg', 'gui', 'apps']
 
+# Restore fonts (before app settings are restored)
+- name: Restore user fonts
+  include_tasks: "{{ playbook_dir }}/tasks/restore_fonts.yml"
+  when: 
+    - restore_fonts | default(true)
+    - macos_network_base is defined
+  tags: ['fonts', 'restore', 'config']
+
 # Personal-specific macOS settings are handled by common role's include
 # which looks for roles/{machine_type}/tasks/macos_settings.yml
+

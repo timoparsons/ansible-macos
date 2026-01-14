@@ -66,3 +66,11 @@
     label: "{{ dmg_item.name }}"
   when: video_dmg_pkg_apps is defined and video_dmg_pkg_apps | length > 0
   tags: ['dmg', 'gui']
+
+  # Restore fonts (before app settings are restored)
+- name: Restore user fonts
+  include_tasks: "{{ playbook_dir }}/tasks/restore_fonts.yml"
+  when: 
+    - restore_fonts | default(true)
+    - macos_network_base is defined
+  tags: ['fonts', 'restore', 'config']

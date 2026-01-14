@@ -1,0 +1,76 @@
+# ============================================================================
+# File: tasks/restore_fonts.yml
+# Restore user fonts from network backup
+# Called by roles that need fonts restored
+# ============================================================================
+---
+- name: Check if fonts backup exists
+  stat:
+    path: "{{ macos_network_base }}/fonts"
+  register: fonts_backup_check
+
+- name: Restore fonts from backup
+  when: fonts_backup_check.stat.exists
+  block:
+    - name: Count fonts in backup
+      find:
+        paths: "{{ macos_network_base }}/fonts"
+        patterns: "*.ttf,*.otf,*.ttc,*.dfont"
+        recurse: yes
+      register: backup_font_files
+    
+    - name: Display font restore info
+      debug:
+        msg: "📥 Restoring {{ backup_font_files.matched }} fonts from network backup"
+      when: backup_font_files.matched > 0
+    
+    - name: Skip if no fonts found
+      debug:
+        msg: "⏭️  No fonts found in backup directory"
+      when: backup_font_files.matched == 0
+    
+    - name: Ensure user fonts directory exists
+      file:
+        path: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"
+        state: directory
+        mode: '0755'
+      when: backup_font_files.matched > 0
+    
+    - name: Clear existing fonts
+      shell: rm -rf "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"/*
+      args:
+        warn: false
+      changed_when: true
+      when: backup_font_files.matched > 0
+    
+    - name: Restore fonts
+      synchronize:
+        src: "{{ macos_network_base }}/fonts/"
+        dest: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts/"
+        recursive: yes
+        delete: yes
+        rsync_opts:
+          - "--exclude=.DS_Store"
+          - "--exclude=Thumbs.db"
+      delegate_to: "{{ inventory_hostname }}"
+      when: backup_font_files.matched > 0
+    
+    - name: Rebuild font cache
+      shell: |
+        atsutil databases -remove
+        atsutil server -shutdown
+        atsutil server -ping
+      changed_when: false
+      failed_when: false
+      when: backup_font_files.matched > 0
+    
+    - name: Wait for font cache to rebuild
+      pause:
+        seconds: 2
+        prompt: "Allowing font cache to rebuild..."
+      when: backup_font_files.matched > 0
+
+- name: Skip fonts - no backup found
+  debug:
+    msg: "⏭️  Skipping font restore - no backup found at {{ macos_network_base }}/fonts"
+  when: not fonts_backup_check.stat.exists
