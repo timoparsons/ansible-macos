@@ -61,7 +61,7 @@ personal_cask_apps:
   - visual-studio-code
   - blender
   - carbon-copy-cloner
-  - discord
+  #- discord
   - downie
   #- flux ??
   #- find-empty-folders
