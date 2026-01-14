@@ -1,57 +1,78 @@
 ---
+# ============================================================================
+# FILE: site.yml
+# Main provisioning playbook - calls individual roles
+# Each role is now self-contained (no common role)
+# ============================================================================
+
 - name: Provision macOS
   hosts: all
   become: false
 
   # ========================================================================
-  # PRE-TASKS
+  # PRE-TASKS - Run before any roles
   # ========================================================================
 
   pre_tasks:
     - name: Check required network volumes are mounted
       include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
       vars:
-        required_volumes:
-          - backup_proxmox
-      when: machine_type in ['video', 'personal']
+        required_volumes: "{{ required_network_volumes }}"
       tags: ['always']
 
   # ========================================================================
-  # PROVISION ROLES
+  # ROLES - Each role is self-contained and handles its own:
+  #   - Homebrew check/update
+  #   - App installation (brew, mas, dmg)
+  #   - SSH keys
+  #   - Dotfiles
+  #   - macOS baseline settings
+  #   - macOS role-specific settings (if applicable)
+  #   - Fonts
   # ========================================================================
 
   roles:
-    - role: common
-      tags: ['common', 'apps']
+    - role: personal
+      when: machine_type == 'personal'
+      tags: ['personal', 'apps', 'config']
       
     - role: video
       when: machine_type in ['video', 'personal']
-      tags: ['video', 'apps']
-      
-    - role: personal
-      when: machine_type == 'personal'
-      tags: ['personal', 'apps']
+      tags: ['video', 'apps', 'config']
       
     - role: family
       when: machine_type == 'family'
-      tags: ['family', 'apps']
+      tags: ['family', 'apps', 'config']
 
   # ========================================================================
-  # POST-TASKS
+  # POST-TASKS - Run after all roles complete
+  # These require all apps to be installed first
   # ========================================================================
 
   post_tasks:
-    - name: Configure Dock (after all apps installed)
-      import_tasks: roles/common/tasks/dock.yml
+    # ========================================================================
+    # DOCK CONFIGURATION
+    # ========================================================================
+    
+    - name: Configure Dock
+      include_tasks: tasks/configure_dock.yml
+      when: configure_dock | default(true)
       tags: ['dock', 'config']
 
-    - name: Configure login items (after all apps installed)
-      import_tasks: roles/common/tasks/login_items.yml
-      tags: ['login_items', 'config']
+    # ========================================================================
+    # LOGIN ITEMS
+    # ========================================================================
+    
+    - name: Configure login items
+      include_tasks: tasks/configure_login_items.yml
       when: configure_login_items | default(true)
+      tags: ['login_items', 'config']
 
-    # Wait for apps to settle before restoring settings
-    - name: Wait for apps to settle
+    # ========================================================================
+    # APP SETTINGS RESTORATION
+    # ========================================================================
+    
+    - name: Wait for apps to settle before restoring settings
       pause:
         seconds: 3
         prompt: "Allowing apps to finish installing..."
@@ -59,11 +80,6 @@
         - restore_app_settings | default(true)
         - macos_network_base is defined
       tags: ['restore', 'config']
-
-
-    # ========================================================================
-    # APP SETTINGS
-    # ========================================================================
 
     - name: Check if app settings backup exists
       stat:
@@ -82,7 +98,7 @@
         - macos_network_base is defined
       tags: ['restore', 'config']
     
-    - name: Restore settings for installed apps
+    - name: Restore settings for installed apps only
       include_tasks: tasks/restore_app_if_exists.yml
       loop: "{{ lookup('vars', machine_type + '_apps_to_backup', default=[]) }}"
       loop_control:
@@ -92,26 +108,27 @@
         backup_base: "{{ macos_network_base }}/apps"
       when:
         - restore_app_settings | default(true)
-        - app_backup_check.stat.exists
+        - app_backup_check.stat.exists | default(false)
         - macos_network_base is defined
       tags: ['restore', 'config']
 
     # ========================================================================
-    # NOTIFICATION
+    # COMPLETION MESSAGE
     # ========================================================================
-
+    
     - name: Display completion message
       debug:
         msg: |
-          ✅ Provisioning complete!
+          ✅ Provisioning complete for {{ machine_type }} machine!
           
           {% if restore_app_settings | default(true) and macos_network_base is defined %}
-          📦 Restored:
+          📦 Restored (for installed apps only):
             • SSH keys ({{ ssh_files | default([]) | length }} files)
             • Dotfiles ({{ lookup('vars', machine_type + '_dotfiles_files', default=dotfiles_files) | length }} files)
-            • App settings (for installed apps only)
+            • App settings
+            • Fonts ({{ 'yes' if restore_fonts | default(true) else 'skipped' }})
           
-          For manually installed apps, restore settings with:
+          💡 For manually installed apps, restore settings with:
             ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit {{ machine_type }}
           
           Or restore specific apps:
@@ -119,11 +136,16 @@
               -i inventory.ini --limit {{ machine_type }} \
               -e "apps_list=raycast,vscode"
           {% else %}
-          💡 Settings were NOT restored. To restore them:
+          💡 Settings were NOT restored. To restore them manually:
              ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit {{ machine_type }}
              ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit {{ machine_type }}
              ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit {{ machine_type }}
           {% endif %}
           
-          ⚠️  Remember to log out and back in for all settings to take effect
+          ⚠️  IMPORTANT: Log out and back in for all settings to take effect
+          
+          📋 Quick reference:
+            • Backup apps: ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit {{ machine_type }}
+            • Backup SSH: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit {{ machine_type }}
+            • List tags: ansible-playbook site.yml -i inventory.ini --limit {{ machine_type }} --list-tags
       tags: ['always']

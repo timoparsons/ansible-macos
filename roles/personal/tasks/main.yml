@@ -1,5 +1,20 @@
+# ============================================================================
+# FILE: roles/personal/tasks/main.yml
+# ============================================================================
 ---
 # roles/personal/tasks/main.yml
+
+# ============================================================================
+# PREREQUISITES
+# ============================================================================
+
+- name: Check Homebrew and update
+  include_tasks: "{{ playbook_dir }}/tasks/homebrew_check.yml"
+  tags: ['always']
+
+# ============================================================================
+# APPLICATIONS
+# ============================================================================
 
 - name: Install personal formula apps
   community.general.homebrew:
@@ -32,14 +47,43 @@
   when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
   tags: ['dmg', 'gui', 'apps']
 
-# Restore fonts (before app settings are restored)
+# ============================================================================
+# SSH
+# ============================================================================
+
+- name: Setup SSH keys
+  include_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
+  when: ssh_files is defined and ssh_files | length > 0
+  tags: ['ssh', 'config']
+
+# ============================================================================
+# DOTFILES
+# ============================================================================
+
+- name: Setup dotfiles
+  include_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
+  when: macos_network_base is defined
+  tags: ['dotfiles', 'config']
+
+# ============================================================================
+# MACOS SETTINGS
+# ============================================================================
+
+- name: Apply baseline macOS settings
+  include_tasks: "{{ playbook_dir }}/tasks/macos_baseline_settings.yml"
+  tags: ['macos_defaults', 'config']
+
+- name: Apply personal macOS settings overrides
+  include_tasks: macos_settings.yml
+  tags: ['macos_defaults', 'config']
+
+# ============================================================================
+# FONTS
+# ============================================================================
+
 - name: Restore user fonts
   include_tasks: "{{ playbook_dir }}/tasks/restore_fonts.yml"
   when: 
     - restore_fonts | default(true)
     - macos_network_base is defined
   tags: ['fonts', 'restore', 'config']
-
-# Personal-specific macOS settings are handled by common role's include
-# which looks for roles/{machine_type}/tasks/macos_settings.yml
-

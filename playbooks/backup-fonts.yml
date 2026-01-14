@@ -13,7 +13,14 @@
     fonts_source: "{{ ansible_facts['env']['HOME'] }}/Library/Fonts"
     fonts_backup: "{{ macos_network_base }}/fonts"
     backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
-  
+
+  pre_tasks:
+    - name: Check required network volumes are mounted
+      include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
+      vars:
+        required_volumes: "{{ required_network_volumes }}"
+      tags: ['always']
+          
   tasks:
     - name: Verify network volume is mounted
       stat:

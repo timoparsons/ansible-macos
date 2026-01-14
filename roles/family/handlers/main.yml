@@ -1,4 +1,6 @@
 ---
+# roles/{role}/handlers/main.yml
+
 - name: Refresh Preferences
   ansible.builtin.shell: killall cfprefsd
   failed_when: false

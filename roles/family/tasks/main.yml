@@ -1,19 +1,33 @@
 ---
-# roles/family/tasks/main.yml
+# ============================================================================
+# FILE: roles/family/tasks/main.yml
+# ============================================================================
+
+# ============================================================================
+# PREREQUISITES
+# ============================================================================
+
+- name: Check Homebrew and update
+  include_tasks: "{{ playbook_dir }}/tasks/homebrew_check.yml"
+  tags: ['always']
+
+# ============================================================================
+# APPLICATIONS
+# ============================================================================
 
 - name: Install family formula apps
   community.general.homebrew:
     name: "{{ family_formula_apps }}"
     state: present
   when: family_formula_apps is defined and family_formula_apps | length > 0
-  tags: ['brew', 'formula', 'cli']
+  tags: ['brew', 'formula', 'cli', 'apps']
 
 - name: Install family cask apps
   community.general.homebrew_cask:
     name: "{{ family_cask_apps }}"
     state: present
   when: family_cask_apps is defined and family_cask_apps | length > 0
-  tags: ['brew', 'cask', 'gui']
+  tags: ['brew', 'cask', 'gui', 'apps']
 
 - name: Install family Mac App Store apps
   community.general.mas:
@@ -21,7 +35,7 @@
     state: present
   loop: "{{ family_mas_apps }}"
   when: family_mas_apps is defined and family_mas_apps | length > 0
-  tags: ['mas', 'gui']
+  tags: ['mas', 'gui', 'apps']
 
 - name: Install family apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
@@ -30,4 +44,30 @@
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
   when: family_dmg_pkg_apps is defined and family_dmg_pkg_apps | length > 0
-  tags: ['dmg', 'gui']
+  tags: ['dmg', 'gui', 'apps']
+
+# ============================================================================
+# SSH
+# ============================================================================
+
+- name: Setup SSH keys
+  include_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
+  when: ssh_files is defined and ssh_files | length > 0
+  tags: ['ssh', 'config']
+
+# ============================================================================
+# DOTFILES
+# ============================================================================
+
+- name: Setup dotfiles
+  include_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
+  when: macos_network_base is defined
+  tags: ['dotfiles', 'config']
+
+# ============================================================================
+# MACOS SETTINGS
+# ============================================================================
+
+- name: Apply baseline macOS settings
+  include_tasks: "{{ playbook_dir }}/tasks/macos_baseline_settings.yml"
+  tags: ['macos_defaults', 'config']
