@@ -134,9 +134,9 @@ personal_dmg_pkg_apps:
 #    url: "/Volumes/backup_proxmox/macos/installers/affinity-publisher-2.6.5.dmg"
 #    volume: "Affinity Publisher 2"
 
-  - name: "Argest Backup"
-    url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
-    volume: "Argest"
+#  - name: "Argest Backup"
+#    url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
+#    volume: "Argest"
 
   - name: "CrossOver"
     url: "/Volumes/backup_proxmox/macos/installers/CrossOver.dmg"
@@ -146,9 +146,9 @@ personal_dmg_pkg_apps:
 #    url: "/Volumes/backup_proxmox/macos/installers/Loopback_2.4.5.dmg"
 #    volume: "Loopback 2.4.5"    
 
-  - name: "Swinsian"
-    url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
-    volume: "Swinsian 3.0.4"    
+#  - name: "Swinsian"
+#    url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
+#    volume: "Swinsian 3.0.4"    
 
 # ============================================================================
 # Dock Configuration
