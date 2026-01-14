@@ -8,15 +8,9 @@ macos_network_base: "/Volumes/backup_proxmox/macos"
 
 required_network_volumes:
   - backup_proxmox
-  
+
 # Backup configuration
 backup_create_timestamped: false  # Set to true for versioned backups
-
-# Restore configuration
-restore_app_settings: true
-restore_fonts: true
-configure_dock: true
-configure_login_items: true
 
 # ============================================================================
 # SSH Configuration (Common to all machines)

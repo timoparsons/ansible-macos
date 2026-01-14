@@ -1,6 +1,14 @@
 # group_vars/family.yml
 
 # ============================================================================
+# Restore and configuration flags
+# ============================================================================
+restore_app_settings: true
+restore_fonts: false
+configure_dock: true
+configure_login_items: true
+
+# ============================================================================
 # Applications
 # ============================================================================
 
@@ -28,8 +36,8 @@ family_cask_apps:
 
 # Mac App Store (MAS)
 family_mas_apps:
-  # Common (from old common role)
   - { id: 411643860, name: 'DaisyDisk' }
+  #- { id: 1570472288, name: 'Sketchbook Pro' }
 
 # DMG/PKG apps
 family_dmg_pkg_apps: []
@@ -62,4 +70,8 @@ family_login_items:
     path: "/Applications/Bloom.app"
     hidden: false
 
+  - name: "Ice"
+    path: "/Applications/Ice.app"
+    hidden: false
+    
 family_remove_login_items: []

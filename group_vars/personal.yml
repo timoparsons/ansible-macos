@@ -1,6 +1,14 @@
 # group_vars/personal.yml
 
 # ============================================================================
+# Restore and configuration flags
+# ============================================================================
+restore_app_settings: true
+restore_fonts: true
+configure_dock: true
+configure_login_items: true
+
+# ============================================================================
 # SSH Configuration (Personal Override)
 # ============================================================================
 # Personal machines get FULL SSH keys (private + public) from their own backup
@@ -78,28 +86,53 @@ personal_cask_apps:
   - fontforge-app
   - github
   - google-drive
+  - handbrake
   - heroic
+  - iina
   - imageoptim
+  - jump-desktop-connect
   - lulu
   - mactracker
   - macwhisper
   - mediahuman-audio-converter
+  - monitorcontrol  
+  - neofinder
+  - ogdesign-eagle # Eagle.cool
   - opencore-patcher
   - platypus
   - plex
   - pronotes
   - qlmarkdown
   - raycast
+  - slack
   - sonos
   - superwhisper
   - the-unarchiver
 
+
+# Currently Unued or not working
+  #- 4k-video-downloader
+  #- audacity 
+  #- discord # FAILED
+  #- flux ??
+  #- find-empty-folders
+  #- imazing DO I HAVE AN OLDER LICENSE??
+  #- keka
+  #- loopback
+  #- mkvtools
+  #- mkvtoolnix-app
+  #- subler
+  #- sublercli
+  #- synology-drive  # FAILED
+  #- ultimate-vocal-remover
+
+
 # Mac App Store (MAS)
 personal_mas_apps:
-  # Common (from old common role)
-  - { id: 411643860, name: 'DaisyDisk' }
-  # Personal-specific
   - { id: 1586435171, name: 'Actions' }
+  - { id: 1160435653, name: 'AutoMounter' }  
+  - { id: 425264550, name: 'Blackmagic Speed Test' }  
+  - { id: 411643860, name: 'DaisyDisk' }
   - { id: 1453273600, name: 'Data Jar' }
   - { id: 325206381, name: 'Flame Services Browser' }
   - { id: 1532597159, name: 'Mp3tag' }
@@ -112,11 +145,54 @@ personal_mas_apps:
   - { id: 1475387142, name: 'Tailscale' }
   - { id: 1490879410, name: 'Trash Me' }
 
+# Currently Unused or not working
+  #- { id: 1616831348, name: 'Affinity Designer 2' } DISCONTINUED
+  #- { id: 1616822987, name: 'Affinity Photo 2' } DISCONTINUED
+  # - { id: 1606941598, name: 'Affinity Publisher 2' } DISCONTINUED
+  # - { id: 424390742, name: 'Compressor' } USE JOY INC ACCOUNT
+  #- { id: 6443819966, name: 'IP Scanner' }
+  # - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
+  # - { id: 506088175, name: 'Pushover' } IPAD APP – MANUAL INSTALL
+  #- { id: 1598580439, name: 'RAW Convertor' } Converts prores raw into cinemadng – not needed anymore
+  # - { id: 1062679359, name: 'Typeface 4' }
+
+
 # Apps to install via DMG/PKG 
 personal_dmg_pkg_apps:
   - name: "CrossOver"
     url: "/Volumes/backup_proxmox/macos/installers/CrossOver.dmg"
     volume: "CrossOver"
+
+  - name: "Offshoot"
+    url: "/Volumes/common/Software/Installers/filetransfer/OffShoot.dmg"
+    volume: "OffShoot 25.3.3"
+
+# Currently Unused or not working
+
+#  - name: "Affinity Designer 2"
+#    url: "/Volumes/backup_proxmox/macos/installers/affinity-designer-2.6.5.dmg"
+#    volume: "Affinity Designer 2"
+
+#  - name: "Affinity Photo 2"
+#    url: "/Volumes/backup_proxmox/macos/installers/affinity-photo-2.6.5.dmg"
+#    volume: "Affinity Photo 2"
+
+#  - name: "Affinity Publisher 2"
+#    url: "/Volumes/backup_proxmox/macos/installers/affinity-publisher-2.6.5.dmg"
+#    volume: "Affinity Publisher 2"
+
+#  - name: "Argest Backup"
+#    url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
+#    volume: "Argest"
+
+#  - name: "Loopback"
+#    url: "/Volumes/backup_proxmox/macos/installers/Loopback_2.4.5.dmg"
+#    volume: "Loopback 2.4.5"    
+
+#  - name: "Swinsian"
+#    url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
+#    volume: "Swinsian 3.0.4"   
+
 
 # ============================================================================
 # Dock Configuration

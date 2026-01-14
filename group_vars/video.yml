@@ -1,6 +1,15 @@
 # group_vars/video.yml
 
 # ============================================================================
+# Restore and configuration flags
+# ============================================================================
+restore_app_settings: true
+restore_fonts: true
+configure_dock: true
+configure_login_items: true
+
+
+# ============================================================================
 # Applications
 # ============================================================================
 
@@ -36,16 +45,16 @@ video_cask_apps:
 # Mac App Store (MAS)
 video_mas_apps:
   # Common (from old common role)
-  - { id: 411643860, name: 'DaisyDisk' }
+
   # Video-specific
   - { id: 1160435653, name: 'AutoMounter' }
+  - { id: 411643860, name: 'DaisyDisk' }
   - { id: 425264550, name: 'Blackmagic Speed Test' }
 
 # Apps to install via DMG/PKG
-video_dmg_pkg_apps:
   - name: "Offshoot"
-    url: "/Volumes/common/Software/Installers/filetransfer/OffShoot_20231123162111_v23.2.4b1533.dmg"
-    volume: "OffShoot 23.2.4"
+    url: "/Volumes/common/Software/Installers/filetransfer/OffShoot.dmg"
+    volume: "OffShoot 25.3.3"
 
 # ============================================================================
 # Dock Configuration

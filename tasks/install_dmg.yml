@@ -11,6 +11,20 @@
 - name: Installation process for {{ dmg_item.name }}
   when: not app_check.stat.exists or (force_install | default(false))
   block:
+    # VALIDATION: Ensure required fields are present
+    - name: Validate DMG item configuration
+      assert:
+        that:
+          - dmg_item.volume is defined
+          - dmg_item.volume | length > 0
+          - dmg_item.url is defined
+          - dmg_item.url | length > 0
+        fail_msg: |
+          Invalid DMG configuration for {{ dmg_item.name }}:
+          - volume: {{ dmg_item.volume | default('UNDEFINED') }}
+          - url: {{ dmg_item.url | default('UNDEFINED') }}
+        success_msg: "DMG configuration valid for {{ dmg_item.name }}"
+
     - name: Set mount point path
       # Define this FIRST so it exists for all tasks in this block
       set_fact:
