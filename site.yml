@@ -37,7 +37,7 @@
       tags: ['personal', 'apps', 'config']
       
     - role: video
-      when: machine_type in ['video', 'personal']
+      when: machine_type == 'video' 
       tags: ['video', 'apps', 'config']
       
     - role: family
