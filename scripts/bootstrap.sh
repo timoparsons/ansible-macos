@@ -31,6 +31,20 @@ fi
 # Ensure brew is in the current session PATH
 [[ $(uname -m) == "arm64" ]] && eval "$(/opt/homebrew/bin/brew shellenv)" || eval "$(/usr/local/bin/brew shellenv)"
 
+# Install Python 3 (required for Ansible)
+echo "🐍 Ensuring Python 3 is installed..."
+if ! command -v python3 &>/dev/null || ! brew list python@3 &>/dev/null; then
+    brew install python@3
+fi
+
+# Install Ansible if missing
+if ! command -v ansible &>/dev/null; then
+    echo "📦 Installing Ansible..."
+    if ! brew install ansible; then
+        echo "❌ Failed to install Ansible. Exiting."
+        exit 1
+    fi
+fi
 
 # Install Git & GitHub CLI
 echo "🛠️ Ensuring Git and GitHub CLI are present..."
