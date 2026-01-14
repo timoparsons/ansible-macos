@@ -10,10 +10,12 @@
   loop: "{{ required_volumes }}"
   loop_control:
     label: "{{ item }}"
+  check_mode: no  # Always run this check, even in check mode
 
 - name: List unmounted volumes
   set_fact:
     unmounted_volumes: "{{ volume_check.results | selectattr('stat.exists', 'equalto', false) | map(attribute='item') | list }}"
+  check_mode: no  # Always run this check, even in check mode
 
 - name: Fail if any required volumes are not mounted
   fail:
@@ -23,7 +25,8 @@
       Please mount these volumes manually:
       1. Open Finder
       2. Press Cmd+K (or Go > Connect to Server)
-      3. Enter: smb://your-server/common (or your network path)
+      3. Enter: smb://your-server/{{ unmounted_volumes[0] }} (or your network path)
       4. Authenticate and mount the volume
       5. Run this script again
   when: unmounted_volumes | length > 0
+  check_mode: no  # Always fail, even in check mode
