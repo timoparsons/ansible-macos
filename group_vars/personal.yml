@@ -164,7 +164,7 @@ personal_dmg_pkg_apps:
     volume: "CrossOver"
 
   - name: "Offshoot"
-    url: "/Volumes/common/Software/Installers/OffShoot.dmg"
+    url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
     volume: "OffShoot 25.3.3"
 
 # Currently Unused or not working

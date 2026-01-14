@@ -53,7 +53,7 @@ video_mas_apps:
 
 # Apps to install via DMG/PKG
   - name: "Offshoot"
-    url: "/Volumes/common/Software/Installers/OffShoot.dmg"
+    url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
     volume: "OffShoot 25.3.3"
 
 # ============================================================================
