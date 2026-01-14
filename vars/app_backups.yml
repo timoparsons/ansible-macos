@@ -220,13 +220,13 @@ app_backup_definitions:
       - src: "~/Library/Preferences/com.dominiklevitsky.fontbase.plist"
         dest: "fontbase/com.dominiklevitsky.fontbase.plist"
   
-  github-desktop:
-    name: "GitHub Desktop"
-    paths:
-      - src: "~/Library/Application Support/GitHub Desktop"
-        dest: "github-desktop/application-support"
-        exclude:
-          - "logs"
+#  github-desktop:
+#    name: "GitHub Desktop"
+#    paths:
+#      - src: "~/Library/Application Support/GitHub Desktop"
+#        dest: "github-desktop/application-support"
+#        exclude:
+#          - "logs"
   
   handbrake:
     name: "HandBrake"
