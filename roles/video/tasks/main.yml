@@ -116,4 +116,5 @@
   when: 
     - restore_fonts | default(true)
     - macos_network_base is defined
+    - not ansible_check_mode  
   tags: ['fonts', 'restore', 'config']

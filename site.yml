@@ -110,6 +110,7 @@
         - restore_app_settings | default(true)
         - app_backup_check.stat.exists | default(false)
         - macos_network_base is defined
+        - not ansible_check_mode  
       tags: ['restore', 'config']
 
     # ========================================================================
