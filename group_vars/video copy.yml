@@ -1,31 +1,21 @@
 # group_vars/video.yml
 
 # ============================================================================
+# Fonts
+# ============================================================================
+
+restore_fonts: true
+
+# ============================================================================
 # Applications
 # ============================================================================
 
 # Command Line Tools (Brew Formulae)
 video_formula_apps:
-  # Common (from old common role)
-  - dockutil
-  - git
-  - mas
-  - zstd
-  # Video-specific
   - ffmpeg
 
 # GUI Applications (Brew Casks)
 video_cask_apps:
-  # Common (from old common role)
-  - affinity
-  - appcleaner
-  - bloom
-  - jordanbaird-ice
-  - loop
-  - spotify
-  - vlc
-  - whatsapp
-  # Video-specific
   - handbrake
   - ogdesign-eagle # Eagle.cool
   - jump-desktop-connect
@@ -35,11 +25,10 @@ video_cask_apps:
 
 # Mac App Store (MAS)
 video_mas_apps:
-  # Common (from old common role)
-  - { id: 411643860, name: 'DaisyDisk' }
-  # Video-specific
   - { id: 1160435653, name: 'AutoMounter' }
   - { id: 425264550, name: 'Blackmagic Speed Test' }
+  #- { id: 424390742, name: 'Compressor' } # This requires the joy.inc App Store account
+  #- { id: 1598580439, name: 'RAW Convertor' } Converts prores raw into cinemadng – not needed anymore
 
 # Apps to install via DMG/PKG
 video_dmg_pkg_apps:
@@ -51,14 +40,8 @@ video_dmg_pkg_apps:
 # Dock Configuration
 # ============================================================================
 
-video_dock_clear_all: true
-
 video_dock_apps:
-  - path: "/Applications/Bloom.app"
-  - path: "/Applications/Slack.app"
-  - path: "/System/Applications/Messages.app"
-  - path: "/System/Applications/Notes.app"
-  - path: "/System/Applications/Reminders.app"
+  - path: "/System/Applications/Slack.app"
   - path: "/System/Applications/System Settings.app"
 
 video_dock_folders: []
@@ -71,10 +54,6 @@ video_login_items:
   - name: "AutoMounter"
     path: "/Applications/AutoMounter.app"
     hidden: true
-
-  - name: "Bloom"
-    path: "/Applications/Bloom.app"
-    hidden: false
   
   - name: "Tailscale"
     path: "/Applications/Tailscale.app"

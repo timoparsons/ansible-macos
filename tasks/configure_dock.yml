@@ -1,12 +1,16 @@
-# roles/common/tasks/dock.yml
 ---
+# tasks/configure_dock.yml
+# Configure Dock layout based on machine type
+# Called from site.yml post_tasks
+
 - name: Configure Dock
   when: configure_dock | default(true)
   block:
     - name: Set dock configuration based on machine type
       set_fact:
-        dock_apps: "{{ lookup('vars', machine_type + '_dock_apps', default=common_dock_apps) }}"
-        dock_folders: "{{ lookup('vars', machine_type + '_dock_folders', default=common_dock_folders) }}"
+        dock_apps: "{{ lookup('vars', machine_type + '_dock_apps', default=[]) }}"
+        dock_folders: "{{ lookup('vars', machine_type + '_dock_folders', default=[]) }}"
+        dock_clear_all: "{{ lookup('vars', machine_type + '_dock_clear_all', default=true) }}"
     
     - name: Check which apps exist
       stat:
@@ -34,7 +38,7 @@
       register: dock_clear
       changed_when: "'No dock items to remove' not in dock_clear.stderr"
       failed_when: false
-      when: dock_clear_all | default(true)
+      when: dock_clear_all | bool
 
     - name: Add existing applications to Dock
       ansible.builtin.command: >
@@ -61,8 +65,7 @@
       changed_when: "'already exists' not in dock_folder_add.stderr"
       failed_when: false
 
-    - name: Trigger Dock restart via handler
-      ansible.builtin.debug:
-        msg: "Dock layout changed, notifying handler"
-      changed_when: dock_clear is changed or dock_add is changed or dock_folder_add is changed
-      notify: Restart Dock
+    - name: Restart Dock
+      ansible.builtin.shell: killall Dock
+      when: dock_clear is changed or dock_add is changed or dock_folder_add is changed
+      failed_when: false

@@ -1,0 +1,30 @@
+---
+# tasks/homebrew_check.yml
+# Verify Homebrew is installed and update it
+
+- name: Ensure Rosetta 2 is installed on Apple Silicon
+  shell: softwareupdate --install-rosetta --agree-to-license
+  when: ansible_facts['architecture'] == "arm64"
+  args:
+    creates: /Library/Apple/usr/share/rosetta/rosetta
+
+- name: Check for Homebrew (Apple Silicon)
+  stat:
+    path: /opt/homebrew/bin/brew
+  register: homebrew_arm
+  changed_when: false
+
+- name: Check for Homebrew (Intel)
+  stat:
+    path: /usr/local/bin/brew
+  register: homebrew_intel
+  changed_when: false
+
+- name: Fail if Homebrew is not installed
+  fail:
+    msg: "Homebrew is not installed. Please run bootstrap.sh first."
+  when: not homebrew_arm.stat.exists and not homebrew_intel.stat.exists
+
+- name: Update Homebrew
+  community.general.homebrew:
+    update_homebrew: yes

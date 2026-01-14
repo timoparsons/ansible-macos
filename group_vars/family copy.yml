@@ -1,47 +1,33 @@
 # group_vars/family.yml
 
 # ============================================================================
+# Fonts
+# ============================================================================
+
+restore_fonts: false
+
+# ============================================================================
 # Applications
 # ============================================================================
 
 # Command Line Tools (Brew Formulae)
-family_formula_apps:
-  # Common (from old common role)
-  - dockutil
-  - git
-  - mas
-  - zstd
+family_formula_apps: []
 
 # GUI Applications (Brew Casks)
 family_cask_apps:
-  # Common (from old common role)
-  - bloom
-  - jordanbaird-ice
-  - loop
-  - spotify
-  - vlc
-  - whatsapp
-  # Family-specific
   - google-chrome
   - plex
   - sonos
 
 # Mac App Store (MAS)
-family_mas_apps:
-  # Common (from old common role)
-  - { id: 411643860, name: 'DaisyDisk' }
-
-# DMG/PKG apps
-family_dmg_pkg_apps: []
+family_mas_apps: []
+  #- { id: 1570472288, name: 'Sketchbook Pro' }
 
 # ============================================================================
 # Dock Configuration
 # ============================================================================
 
-family_dock_clear_all: true
-
 family_dock_apps:
-  - path: "/Applications/Bloom.app"
   - path: "/Applications/Google Chrome.app"
   - path: "/System/Applications/Messages.app"
   - path: "/System/Applications/Notes.app"
@@ -57,9 +43,6 @@ family_dock_folders:
 # Login Items
 # ============================================================================
 
-family_login_items:
-  - name: "Bloom"
-    path: "/Applications/Bloom.app"
-    hidden: false
+family_login_items: []
 
 family_remove_login_items: []

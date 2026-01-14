@@ -1,5 +1,6 @@
 ---
-# Baseline settings for all machine types
+# tasks/macos_baseline_settings.yml
+# Baseline macOS settings applied to all machine types
 
 ###############################################################################
 # General UI/UX
@@ -16,7 +17,6 @@
     - NSNavPanelExpandedStateForSaveMode2
     - PMPrintingExpandedStateForPrint
     - PMPrintingExpandedStateForPrint2
-  notify: Refresh Preferences
 
 - name: Save to disk (not iCloud) by default
   community.general.osx_defaults:
@@ -25,8 +25,6 @@
     type: bool
     value: false
     state: present
-  notify: Refresh Preferences
-
 
 ###############################################################################
 # Menu Bar
@@ -40,7 +38,6 @@
     state: present
   loop:
     - { key: 'ShowDate', type: 'int', value: 1 }
-  notify: Restart SystemUIServer
 
 ###############################################################################
 # Trackpad & Mouse
@@ -53,11 +50,10 @@
     value: "{{ item.value }}"
     state: present
   loop:
-    - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'Clicking', type: 'int', value: 1 }  # ← Changed from bool to int
+    - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'Clicking', type: 'int', value: 1 }
     - { domain: 'NSGlobalDomain', key: 'com.apple.mouse.tapBehavior', type: 'int', value: 1 }
-  notify: Restart SystemUIServer
 
-- name: Enable trackpad right-click with two fingers (boolean settings)
+- name: Enable trackpad right-click with two fingers
   community.general.osx_defaults:
     domain: "{{ item.domain }}"
     key: "{{ item.key }}"
@@ -67,21 +63,19 @@
   loop:
     - { domain: 'com.apple.driver.AppleBluetoothMultitouch.trackpad', key: 'TrackpadRightClick' }
     - { domain: 'com.apple.AppleMultitouchTrackpad', key: 'TrackpadRightClick' }
-  notify: Restart SystemUIServer
 
-- name: Enable trackpad right-click gesture (integer setting)
+- name: Enable trackpad right-click gesture
   community.general.osx_defaults:
     domain: NSGlobalDomain
     key: ContextMenuGesture
     type: int
     value: 1
     state: present
-  notify: Restart SystemUIServer
 
 ###############################################################################
 # Keyboard & Text
 ###############################################################################
-- name: Disable text substitutions (smart quotes, dashes, etc)
+- name: Disable text substitutions
   community.general.osx_defaults:
     domain: NSGlobalDomain
     key: "{{ item }}"
@@ -93,7 +87,6 @@
     - NSAutomaticQuoteSubstitutionEnabled
     - NSAutomaticDashSubstitutionEnabled
     - NSAutomaticPeriodSubstitutionEnabled
-  notify: Refresh Preferences
 
 - name: Use F1, F2, etc. as standard function keys
   community.general.osx_defaults:
@@ -102,7 +95,6 @@
     type: bool
     value: true
     state: present
-  notify: Refresh Preferences
 
 ###############################################################################
 # Finder Settings
@@ -127,7 +119,6 @@
     - { key: 'QLEnableTextSelection', value: true }
     - { key: 'FXDefaultSearchScope', type: 'string', value: 'SCcf' }
     - { key: 'NewWindowTarget', type: 'string', value: 'PfDe' }
-  notify: Restart Finder
 
 - name: Enable spring loading for directories
   community.general.osx_defaults:
@@ -139,7 +130,6 @@
   loop:
     - { key: 'com.apple.springing.enabled', type: 'bool', value: true }
     - { key: 'com.apple.springing.delay', type: 'float', value: 0.1 }
-  notify: Restart Finder
 
 - name: Avoid creating .DS_Store files on network volumes
   community.general.osx_defaults:
@@ -148,7 +138,6 @@
     type: bool
     value: true
     state: present
-  notify: Restart Finder
 
 - name: Show ~/Library folder
   ansible.builtin.command: chflags nohidden ~/Library
@@ -161,7 +150,6 @@
     type: bool
     value: true
     state: present
-  notify: Restart Finder
 
 ###############################################################################
 # Desktop & Stage Manager
@@ -173,7 +161,6 @@
     type: bool
     value: false
     state: present
-  notify: Restart Dock
 
 ###############################################################################
 # Dock & Mission Control
@@ -193,7 +180,6 @@
     - { key: 'expose-animation-duration', type: 'float', value: 0.15 }
     - { key: 'autohide-time-modifier', type: 'float', value: 0.5 }
     - { key: 'showhidden', value: true }
-  notify: Restart Dock
 
 ###############################################################################
 # Hot Corners
@@ -210,7 +196,6 @@
     - { key: 'wvous-tr-modifier', value: 0 }
     - { key: 'wvous-bl-corner', value: 10 }
     - { key: 'wvous-bl-modifier', value: 0 }
-  notify: Restart Dock
 
 ###############################################################################
 # Screenshots
@@ -226,7 +211,6 @@
     - { key: 'location', type: 'string', value: '~/Desktop' }
     - { key: 'type', type: 'string', value: 'png' }
     - { key: 'disable-shadow', type: 'bool', value: true }
-  notify: Restart SystemUIServer
 
 ###############################################################################
 # Photos
@@ -239,7 +223,6 @@
     type: bool
     value: true
     state: present
-  notify: Refresh Preferences
 
 ###############################################################################
 # Safari

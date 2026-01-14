@@ -1,10 +1,16 @@
 # tasks/setup_dotfiles.yml
 ---
+- name: Get dotfiles list for this machine type
+  set_fact:
+    dotfiles_list: "{{ lookup('vars', machine_type + '_dotfiles_files', default=[]) }}"
+
 - name: Check if dotfiles directory exists on network volume
   stat:
     path: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
   register: dotfiles_check
-  when: macos_network_base is defined
+  when: 
+    - macos_network_base is defined
+    - dotfiles_list | length > 0
 
 - name: Display dotfiles status
   debug:
@@ -12,19 +18,19 @@
   when: 
     - macos_network_base is defined
     - dotfiles_check is defined
+    - dotfiles_list | length > 0
 
 - name: Check which dotfiles exist on network volume
   stat:
     path: "{{ macos_network_base }}/dotfiles/{{ machine_type }}/{{ item.src }}"
   register: dotfile_exists_check
-  loop: "{{ dotfiles_files | default([]) }}"
+  loop: "{{ dotfiles_list }}"
   loop_control:
     label: "{{ item.src }}"
   when:
     - macos_network_base is defined
     - dotfiles_check.stat.exists
-    - dotfiles_files is defined
-    - dotfiles_files | length > 0
+    - dotfiles_list | length > 0
 
 - name: Create list of available dotfiles
   set_fact:
@@ -33,8 +39,7 @@
   when:
     - macos_network_base is defined
     - dotfiles_check.stat.exists
-    - dotfiles_files is defined
-    - dotfiles_files | length > 0
+    - dotfiles_list | length > 0
 
 - name: Display missing dotfiles warning
   debug:
@@ -65,4 +70,4 @@
   debug:
     msg: "No dotfiles configured for {{ machine_type }} machine type"
   when: 
-    - dotfiles_files is not defined or dotfiles_files | length == 0
+    - dotfiles_list | length == 0

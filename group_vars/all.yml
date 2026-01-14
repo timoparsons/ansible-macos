@@ -9,6 +9,12 @@ macos_network_base: "/Volumes/backup_proxmox/macos"
 # Backup configuration
 backup_create_timestamped: false  # Set to true for versioned backups
 
+# Restore configuration
+restore_app_settings: true
+restore_fonts: true
+configure_dock: true
+configure_login_items: true
+
 # ============================================================================
 # SSH Configuration (Common to all machines)
 # ============================================================================
@@ -25,57 +31,3 @@ ssh_files:
 # Dotfiles Configuration
 # ============================================================================
 dotfiles_files: []
-
-# ============================================================================
-# Common Applications (All Machines)
-# ============================================================================
-
-# Command Line Tools (Brew Formulae)
-common_formula_apps:
-  - dockutil
-  - git
-  - mas
-  - zstd
-
-# GUI Applications (Brew Casks)
-common_cask_apps:
-  - affinity
-  - appcleaner
-  - bloom
-  - jordanbaird-ice
-  - loop
-  - spotify
-  - vlc
-  - whatsapp
-
-# Mac App Store (MAS)
-common_mas_apps:
-  - { id: 411643860, name: 'DaisyDisk' }
-
-# ============================================================================
-# Dock Configuration
-# ============================================================================
-configure_dock: true
-dock_clear_all: true
-
-# Default dock configuration (will be overridden by group-specific configs)
-common_dock_apps:
-  - path: "/System/Applications/Messages.app"
-  - path: "/System/Applications/Notes.app"
-  - path: "/System/Applications/Reminders.app"
-  - path: "/System/Applications/System Settings.app"
-
-common_dock_folders: []
-
-# ============================================================================
-# Login Items
-# ============================================================================
-
-# Common login items (all machines)
-common_login_items:
-  - name: "Bloom"
-    path: "/Applications/Bloom.app"
-    hidden: false
-
-# Items to remove (cleanup from previous configs)
-common_remove_login_items: []

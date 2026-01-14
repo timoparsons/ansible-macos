@@ -1,11 +1,12 @@
 ---
-# roles/common/tasks/login_items.yml
+# tasks/configure_login_items.yml
 # Configure applications to launch at login
+# Called from site.yml post_tasks
 
-- name: Combine login items for this machine type
+- name: Get login items for this machine type
   set_fact:
-    login_items: "{{ common_login_items | default([]) + lookup('vars', machine_type + '_login_items', default=[]) }}"
-    remove_login_items: "{{ common_remove_login_items | default([]) + lookup('vars', machine_type + '_remove_login_items', default=[]) }}"
+    login_items: "{{ lookup('vars', machine_type + '_login_items', default=[]) }}"
+    remove_login_items: "{{ lookup('vars', machine_type + '_remove_login_items', default=[]) }}"
 
 - name: Display login items configuration
   debug:
