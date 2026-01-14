@@ -61,7 +61,7 @@ personal_cask_apps:
   - visual-studio-code
   - blender
   - carbon-copy-cloner
-  #- discord
+  #- discord # FAILED
   - downie
   #- flux ??
   #- find-empty-folders
@@ -90,7 +90,7 @@ personal_cask_apps:
   #- subler
   #- sublercli
   - superwhisper
-  - synology-drive
+  #- synology-drive  # FAILED
   - the-unarchiver
   #- ultimate-vocal-remover
 
