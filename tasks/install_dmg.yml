@@ -9,7 +9,10 @@
   register: app_check
 
 - name: Installation process for {{ dmg_item.name }}
-  when: not app_check.stat.exists or (force_install | default(false))
+  when: 
+    - not app_check.stat.exists or (force_install | default(false))
+    - not ansible_check_mode  # Skip DMG installation in check mode
+
   block:
     # VALIDATION: Ensure required fields are present
     - name: Validate DMG item configuration
