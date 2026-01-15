@@ -132,7 +132,7 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.asiafu.Bloom.plist"
         dest: "bloom/com.asiafu.Bloom.plist"
-  
+
   brave-browser:
     name: "Brave Browser"
     paths:
@@ -141,9 +141,9 @@ app_backup_definitions:
       # Extension settings (as discussed before)
       - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Local Extension Settings"
         dest: "brave-browser/extension-settings"
-      # UI Layout (Vertical Tabs, Sidebar, Toolbar, etc.)
+      # UI Layout (Vertical Tabs, Sidebar, Toolbar, etc.) - this is a FILE
       - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences"
-        dest: "brave-browser/profile-prefs"        
+        dest: "brave-browser/Preferences"
 
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"

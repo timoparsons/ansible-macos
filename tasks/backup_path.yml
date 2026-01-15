@@ -27,7 +27,7 @@
             path: "{{ backup_base }}/{{ path_item.dest | dirname }}"
             state: directory
             mode: '0755'
-          when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.'
+          when: (path_item.dest | dirname) != '' and (path_item.dest | dirname) != '.' and (path_item.dest | dirname) != path_item.dest
 
         # Use command instead of copy module to avoid directory creation
         - name: "Copy file: {{ path_item.src | expanduser }} → {{ backup_base }}/{{ path_item.dest }}"
@@ -35,19 +35,9 @@
             cp -p 
             "{{ path_item.src | expanduser }}" 
             "{{ backup_base }}/{{ path_item.dest }}"
-          args:
-            creates: "{{ backup_base }}/{{ path_item.dest }}"
           register: file_copy
-          changed_when: file_copy.rc == 0
-
-        # Always overwrite if file already exists
-        - name: "Overwrite existing file backup"
-          command: >
-            cp -pf
-            "{{ path_item.src | expanduser }}" 
-            "{{ backup_base }}/{{ path_item.dest }}"
-          when: file_copy is skipped
           changed_when: true
+          failed_when: file_copy.rc != 0
 
         - name: "Verify file backup is a file, not directory"
           stat:
