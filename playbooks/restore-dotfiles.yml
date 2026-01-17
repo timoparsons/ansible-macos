@@ -13,7 +13,7 @@
 
   pre_tasks:
     - name: Check required network volumes are mounted
-      include_tasks: "{{ playbook_dir }}/tasks/check_network_volumes.yml"
+      include_tasks: "{{ repo_root }}/tasks/check_network_volumes.yml"
       vars:
         required_volumes: "{{ required_network_volumes }}"
       tags: ['always']
