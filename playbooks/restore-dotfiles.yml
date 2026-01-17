@@ -9,7 +9,7 @@
   become: false
   
   vars:
-    backup_base: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
+    dotfiles_source: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -33,7 +33,7 @@
       debug:
         msg: |
           📥 Restoring dotfiles for {{ machine_type }} machine
-          📂 Source: {{ backup_base }}/
+          📂 Source: {{ dotfiles_source }}/
           📝 Files to restore: {{ dotfiles_list | length }}
     
     - name: Skip if no dotfiles configured
@@ -43,11 +43,11 @@
 
     - name: Check which backup files exist on network
       stat:
-        path: "{{ backup_base }}/{{ item.dest }}"
+        path: "{{ dotfiles_source }}/{{ item.src }}"
       register: remote_dotfile_check
       loop: "{{ dotfiles_list }}"
       loop_control:
-        label: "{{ item.dest }}"
+        label: "{{ item.src }}"
       when: dotfiles_list | length > 0
     
     - name: Create list of restorable dotfiles
@@ -58,20 +58,20 @@
     
     - name: Display missing backups
       debug:
-        msg: "⚠️  Warning: Backup for {{ item.dest }} not found on network volume"
+        msg: "⚠️  Warning: Backup for {{ item.src }} not found on network volume"
       loop: "{{ missing_backups }}"
       loop_control:
-        label: "{{ item.dest }}"
+        label: "{{ item.src }}"
       when: 
         - dotfiles_list | length > 0
         - missing_backups | length > 0
     
     - name: Restore each dotfile
-      include_tasks: ../tasks/restore_dotfile.yml
+      include_tasks: "{{ repo_root }}/tasks/restore_dotfile.yml"
       loop: "{{ restorable_dotfiles }}"
       loop_control:
         loop_var: dotfile_item
-        label: "{{ dotfile_item.dest }}"
+        label: "{{ dotfile_item.src }}"
       when: restorable_dotfiles | length > 0
     
     - name: Display completion message
