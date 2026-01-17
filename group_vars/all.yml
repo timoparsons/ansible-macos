@@ -3,6 +3,10 @@
 # Global variables for all machine types
 # ============================================================================
 
+# Repository root path (computed from playbook directory)
+# This allows consistent task references regardless of where playbook is called from
+repo_root: "{{ playbook_dir | dirname if 'playbooks' in playbook_dir else playbook_dir }}"
+
 # Network volume base path (used by all machine types)
 macos_network_base: "/Volumes/backup_proxmox/macos"
 

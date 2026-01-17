@@ -1,11 +1,16 @@
-# backup-ssh.yml
+# ============================================================================
+# File: playbooks/backup-ssh.yml
+# Backup SSH keys and config to network volume
+# Only backs up from personal machines (where private keys exist)
+# Usage: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit personal
+# ============================================================================
 ---
-- name: Backup SSH configuration to network volume (Personal machines only)
+- name: Backup SSH Configuration to Network Volume
   hosts: personal
   become: false
   
   vars:
-    backup_base: "/Volumes/backup_proxmox/macos"
+    backup_base: "{{ macos_network_base }}/ssh/personal"
     backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
 
   pre_tasks:
@@ -16,77 +21,104 @@
       tags: ['always']
           
   tasks:
-    - name: Check if network volume is mounted
+    - name: Verify network volume is mounted
       stat:
-        path: "{{ backup_base }}"
+        path: "{{ macos_network_base }}"
       register: network_check
       failed_when: not network_check.stat.exists
-    
+
     - name: Ensure SSH backup directory exists
       file:
-        path: "{{ backup_base }}/ssh/personal"
+        path: "{{ backup_base }}"
         state: directory
         mode: '0700'
     
     - name: Create timestamped backup directory
       file:
-        path: "{{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}"
+        path: "{{ backup_base }}/backups/{{ backup_timestamp }}"
         state: directory
         mode: '0700'
-      when: create_timestamped_backup | default(false) | bool
+      when: backup_create_timestamped | default(false) | bool
     
-    - name: Backup current SSH directory (timestamped)
-      synchronize:
-        src: "{{ ansible_facts['env']['HOME'] }}/.ssh/"
-        dest: "{{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}/"
-        recursive: yes
-        delete: no
-      delegate_to: "{{ inventory_hostname }}"
-      when: create_timestamped_backup | default(false) | bool
+    - name: Check which SSH files exist locally
+      stat:
+        path: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
+      register: ssh_file_check
+      loop: "{{ ssh_files }}"
+      loop_control:
+        label: "{{ item.src }}"
     
-    - name: List files to backup
-      find:
-        paths: "{{ ansible_facts['env']['HOME'] }}/.ssh"
-        file_type: file
-      register: ssh_files_found
+    - name: Create list of existing SSH files
+      set_fact:
+        existing_ssh_files: "{{ ssh_file_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        missing_ssh_files: "{{ ssh_file_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+    
+    - name: Display missing SSH files
+      debug:
+        msg: "⏭️  Skipping {{ item.src }} - does not exist locally"
+      loop: "{{ missing_ssh_files }}"
+      loop_control:
+        label: "{{ item.src }}"
+      when: missing_ssh_files | length > 0
+    
+    - name: Display backup summary
+      debug:
+        msg: |
+          📦 Backing up SSH files for {{ machine_type }} machine
+          📁 Destination: {{ backup_base }}/
+          📝 Files to backup: {{ existing_ssh_files | length }}
+          {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
     
     - name: Backup SSH files to network volume
       copy:
-        src: "{{ item.path }}"
-        dest: "{{ backup_base }}/ssh/personal/{{ item.path | basename }}"
+        src: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
+        dest: "{{ backup_base }}/{{ item.src }}"
         mode: preserve
         backup: no
-      loop: "{{ ssh_files_found.files }}"
+      loop: "{{ existing_ssh_files }}"
       loop_control:
-        label: "{{ item.path | basename }}"
+        label: "{{ item.src }}"
+      no_log: true
+    
+    - name: Timestamped backup of SSH files
+      copy:
+        src: "{{ backup_base }}/{{ item.src }}"
+        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ item.src }}"
+        mode: preserve
+      loop: "{{ existing_ssh_files }}"
+      loop_control:
+        label: "{{ item.src }}"
+      when: backup_create_timestamped | default(false) | bool
       no_log: true
     
     - name: Set correct permissions on backed up private keys
       file:
-        path: "{{ backup_base }}/ssh/personal/{{ item }}"
+        path: "{{ backup_base }}/{{ item }}"
         mode: '0600'
       loop:
         - id_ed25519
         - id_rsa
         - config
         - authorized_keys
-        - known_hosts
       ignore_errors: yes
     
     - name: Set correct permissions on backed up public keys
       file:
-        path: "{{ backup_base }}/ssh/personal/{{ item }}"
+        path: "{{ backup_base }}/{{ item }}"
         mode: '0644'
       loop:
         - id_ed25519.pub
         - id_rsa.pub
       ignore_errors: yes
     
-    - name: Display backup location
+    - name: Display completion message
       debug:
         msg: |
           ✅ SSH backup complete!
-          Location: {{ backup_base }}/ssh/personal/
-          {% if create_timestamped_backup | default(false) | bool %}
-          Timestamped backup: {{ backup_base }}/ssh/personal/backups/{{ backup_timestamp }}/
+          📁 Location: {{ backup_base }}/
+          📝 Backed up {{ existing_ssh_files | length }} SSH files
+          {% if backup_create_timestamped %}
+          🕒 Timestamped backup: {{ backup_base }}/backups/{{ backup_timestamp }}/
           {% endif %}
+          
+          🔒 Permissions have been set correctly

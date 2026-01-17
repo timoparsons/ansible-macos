@@ -132,6 +132,7 @@ personal_mas_apps:
   - { id: 1586435171, name: 'Actions' }
   - { id: 1160435653, name: 'AutoMounter' }  
   - { id: 425264550, name: 'Blackmagic Speed Test' }  
+  - { id: 424390742, name: 'Compressor' }   
   - { id: 411643860, name: 'DaisyDisk' }
   - { id: 1453273600, name: 'Data Jar' }
   - { id: 325206381, name: 'Flame Services Browser' }
@@ -149,7 +150,7 @@ personal_mas_apps:
   #- { id: 1616831348, name: 'Affinity Designer 2' } DISCONTINUED
   #- { id: 1616822987, name: 'Affinity Photo 2' } DISCONTINUED
   # - { id: 1606941598, name: 'Affinity Publisher 2' } DISCONTINUED
-  # - { id: 424390742, name: 'Compressor' } USE JOY INC ACCOUNT
+
   #- { id: 6443819966, name: 'IP Scanner' }
   # - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
   # - { id: 506088175, name: 'Pushover' } IPAD APP – MANUAL INSTALL
