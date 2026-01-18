@@ -142,7 +142,8 @@ app_backup_definitions:
         dest: "brave-browser/extension-settings"
       - src: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences"
         dest: "brave-browser/Preferences"
-      # Need to add Downie Extension  
+      - src: "/Applications/Brave Extensions"
+        dest: "brave-browser/extensions"
 
   carbon-copy-cloner:
     name: "Carbon Copy Cloner"
