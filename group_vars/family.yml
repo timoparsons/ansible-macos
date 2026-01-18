@@ -37,7 +37,7 @@ family_cask_apps:
 # Mac App Store (MAS)
 family_mas_apps:
   - { id: 411643860, name: 'DaisyDisk' }
-  #- { id: 1570472288, name: 'Sketchbook Pro' }
+
 
 # DMG/PKG apps
 family_dmg_pkg_apps: []

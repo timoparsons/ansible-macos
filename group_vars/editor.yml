@@ -31,30 +31,32 @@ editor_cask_apps:
   - bloom
   - jordanbaird-ice
   - loop
-  - spotify
   - vlc
-  - whatsapp
   # editor-specific
   - handbrake
   - ogdesign-eagle # Eagle.cool
   - jump-desktop-connect
   - iina
   - neofinder
+  - shutter-encoder
   - slack
 
 # Mac App Store (MAS)
 editor_mas_apps:
-  # Common (from old common role)
-
-  # editor-specific
   - { id: 1160435653, name: 'AutoMounter' }
   - { id: 411643860, name: 'DaisyDisk' }
   - { id: 425264550, name: 'Blackmagic Speed Test' }
+  - { id: 424390742, name: 'Compressor' }   
+  - { id: 411643860, name: 'DaisyDisk' }
+  - { id: 603637384, name: 'Name Mangler 3' }
+  - { id: 1598580439, name: 'RAW Convertor' }
+  - { id: 1475387142, name: 'Tailscale' }
 
 # Apps to install via DMG/PKG
-  - name: "Offshoot"
-    url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
-    volume: "OffShoot 25.3.3"
+studio_dmg_pkg_apps: []
+#  - name: "Offshoot"
+#    url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
+#    volume: "OffShoot 25.3.3"
 
 # ============================================================================
 # Dock Configuration

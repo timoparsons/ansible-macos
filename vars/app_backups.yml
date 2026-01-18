@@ -197,7 +197,6 @@ app_backup_definitions:
         dest: "downie/com.charliemonroe.Downie-4.plist"
 
 
-
   eagle:
     name: "Eagle"
     paths:
@@ -285,6 +284,12 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.mediahuman.Audio Converter.plist"
         dest: "mediahuman-audio-converter/com.mediahuman.Audio Converter.plist"
+
+  monitorcontrol:
+    name: "Monitor Control"
+    paths:
+      - src: "~/Library/Preferences/app.monitorcontrol.MonitorControl.plist"
+        dest: "monitorcontrol/app.monitorcontrol.MonitorControl.plist"
 
   mqtt-explorer:
     name: "MQTT Explorer"
@@ -374,8 +379,6 @@ app_backup_definitions:
   tailscale:
     name: "Tailscale"
     paths:
-      - src: "~/Library/Application Support/Tailscale"
-        dest: "tailscale/application-support"
       - src: "~/Library/Containers/io.tailscale.ipn.macos/Data/Library/Preferences/io.tailscale.ipn.macos.plist"
         dest: "tailscale/io.tailscale.ipn.macos.plist"
   
@@ -420,6 +423,7 @@ studio_apps_to_backup:
   - carbon-copy-cloner
 #  - crossover
   - davinci-resolve
+  - downie
   - eagle
   - fontbase
   #- github-desktop
@@ -428,7 +432,8 @@ studio_apps_to_backup:
   - lightroom
   - loop
   - lulu
-  - mediahuman-audio-converter  
+  - mediahuman-audio-converter
+  - monitorcontrol
   - mqtt-explorer
   - neofinder
   - offshoot
@@ -438,7 +443,7 @@ studio_apps_to_backup:
   - sketchup
   - strongbox
 #  - superwhisper
-  - tailscale
+#  - tailscale
   - terminal
   - vscode
 
@@ -449,6 +454,7 @@ laptop_apps_to_backup:
   - carbon-copy-cloner
 #  - crossover
   - davinci-resolve
+  - downie
   - eagle
   - fontbase
   #- github-desktop
@@ -466,7 +472,7 @@ laptop_apps_to_backup:
   - raycast
   - strongbox
 #  - superwhisper
-  - tailscale
+#  - tailscale
   - terminal
   - vscode
 
@@ -479,7 +485,7 @@ editor_apps_to_backup:
   - mediahuman-audio-converter
   - neofinder
   - offshoot
-  - tailscale
+#  - tailscale
 
 # Family machine minimal
 family_apps_to_backup: []

@@ -127,7 +127,7 @@ studio_cask_apps:
   
 
 # Mac App Store (MAS)
-studio_mas_apps: []
+studio_mas_apps:
   - { id: 1586435171, name: 'Actions' }
   - { id: 1160435653, name: 'AutoMounter' }  
   - { id: 425264550, name: 'Blackmagic Speed Test' }  
@@ -140,6 +140,7 @@ studio_mas_apps: []
   - { id: 603637384, name: 'Name Mangler 3' }
   - { id: 463362050, name: 'Photosweeper' }
   - { id: 1598580439, name: 'RAW Convertor' }
+  - { id: 1570472288, name: 'Sketchbook Pro' }  
   - { id: 1550457805, name: 'Soro for Sonos' }
   - { id: 1481853033, name: 'Strongbox Pro' }
   - { id: 1475387142, name: 'Tailscale' }
@@ -149,11 +150,10 @@ studio_mas_apps: []
   #- { id: 6443819966, name: 'IP Scanner' }
   # - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
   # - { id: 506088175, name: 'Pushover' } IPAD APP – MANUAL INSTALL
-  #- { id: 1598580439, name: 'RAW Convertor' } Converts prores raw into cinemadng – not needed anymore
   # - { id: 1062679359, name: 'Typeface 4' }
 
 # DMG/PKG apps
-studio_dmg_pkg_apps: []
+studio_dmg_pkg_apps:
   - name: "Argest Backup"
     url: "/Volumes/backup_proxmox/macos/installers/Argest.dmg"
     volume: "Argest"
