@@ -233,7 +233,20 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/fr.handbrake.HandBrake.plist"
         dest: "handbrake/fr.handbrake.HandBrake.plist"
-  
+      # Application Support (contains presets, queue, activity logs)
+      - src: "~/Library/Containers/fr.handbrake.HandBrake/Data/Library/Application Support/HandBrake"
+        dest: "handbrake/application-support"
+        exclude:
+          - "EncodeLogs"
+          - "*log*"
+          - "*Log*"
+          - "Queue*"
+
+
+#~Library/Containers/fr.handbrake.HandBrake/Data/Library/Preferences/fr.handbrake.HandBrake.plist
+
+
+
   ice:
     name: "Ice Menu Bar Manager"
     paths:
