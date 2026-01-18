@@ -278,8 +278,6 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.mediahuman.Audio Converter.plist"
         dest: "mediahuman-audio-converter/com.mediahuman.Audio Converter.plist"
-  
-
 
   mqtt-explorer:
     name: "MQTT Explorer"
@@ -300,10 +298,8 @@ app_backup_definitions:
   offshoot:
     name: "OffShoot"
     paths:
-      - src: "~/Library/Preferences/com.hedge.OffShoot.plist"
-        dest: "offshoot/com.hedge.OffShoot.plist"
-      - src: "~/Library/Application Support/OffShoot"
-        dest: "offshoot/application-support"
+      - src: "~/Library/Preferences/nl.syncfactory.Hedge.Mac.plist"
+        dest: "offshoot/nl.syncfactory.Hedge.Mac.plist"
   
   photoshop:
     name: "Adobe Photoshop"
