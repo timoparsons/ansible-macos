@@ -231,8 +231,6 @@ app_backup_definitions:
   handbrake:
     name: "HandBrake"
     paths:
-      - src: "~/Library/Application Support/HandBrake"
-        dest: "handbrake/application-support"
       - src: "~/Library/Preferences/fr.handbrake.HandBrake.plist"
         dest: "handbrake/fr.handbrake.HandBrake.plist"
   
