@@ -207,6 +207,7 @@ app_backup_definitions:
         exclude:
           - "Cache"
           - "logs"
+        compress: true 
       - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
         dest: "eagle/tw.ogdesign.eagle.plist"
   
