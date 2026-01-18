@@ -1,7 +1,10 @@
 # ============================================================================
 # File: playbooks/backup-full.yml
-# Backup everything: SSH, apps, and dotfiles
+# Backup everything: SSH, apps, dotfiles, and fonts
+# Works with any role/machine type
 # Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit studio
+# Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit laptop
+# Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit editor
 # ============================================================================
 ---
 - name: Full System Backup
@@ -14,29 +17,91 @@
       vars:
         required_volumes: "{{ required_network_volumes }}"
       tags: ['always']
-          
-  tasks:
+    
     - name: Display full backup notice
       debug:
         msg: |
-          🔄 Starting full system backup
-          This will backup:
-            - SSH keys and config
-            - Application settings and data
-            - Dotfiles
+          🔄 Starting full system backup for {{ machine_type }} machine
           
-          Machine type: {{ machine_type }}
-    
-    - name: Backup SSH configuration
-      import_playbook: backup-ssh.yml
-      tags: ['ssh']
-    
-    - name: Backup application settings
-      import_playbook: backup-apps.yml
-      tags: ['apps']
-    
+          This will backup:
+            {% if machine_type in ['studio', 'laptop'] %}
+            ✅ SSH keys and config (full private + public keys)
+            {% else %}
+            ⏭️  SSH keys (skipped - this role only has public keys from studio/laptop)
+            {% endif %}
+            ✅ Application settings and data
+            {% if lookup('vars', machine_type + '_dotfiles_files', default=[]) | length > 0 %}
+            ✅ Dotfiles ({{ lookup('vars', machine_type + '_dotfiles_files', default=[]) | length }} files)
+            {% else %}
+            ⏭️  Dotfiles (none configured for this role)
+            {% endif %}
+            {% if restore_fonts | default(true) and machine_type in ['studio', 'laptop'] %}
+            ✅ User fonts
+            {% else %}
+            ⏭️  User fonts (skipped for this role)
+            {% endif %}
+          
+          📁 Destination: {{ macos_network_base }}/
+      tags: ['always']
+
+# ============================================================================
+# BACKUP SSH (only for studio and laptop - they have private keys)
+# ============================================================================
+- name: Backup SSH Configuration
+  import_playbook: backup-ssh.yml
+  when: hostvars[inventory_hostname]['machine_type'] in ['studio', 'laptop']
+  tags: ['ssh']
+
+# ============================================================================
+# BACKUP APPLICATIONS (all roles)
+# ============================================================================
+- name: Backup Application Settings
+  import_playbook: backup-apps.yml
+  tags: ['apps']
+
+# ============================================================================
+# BACKUP DOTFILES (roles that have dotfiles configured)
+# ============================================================================
+- name: Backup Dotfiles
+  import_playbook: backup-dotfiles.yml
+  tags: ['dotfiles']
+
+# ============================================================================
+# BACKUP FONTS (only for studio and laptop)
+# ============================================================================
+- name: Backup User Fonts
+  import_playbook: backup-fonts.yml
+  when: hostvars[inventory_hostname]['machine_type'] in ['studio', 'laptop']
+  tags: ['fonts']
+
+# ============================================================================
+# COMPLETION MESSAGE
+# ============================================================================
+- name: Display Completion Summary
+  hosts: all
+  become: false
+  
+  tasks:
     - name: Completion message
       debug:
         msg: |
-          ✅ Full backup complete!
-          📁 Location: {{ backup_base }}/{{ machine_type }}/
+          ✅ Full backup complete for {{ machine_type }} machine!
+          
+          📦 Backed up:
+          {% if machine_type in ['studio', 'laptop'] %}
+            ✅ SSH keys → {{ macos_network_base }}/ssh/{{ machine_type }}/
+          {% endif %}
+            ✅ Applications → {{ macos_network_base }}/apps/
+          {% if lookup('vars', machine_type + '_dotfiles_files', default=[]) | length > 0 %}
+            ✅ Dotfiles → {{ macos_network_base }}/dotfiles/{{ machine_type }}/
+          {% endif %}
+          {% if machine_type in ['studio', 'laptop'] %}
+            ✅ Fonts → {{ macos_network_base }}/fonts/
+          {% endif %}
+          
+          💡 To restore on another machine:
+             ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit {{ machine_type }}
+             ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit {{ machine_type }}
+             ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit {{ machine_type }}
+             ansible-playbook playbooks/restore-fonts.yml -i inventory.ini --limit {{ machine_type }}
+      tags: ['always']

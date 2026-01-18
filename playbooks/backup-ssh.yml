@@ -1,16 +1,17 @@
 # ============================================================================
 # File: playbooks/backup-ssh.yml
 # Backup SSH keys and config to network volume
-# Only backs up from studio machines (where private keys exist)
+# Backs up from studio and laptop machines (where private keys exist)
 # Usage: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit studio
+# Usage: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit laptop
 # ============================================================================
 ---
 - name: Backup SSH Configuration to Network Volume
-  hosts: studio
+  hosts: studio,laptop  # ← CHANGED: Both machines have private keys
   become: false
   
   vars:
-    backup_base: "{{ macos_network_base }}/ssh/studio"
+    backup_base: "{{ macos_network_base }}/ssh/{{ machine_type }}"  # ← Uses machine_type for separate backups
     backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
 
   pre_tasks:
