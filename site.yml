@@ -44,6 +44,10 @@
       when: machine_type == 'family'
       tags: ['family', 'apps', 'config']
 
+    - role: studio
+      when: machine_type == 'studio'
+      tags: ['studio', 'apps', 'config']
+
   # ========================================================================
   # POST-TASKS - Run after all roles complete
   # These require all apps to be installed first

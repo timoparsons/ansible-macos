@@ -111,6 +111,10 @@ case $choice in
         DESC="Family Machine"
         ;;
     4)
+        TARGET="studio"
+        DESC="Studio Machine"
+        ;;
+    5)
         echo "Exiting..."
         exit 0
         ;;

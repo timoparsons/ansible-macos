@@ -1,0 +1,18 @@
+---
+# roles/studio/handlers/main.yml
+
+- name: Refresh Preferences
+  ansible.builtin.shell: killall cfprefsd
+  failed_when: false
+
+- name: Restart Dock
+  ansible.builtin.shell: killall Dock
+  failed_when: false
+
+- name: Restart Finder
+  ansible.builtin.shell: killall Finder
+  failed_when: false
+
+- name: Restart SystemUIServer
+  ansible.builtin.shell: killall SystemUIServer
+  failed_when: false
