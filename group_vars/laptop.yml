@@ -1,4 +1,4 @@
-# group_vars/personal.yml
+# group_vars/laptop.yml
 
 # ============================================================================
 # Restore and configuration flags
@@ -9,11 +9,11 @@ configure_dock: true
 configure_login_items: true
 
 # ============================================================================
-# SSH Configuration (Personal Override)
+# SSH Configuration (Laptop Override)
 # ============================================================================
-# Personal machines get FULL SSH keys (private + public) from their own backup
+# laptop machines get FULL SSH keys (private + public) from their own backup
 # This overrides the default in all.yml which only gets public keys
-ssh_source_base: "{{ macos_network_base }}/ssh/personal"
+ssh_source_base: "{{ macos_network_base }}/ssh/laptop"
 
 ssh_files:
   - { src: "id_ed25519", dest: "id_ed25519", mode: '0600' }
@@ -27,7 +27,7 @@ ssh_files:
 # Dotfiles Configuration
 # ============================================================================
 
-personal_dotfiles_files:
+laptop_dotfiles_files:
   # Essential shell config
   - { src: ".zshrc", dest: ".zshrc", mode: '0644' }
   - { src: ".zprofile", dest: ".zprofile", mode: '0644' }
@@ -47,13 +47,13 @@ personal_dotfiles_files:
 # ============================================================================
 
 # Command Line Tools (Brew Formulae)
-personal_formula_apps:
+laptop_formula_apps:
   # Common (from old common role)
   - dockutil
   - git
   - mas
   - zstd
-  # Personal-specific
+  # laptop-specific
   - exiftool
   - gnu-tar
   - immich-go
@@ -62,7 +62,7 @@ personal_formula_apps:
   - tree
 
 # GUI Applications (Brew Casks)
-personal_cask_apps:
+laptop_cask_apps:
   # Common
   - affinity
   - appcleaner
@@ -72,18 +72,15 @@ personal_cask_apps:
   - spotify
   - vlc
   - whatsapp
-  # Personal-specific
+  # laptop-specific
   - adobe-creative-cloud
   - angry-ip-scanner
-  - autodesk-fusion
   - balenaetcher
   - brave-browser
   - visual-studio-code
-  - blender
   - carbon-copy-cloner
   - downie
   - fontbase
-  - fontforge-app
   - github
   - google-drive
   - handbrake
@@ -93,12 +90,9 @@ personal_cask_apps:
   - jump-desktop-connect
   - lulu
   - mactracker
-  - macwhisper
   - mediahuman-audio-converter
-  - monitorcontrol  
   - neofinder
   - ogdesign-eagle # Eagle.cool
-  - opencore-patcher
   - platypus
   - plex
   - pronotes
@@ -111,7 +105,7 @@ personal_cask_apps:
 
 
 # Mac App Store (MAS)
-personal_mas_apps:
+laptop_mas_apps:
   - { id: 1586435171, name: 'Actions' }
   - { id: 1160435653, name: 'AutoMounter' }  
   - { id: 425264550, name: 'Blackmagic Speed Test' }  
@@ -133,7 +127,7 @@ personal_mas_apps:
 
 
 # Apps to install via DMG/PKG 
-personal_dmg_pkg_apps:
+laptop_dmg_pkg_apps:
   - name: "CrossOver"
     url: "/Volumes/backup_proxmox/macos/installers/CrossOver.dmg"
     volume: "CrossOver"
@@ -148,9 +142,9 @@ personal_dmg_pkg_apps:
 # Dock Configuration
 # ============================================================================
 
-personal_dock_clear_all: true
+laptop_dock_clear_all: true
 
-personal_dock_apps:
+laptop_dock_apps:
   - path: "/Applications/Bloom.app"
   - path: "/Applications/Brave Browser.app"
   - path: "/System/Applications/Messages.app"
@@ -158,13 +152,13 @@ personal_dock_apps:
   - path: "/System/Applications/Reminders.app"
   - path: "/System/Applications/System Settings.app"
 
-personal_dock_folders: []
+laptop_dock_folders: []
 
 # ============================================================================
 # Login Items
 # ============================================================================
 
-personal_login_items:
+laptop_login_items:
   - name: "AutoMounter"
     path: "/Applications/AutoMounter.app"
     hidden: true
@@ -202,5 +196,5 @@ personal_login_items:
     hidden: false
 
 # Optionally remove items
-personal_remove_login_items:
+laptop_remove_login_items:
   - "Spotify"

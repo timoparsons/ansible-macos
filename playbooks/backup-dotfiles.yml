@@ -1,7 +1,7 @@
 # ============================================================================
 # File: playbooks/backup-dotfiles.yml
 # Backup dotfiles to network volume
-# Usage: ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Backup Dotfiles to Network Volume

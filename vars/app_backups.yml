@@ -442,8 +442,36 @@ studio_apps_to_backup:
   - terminal
   - vscode
 
-# Video machine only needs production tools
-video_apps_to_backup:
+laptop_apps_to_backup:
+  - affinity
+  - automounter
+  - bloom
+  - carbon-copy-cloner
+#  - crossover
+  - davinci-resolve
+  - eagle
+  - fontbase
+  #- github-desktop
+  - handbrake
+  - ice
+  - lightroom
+  - loop
+  - lulu
+  - mediahuman-audio-converter  
+  - mqtt-explorer
+  - neofinder
+  - offshoot
+  - photoshop
+  - pronotes
+  - raycast
+  - strongbox
+#  - superwhisper
+  - tailscale
+  - terminal
+  - vscode
+
+# editor machine only needs production tools
+editor_apps_to_backup:
   - automounter
   - davinci-resolve
   - eagle

@@ -1,7 +1,7 @@
 # ============================================================================
 # File: playbooks/backup-apps.yml
 # Master playbook to backup application settings
-# Usage: ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Backup Application Settings

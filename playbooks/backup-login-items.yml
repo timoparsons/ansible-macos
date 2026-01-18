@@ -1,7 +1,7 @@
 ---
 # playbooks/backup-login-items.yml
 # Export current login items to a YAML file for easy adding to group_vars
-# Usage: ansible-playbook playbooks/backup-login-items.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/backup-login-items.yml -i inventory.ini --limit studio
 
 - name: Export Current Login Items Configuration
   hosts: all

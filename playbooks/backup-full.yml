@@ -1,7 +1,7 @@
 # ============================================================================
 # File: playbooks/backup-full.yml
 # Backup everything: SSH, apps, and dotfiles
-# Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Full System Backup

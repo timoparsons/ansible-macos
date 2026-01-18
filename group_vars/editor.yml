@@ -1,4 +1,4 @@
-# group_vars/video.yml
+# group_vars/editor.yml
 
 # ============================================================================
 # Restore and configuration flags
@@ -14,17 +14,17 @@ configure_login_items: true
 # ============================================================================
 
 # Command Line Tools (Brew Formulae)
-video_formula_apps:
+editor_formula_apps:
   # Common (from old common role)
   - dockutil
   - git
   - mas
   - zstd
-  # Video-specific
+  # editor-specific
   - ffmpeg
 
 # GUI Applications (Brew Casks)
-video_cask_apps:
+editor_cask_apps:
   # Common (from old common role)
   - affinity
   - appcleaner
@@ -34,7 +34,7 @@ video_cask_apps:
   - spotify
   - vlc
   - whatsapp
-  # Video-specific
+  # editor-specific
   - handbrake
   - ogdesign-eagle # Eagle.cool
   - jump-desktop-connect
@@ -43,10 +43,10 @@ video_cask_apps:
   - slack
 
 # Mac App Store (MAS)
-video_mas_apps:
+editor_mas_apps:
   # Common (from old common role)
 
-  # Video-specific
+  # editor-specific
   - { id: 1160435653, name: 'AutoMounter' }
   - { id: 411643860, name: 'DaisyDisk' }
   - { id: 425264550, name: 'Blackmagic Speed Test' }
@@ -60,9 +60,9 @@ video_mas_apps:
 # Dock Configuration
 # ============================================================================
 
-video_dock_clear_all: true
+editor_dock_clear_all: true
 
-video_dock_apps:
+editor_dock_apps:
   - path: "/Applications/Bloom.app"
   - path: "/Applications/Slack.app"
   - path: "/System/Applications/Messages.app"
@@ -70,13 +70,13 @@ video_dock_apps:
   - path: "/System/Applications/Reminders.app"
   - path: "/System/Applications/System Settings.app"
 
-video_dock_folders: []
+editor_dock_folders: []
 
 # ============================================================================
 # Login Items
 # ============================================================================
 
-video_login_items:
+editor_login_items:
   - name: "AutoMounter"
     path: "/Applications/AutoMounter.app"
     hidden: true
@@ -89,4 +89,4 @@ video_login_items:
     path: "/Applications/Tailscale.app"
     hidden: false
 
-video_remove_login_items: []
+editor_remove_login_items: []

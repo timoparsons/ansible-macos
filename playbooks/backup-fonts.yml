@@ -3,7 +3,7 @@
 # File: playbooks/backup-fonts.yml
 # Backup user fonts to network volume
 # WARNING: This REPLACES the entire fonts backup folder
-# Usage: ansible-playbook playbooks/backup-fonts.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/backup-fonts.yml -i inventory.ini --limit studio
 # ============================================================================
 - name: Backup User Fonts to Network Volume
   hosts: all

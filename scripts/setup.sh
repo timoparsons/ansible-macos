@@ -78,9 +78,10 @@ fi
 
 # Define the Menu
 echo "Select the configuration for this Mac:"
-echo "1) Personal (Full setup + Video tools)"
-echo "2) Video Production (Work focused)"
-echo "3) Family (Basic + Restrictions)"
+echo "1) Tim Laptop"
+echo "2) Studio Edit Machine"
+echo "3) Edit Machine"
+echo "4) Family Machine"
 echo "4) Quit"
 echo ""
 
@@ -99,20 +100,20 @@ done
 
 case $choice in
     1)
-        TARGET="personal"
-        DESC="Personal Machine"
+        TARGET="laptop"
+        DESC="Tim Laptop"
         ;;
     2)
-        TARGET="video"
-        DESC="Video Production Machine"
+        TARGET="studio"
+        DESC="Studio Machine"    
         ;;
     3)
-        TARGET="family"
-        DESC="Family Machine"
+        TARGET="editor"
+        DESC="Edit Machine"
         ;;
     4)
-        TARGET="studio"
-        DESC="Studio Machine"
+        TARGET="family"
+        DESC="Family Machine"
         ;;
     5)
         echo "Exiting..."

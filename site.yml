@@ -32,21 +32,23 @@
   # ========================================================================
 
   roles:
-    - role: personal
-      when: machine_type == 'personal'
-      tags: ['personal', 'apps', 'config']
+    - role: studio
+      when: machine_type == 'studio'
+      tags: ['studio', 'apps', 'config']
       
-    - role: video
-      when: machine_type == 'video' 
-      tags: ['video', 'apps', 'config']
+    - role: laptop
+      when: machine_type == 'laptop'
+      tags: ['laptop', 'apps', 'config']
+
+    - role: editor
+      when: machine_type == 'editor' 
+      tags: ['editor', 'apps', 'config']
       
     - role: family
       when: machine_type == 'family'
       tags: ['family', 'apps', 'config']
 
-    - role: studio
-      when: machine_type == 'studio'
-      tags: ['studio', 'apps', 'config']
+
 
   # ========================================================================
   # POST-TASKS - Run after all roles complete

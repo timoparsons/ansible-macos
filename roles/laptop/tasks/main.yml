@@ -1,8 +1,7 @@
-# ============================================================================
-# FILE: roles/personal/tasks/main.yml
-# ============================================================================
 ---
-# roles/personal/tasks/main.yml
+# ============================================================================
+# FILE: roles/laptop/tasks/main.yml
+# ============================================================================
 
 # ============================================================================
 # PREREQUISITES
@@ -16,35 +15,35 @@
 # APPLICATIONS
 # ============================================================================
 
-- name: Install personal formula apps
+- name: Install laptop formula apps
   community.general.homebrew:
-    name: "{{ personal_formula_apps }}"
+    name: "{{ laptop_formula_apps }}"
     state: present
-  when: personal_formula_apps is defined and personal_formula_apps | length > 0
+  when: laptop_formula_apps is defined and laptop_formula_apps | length > 0
   tags: ['brew', 'formula', 'cli', 'apps']
 
-- name: Install personal cask apps
+- name: Install laptop cask apps
   community.general.homebrew_cask:
-    name: "{{ personal_cask_apps }}"
+    name: "{{ laptop_cask_apps }}"
     state: present
-  when: personal_cask_apps is defined and personal_cask_apps | length > 0
+  when: laptop_cask_apps is defined and laptop_cask_apps | length > 0
   tags: ['brew', 'cask', 'gui', 'apps']
 
-- name: Install personal Mac App Store apps
+- name: Install laptop Mac App Store apps
   community.general.mas:
     id: "{{ item.id }}"
     state: present
-  loop: "{{ personal_mas_apps }}"
-  when: personal_mas_apps is defined and personal_mas_apps | length > 0
+  loop: "{{ laptop_mas_apps }}"
+  when: laptop_mas_apps is defined and laptop_mas_apps | length > 0
   tags: ['mas', 'gui', 'apps']
 
-- name: Install personal apps from DMG/PKG files
+- name: Install laptop apps from DMG/PKG files
   include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
-  loop: "{{ personal_dmg_pkg_apps }}"
+  loop: "{{ laptop_dmg_pkg_apps }}"
   loop_control:
     loop_var: dmg_item
     label: "{{ dmg_item.name }}"
-  when: personal_dmg_pkg_apps is defined and personal_dmg_pkg_apps | length > 0
+  when: laptop_dmg_pkg_apps is defined and laptop_dmg_pkg_apps | length > 0
   tags: ['dmg', 'gui', 'apps']
 
 # ============================================================================
@@ -73,7 +72,8 @@
   include_tasks: "{{ playbook_dir }}/tasks/macos_baseline_settings.yml"
   tags: ['macos_defaults', 'config']
 
-- name: Apply personal macOS settings overrides
+ #Uncomment if role needs custom macOS overrides:
+- name: Apply laptop macOS settings overrides
   include_tasks: macos_settings.yml
   tags: ['macos_defaults', 'config']
 

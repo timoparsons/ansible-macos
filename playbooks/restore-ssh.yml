@@ -2,7 +2,7 @@
 # File: playbooks/restore-ssh.yml
 # Restore SSH keys and config from network volume
 # Respects machine-specific ssh_files configuration
-# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Restore SSH Configuration from Network Volume
@@ -53,7 +53,7 @@
           📥 Restoring SSH files for {{ machine_type }} machine
           📂 Source: {{ ssh_backup_base }}/
           📝 Files to restore: {{ files_to_restore | length }}
-          {% if machine_type == 'personal' %}
+          {% if machine_type == 'studio' %}
           🔑 Restoring full SSH keys (private + public)
           {% else %}
           🔓 Restoring public keys only (for SSH host mode)

@@ -1,7 +1,7 @@
 # ============================================================================
 # File: playbooks/restore-apps.yml
 # Master playbook to restore application settings
-# Usage: ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Restore Application Settings

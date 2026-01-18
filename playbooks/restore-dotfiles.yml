@@ -1,7 +1,7 @@
 # ============================================================================
 # File: playbooks/restore-dotfiles.yml
 # Restore dotfiles from network volume
-# Usage: ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit personal
+# Usage: ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit studio
 # ============================================================================
 ---
 - name: Restore Dotfiles from Network Volume
