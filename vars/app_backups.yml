@@ -273,6 +273,14 @@ app_backup_definitions:
       - src: "~/Library/Application Support/com.objective-see.lulu"
         dest: "lulu/application-support"
   
+  mediahuman-audio-converter:
+    name: "MediaHuman Audio Converter"
+    paths:
+      - src: "~/Library/Preferences/com.mediahuman.Audio Converter.plist"
+        dest: "mediahuman-audio-converter/com.mediahuman.Audio Converter.plist"
+  
+
+
   mqtt-explorer:
     name: "MQTT Explorer"
     paths:
