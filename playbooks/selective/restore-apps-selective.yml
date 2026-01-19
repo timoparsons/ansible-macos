@@ -45,10 +45,10 @@
           
           ⚠️  WARNING: This will overwrite existing app settings!
     
-    - name: Confirm restore
-      pause:
-        prompt: "Press ENTER to continue or Ctrl+C to cancel"
-      when: not (auto_confirm | default(false))
+#    - name: Confirm restore
+#      pause:
+#        prompt: "Press ENTER to continue or Ctrl+C to cancel"
+#      when: not (auto_confirm | default(false))
     
     - name: Restore applications
       block:

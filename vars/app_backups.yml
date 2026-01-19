@@ -491,6 +491,10 @@ studio_apps_to_backup:
   - terminal
   - typeface
   - vscode
+  
+# Fonts  
+  - user-fonts
+  - adobe-fonts
 
 laptop_apps_to_backup:
   - affinity
@@ -522,6 +526,10 @@ laptop_apps_to_backup:
   - typeface
   - vscode
 
+# Fonts  
+  - user-fonts
+  - adobe-fonts
+
 # editor machine only needs production tools
 editor_apps_to_backup:
   - automounter
@@ -532,6 +540,10 @@ editor_apps_to_backup:
   - neofinder
   - offshoot
 #  - tailscale
+
+# Fonts  
+  - user-fonts
+  - adobe-fonts
 
 # Family machine minimal
 family_apps_to_backup: []

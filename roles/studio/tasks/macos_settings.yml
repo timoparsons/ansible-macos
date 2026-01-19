@@ -1,0 +1,19 @@
+---
+# roles/personal/tasks/macos_settings.yml
+# Personal machine-specific macOS settings overrides
+
+###############################################################################
+# Keyboard Shortcuts (Spotlight & Finder Search)
+###############################################################################
+
+- name: Disable Spotlight keyboard shortcut (Cmd+Space for Raycast)
+  ansible.builtin.shell: |
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add {{ hotkey.id }} "<dict><key>enabled</key><false/></dict>"
+  loop:
+    - { id: 64, name: 'Spotlight' }
+    - { id: 65, name: 'Finder Search' }
+  loop_control:
+    loop_var: hotkey
+    label: "{{ hotkey.name }}"
+  changed_when: false
+  notify: Refresh Preferences

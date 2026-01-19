@@ -73,18 +73,20 @@
   tags: ['macos_defaults', 'config']
 
 # Uncomment if role needs custom macOS overrides:
-# - name: Apply studio macOS settings overrides
-#   include_tasks: macos_settings.yml
-#   tags: ['macos_defaults', 'config']
-
+- name: Apply laptop macOS settings overrides
+  include_tasks: macos_settings.yml
+  tags: ['macos_defaults', 'config']
+  
 # ============================================================================
 # FONTS
 # ============================================================================
 
-- name: Restore user fonts
-  include_tasks: "{{ playbook_dir }}/tasks/restore_fonts.yml"
-  when: 
-    - restore_fonts | default(true)
-    - macos_network_base is defined
-    - not ansible_check_mode  
-  tags: ['fonts', 'restore', 'config']
+# Fonts are now restored as app settings
+
+#- name: Restore user fonts
+#  include_tasks: "{{ playbook_dir }}/tasks/restore_fonts.yml"
+#  when: 
+#    - restore_fonts | default(true)
+#    - macos_network_base is defined
+#    - not ansible_check_mode  
+#  tags: ['fonts', 'restore', 'config']
