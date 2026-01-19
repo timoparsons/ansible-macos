@@ -80,7 +80,7 @@ laptop_cask_apps:
   - visual-studio-code
   - carbon-copy-cloner
   - downie
-  - fontbase
+  #- fontbase
   - github
   - google-drive
   - handbrake
@@ -135,7 +135,10 @@ laptop_dmg_pkg_apps:
   - name: "Offshoot"
     url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
     volume: "OffShoot 25.3.3"
- 
+
+  - name: "Typeface"
+    url: "/Volumes/backup_proxmox/macos/installers/Typeface.dmg"
+    volume: "Typeface" 
 
 
 # ============================================================================

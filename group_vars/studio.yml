@@ -82,7 +82,7 @@ studio_cask_apps:
   - blender
   - carbon-copy-cloner
   - downie
-  - fontbase
+  #- fontbase
   - fontforge-app
   - github
   - google-drive
@@ -173,6 +173,10 @@ studio_dmg_pkg_apps:
   - name: "Swinsian"
     url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
     volume: "Swinsian 3.0.4"   
+
+  - name: "Typeface"
+    url: "/Volumes/backup_proxmox/macos/installers/Typeface.dmg"
+    volume: "Typeface" 
 
 # Currently Unused
 #  - name: "Affinity Designer 2"

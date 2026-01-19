@@ -356,7 +356,17 @@ app_backup_definitions:
       - src: "~/Library/Preferences/com.sketchup.SketchUp.*.plist"
         dest: "sketchup/preferences"
 
-  
+  spotify:
+    name: "Spotify"
+    paths:
+      - src: "~/Library/Application Support/Spotify/prefs"
+        dest: "spotify/application-support/prefs"   
+        exclude:
+          - "PersistentCache"  
+      - src: "~/Library/Preferences/com.spotify.client.plist"
+        dest: "spotify/com.spotify.client.plist"
+
+
   strongbox:
     name: "Strongbox Pro"
     paths:
@@ -388,6 +398,15 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.apple.Terminal.plist"
         dest: "terminal/com.apple.Terminal.plist"
+
+  typeface:
+    name: "Typeface"
+    paths:
+      - src: "~/Library/Preferences/com.criminalbird.typeface.plist"
+        dest: "typeface/com.criminalbird.typeface.plist"
+      - src: "~/Library/Application Support/com.criminalbird.typeface"
+        dest: "typeface/application-support"
+
 
   vscode:
     name: "Visual Studio Code"
@@ -446,6 +465,7 @@ studio_apps_to_backup:
 #  - superwhisper
 #  - tailscale
   - terminal
+  - typeface
   - vscode
 
 laptop_apps_to_backup:
@@ -475,6 +495,7 @@ laptop_apps_to_backup:
 #  - superwhisper
 #  - tailscale
   - terminal
+  - typeface
   - vscode
 
 # editor machine only needs production tools
