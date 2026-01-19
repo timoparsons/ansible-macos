@@ -405,9 +405,11 @@ app_backup_definitions:
   typeface:
     name: "Typeface"
     paths:
-      - src: "~/Library/Preferences/com.criminalbird.typeface.plist"
+      # Sandboxed app preferences
+      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences/com.criminalbird.typeface.plist"
         dest: "typeface/com.criminalbird.typeface.plist"
-      - src: "~/Library/Application Support/com.criminalbird.typeface"
+      # Sandboxed app data
+      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Application Support"
         dest: "typeface/application-support"
         compress: true
 

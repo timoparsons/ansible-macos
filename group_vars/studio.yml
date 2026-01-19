@@ -145,12 +145,12 @@ studio_mas_apps:
   - { id: 1481853033, name: 'Strongbox Pro' }
   - { id: 1475387142, name: 'Tailscale' }
   - { id: 1490879410, name: 'Trash Me' }
+  - { id: 1062679359, name: 'Typeface' }
 
 # Currently Unused or not working
   #- { id: 6443819966, name: 'IP Scanner' }
   # - { id: 524141863, name: 'Jump Desktop'} # tim@joy.inc app
   # - { id: 506088175, name: 'Pushover' } IPAD APP – MANUAL INSTALL
-  # - { id: 1062679359, name: 'Typeface 4' }
 
 # DMG/PKG apps
 studio_dmg_pkg_apps:
@@ -173,10 +173,6 @@ studio_dmg_pkg_apps:
   - name: "Swinsian"
     url: "/Volumes/backup_proxmox/macos/installers/Swinsian.dmg"
     volume: "Swinsian 3.0.4"   
-
-  - name: "Typeface"
-    url: "/Volumes/backup_proxmox/macos/installers/Typeface.dmg"
-    volume: "Typeface" 
 
 # Currently Unused
 #  - name: "Affinity Designer 2"

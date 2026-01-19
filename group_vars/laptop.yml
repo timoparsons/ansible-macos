@@ -122,7 +122,7 @@ laptop_mas_apps:
   - { id: 1481853033, name: 'Strongbox Pro' }
   - { id: 1475387142, name: 'Tailscale' }
   - { id: 1490879410, name: 'Trash Me' }
-
+  - { id: 1062679359, name: 'Typeface' }
 
 
 
@@ -135,10 +135,6 @@ laptop_dmg_pkg_apps:
   - name: "Offshoot"
     url: "/Volumes/backup_proxmox/macos/installers/OffShoot.dmg"
     volume: "OffShoot 25.3.3"
-
-  - name: "Typeface"
-    url: "/Volumes/backup_proxmox/macos/installers/Typeface.dmg"
-    volume: "Typeface" 
 
 
 # ============================================================================

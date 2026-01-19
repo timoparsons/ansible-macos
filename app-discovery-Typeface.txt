@@ -1,0 +1,28 @@
+Found: /Applications/Typeface.app
+Bundle ID: com.criminalbird.typeface
+Location: ~/Library/Preferences
+Searching for: *Typeface* and *com.criminalbird.typeface*
+
+[0;32m✓ Found matches:[0m
+  [0;32m[FILE][0m /Users/tim/Library/Preferences/com.criminalbird.typeface.plist (2.6K)
+
+[0;32m✓ Found matches:[0m
+  [0;32m[FILE][0m /Users/tim/Library/Preferences/com.criminalbird.typeface.plist (2.6K)
+Location: ~/Library/Application Support
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Application Support/com.criminalbird.typeface (5 files)
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Application Support/com.criminalbird.typeface (5 files)
+Location: ~/Library/Containers
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.criminalbird.typeface (18 files)
+
+[0;32m✓ Found matches:[0m
+  [0;36m[DIR][0m  /Users/tim/Library/Containers/com.criminalbird.typeface (18 files)
+Location: ~/Library/Group Containers
+
+[1;33m✗ No matches found[0m
+
