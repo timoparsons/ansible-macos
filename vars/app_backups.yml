@@ -406,6 +406,7 @@ app_backup_definitions:
         dest: "typeface/com.criminalbird.typeface.plist"
       - src: "~/Library/Application Support/com.criminalbird.typeface"
         dest: "typeface/application-support"
+        compress: true
 
 
   vscode:
