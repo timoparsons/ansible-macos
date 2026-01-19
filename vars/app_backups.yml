@@ -253,18 +253,21 @@ app_backup_definitions:
   lightroom:
     name: "Adobe Lightroom Classic"
     paths:
-      - src: "~/Library/Preferences/com.adobe.Lightroom*.plist"
-        dest: "adobe/lightroom/preferences"
-      - src: "~/Library/Application Support/Adobe/Lightroom/Develop Presets"
-        dest: "adobe/lightroom/develop-presets"
-      - src: "~/Library/Application Support/Adobe/Lightroom/Export Presets"
-        dest: "adobe/lightroom/export-presets"
-      - src: "~/Library/Application Support/Adobe/Lightroom/Import Presets"
-        dest: "adobe/lightroom/import-presets"
-      - src: "~/Library/Application Support/Adobe/Lightroom/Print Templates"
-        dest: "adobe/lightroom/print-templates"
-      - src: "~/Library/Application Support/Adobe/Lightroom/Web Galleries"
-        dest: "adobe/lightroom/web-galleries"
+      - src: "~/Library/Preferences/com.adobe.LightroomClassicCC7.plist"
+        dest: "lightroom/com.adobe.LightroomClassicCC7.plist"
+
+      - src: "~/Library/Application Support/Adobe/CameraRaw/CameraProfiles"
+        dest: "lightroom/cameraprofiles"
+        compress: true
+
+      - src: "~/Library/Application Support/Adobe/CameraRaw/Settings"
+        dest: "lightroom/settings"
+        compress: true
+
+      - src: "~/Library/Application Support/Adobe/Lightroom"
+        dest: "lightroom/application-support"
+        compress: true
+
   
   loop:
     name: "Loop Window Manager"

@@ -35,6 +35,7 @@
         temp_archive: "/tmp/ansible-backup-{{ path_item.dest | basename }}-{{ ansible_date_time.epoch }}.tar.zst"
         final_archive: "{{ backup_base }}/{{ path_item.dest }}.tar.zst"
 
+
     - name: "Compress directory to local temp (faster)"
       shell: |
         cd "{{ path_item.src | expanduser | dirname }}"
@@ -47,11 +48,13 @@
       stat:
         path: "{{ temp_archive }}"
       register: temp_stats
+      when: tar_result is changed  # Only if we just created it
 
     - name: "Get original directory size"
       shell: du -sk "{{ path_item.src | expanduser }}" | cut -f1
       register: original_size
       changed_when: false
+      when: tar_result is changed  # Only if we just created it
 
     - name: "Display compression info"
       debug:
@@ -60,11 +63,18 @@
           📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
           💾 Compressed: {{ (temp_stats.stat.size / 1024 / 1024) | round(2) }} MB
           📉 Ratio: {{ ((1 - (temp_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}%
+      when: tar_result is changed  # Only if we just created it
+
+    - name: "Display skipped message"
+      debug:
+        msg: "⏭️  Backup already exists: {{ final_archive }}"
+      when: tar_result is skipped  # When backup already exists
 
     - name: "Move compressed archive to network destination"
       command: mv "{{ temp_archive }}" "{{ final_archive }}"
       register: move_result
       changed_when: move_result.rc == 0
+      when: tar_result is changed  # Only if we just created it
 
     - name: "Display final location"
       debug:
