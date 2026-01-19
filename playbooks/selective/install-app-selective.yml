@@ -1,0 +1,180 @@
+# ============================================================================
+# File: playbooks/selective/install-app-selective.yml
+# Install specific apps only
+# Usage: ansible-playbook playbooks/selective/install-app-selective.yml -i inventory.ini --limit studio -e "apps_list=spotify,typeface"
+# ============================================================================
+---
+- name: Selective Application Installation
+  hosts: all
+  become: false
+  
+  tasks:
+    - name: Fail if apps_list not provided
+      fail:
+        msg: |
+          Please provide apps_list variable with app names to install.
+          
+          Usage: -e "apps_list=app1,app2,app3"
+          
+          Examples:
+            -e "apps_list=spotify"
+            -e "apps_list=typeface,raycast,vscode"
+      when: apps_list is not defined
+    
+    - name: Parse apps list
+      set_fact:
+        apps_to_install: "{{ apps_list.split(',') | map('trim') | list }}"
+    
+    - name: Get all app lists for this machine type
+      set_fact:
+        all_formula_apps: "{{ lookup('vars', machine_type + '_formula_apps', default=[]) }}"
+        all_cask_apps: "{{ lookup('vars', machine_type + '_cask_apps', default=[]) }}"
+        all_mas_apps: "{{ lookup('vars', machine_type + '_mas_apps', default=[]) }}"
+        all_dmg_apps: "{{ lookup('vars', machine_type + '_dmg_pkg_apps', default=[]) }}"
+    
+    - name: Filter apps by installation method
+      set_fact:
+        formula_to_install: "{{ apps_to_install | intersect(all_formula_apps) }}"
+        cask_to_install: "{{ apps_to_install | intersect(all_cask_apps) }}"
+        mas_to_install: "{{ all_mas_apps | selectattr('name', 'in', apps_to_install) | list }}"
+        dmg_to_install: "{{ all_dmg_apps | selectattr('name', 'in', apps_to_install) | list }}"
+    
+    - name: Identify apps not found in configuration
+      set_fact:
+        found_apps: "{{ formula_to_install + cask_to_install + (mas_to_install | map(attribute='name') | list) + (dmg_to_install | map(attribute='name') | list) }}"
+        not_found_apps: "{{ apps_to_install | difference(formula_to_install + cask_to_install + (mas_to_install | map(attribute='name') | list) + (dmg_to_install | map(attribute='name') | list)) }}"
+    
+    - name: Display installation summary
+      debug:
+        msg: |
+          📦 Installing {{ found_apps | length }} applications on {{ machine_type }} machine
+          
+          {% if formula_to_install | length > 0 %}
+          🔧 Formulae ({{ formula_to_install | length }}):
+          {{ formula_to_install | join(', ') }}
+          {% endif %}
+          
+          {% if cask_to_install | length > 0 %}
+          🖥️  Casks ({{ cask_to_install | length }}):
+          {{ cask_to_install | join(', ') }}
+          {% endif %}
+          
+          {% if mas_to_install | length > 0 %}
+          🍎 Mac App Store ({{ mas_to_install | length }}):
+          {{ mas_to_install | map(attribute='name') | join(', ') }}
+          {% endif %}
+          
+          {% if dmg_to_install | length > 0 %}
+          💿 DMG/PKG ({{ dmg_to_install | length }}):
+          {{ dmg_to_install | map(attribute='name') | join(', ') }}
+          {% endif %}
+          
+          {% if not_found_apps | length > 0 %}
+          ⚠️  NOT FOUND in {{ machine_type }} configuration:
+          {{ not_found_apps | join(', ') }}
+          
+          Add these to group_vars/{{ machine_type }}.yml first!
+          {% endif %}
+    
+    - name: Fail if no apps found
+      fail:
+        msg: |
+          ❌ None of the specified apps were found in {{ machine_type }} configuration.
+          
+          Apps you requested: {{ apps_to_install | join(', ') }}
+          
+          Please add them to group_vars/{{ machine_type }}.yml in the appropriate list:
+            - {{ machine_type }}_formula_apps (for CLI tools)
+            - {{ machine_type }}_cask_apps (for GUI apps)
+            - {{ machine_type }}_mas_apps (for Mac App Store)
+            - {{ machine_type }}_dmg_pkg_apps (for DMG/PKG installers)
+      when: found_apps | length == 0
+    
+    - name: Check Homebrew and update
+      include_tasks: "{{ playbook_dir }}/tasks/homebrew_check.yml"
+      when: (formula_to_install | length > 0) or (cask_to_install | length > 0)
+    
+    # ========================================================================
+    # INSTALL FORMULAE
+    # ========================================================================
+    
+    - name: Install selected formulae
+      community.general.homebrew:
+        name: "{{ formula_to_install }}"
+        state: present
+      when: formula_to_install | length > 0
+      register: formula_result
+    
+    # ========================================================================
+    # INSTALL CASKS
+    # ========================================================================
+    
+    - name: Install selected casks
+      community.general.homebrew_cask:
+        name: "{{ cask_to_install }}"
+        state: present
+      when: cask_to_install | length > 0
+      register: cask_result
+    
+    # ========================================================================
+    # INSTALL MAS APPS
+    # ========================================================================
+    
+    - name: Check if MAS apps are already installed
+      ansible.builtin.command: mas list
+      register: mas_installed
+      changed_when: false
+      failed_when: false
+      when: mas_to_install | length > 0
+    
+    - name: Install selected Mac App Store apps
+      ansible.builtin.shell: |
+        mas install {{ item.id }} 2>&1
+        exit 0
+      loop: "{{ mas_to_install }}"
+      when: 
+        - mas_to_install | length > 0
+        - mas_installed.rc == 0
+        - item.id | string not in mas_installed.stdout
+      register: mas_result
+      changed_when: true
+    
+    # ========================================================================
+    # INSTALL DMG/PKG APPS
+    # ========================================================================
+    
+    - name: Install selected DMG/PKG apps
+      include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+      loop: "{{ dmg_to_install }}"
+      loop_control:
+        loop_var: dmg_item
+        label: "{{ dmg_item.name }}"
+      when: dmg_to_install | length > 0
+    
+    # ========================================================================
+    # COMPLETION
+    # ========================================================================
+    
+    - name: Display completion message
+      debug:
+        msg: |
+          ✅ Installation complete!
+          
+          Installed:
+          {% if formula_to_install | length > 0 %}
+            🔧 {{ formula_to_install | length }} formulae
+          {% endif %}
+          {% if cask_to_install | length > 0 %}
+            🖥️  {{ cask_to_install | length }} casks
+          {% endif %}
+          {% if mas_to_install | length > 0 %}
+            🍎 {{ mas_to_install | length }} Mac App Store apps
+          {% endif %}
+          {% if dmg_to_install | length > 0 %}
+            💿 {{ dmg_to_install | length }} DMG/PKG apps
+          {% endif %}
+          
+          💡 To restore settings for these apps:
+             ansible-playbook playbooks/selective/restore-apps-selective.yml \
+               -i inventory.ini --limit {{ machine_type }} \
+               -e "apps_list={{ found_apps | join(',') }}"
