@@ -425,6 +425,29 @@ app_backup_definitions:
 
 
 
+# ============================================================================
+# FONTS
+# ============================================================================
+
+  user-fonts:
+    name: "User Fonts"
+    paths:
+      - src: "~/Library/Fonts"
+        dest: "../fonts/user"
+        exclude:
+          - ".DS_Store"
+          - "Thumbs.db"
+
+  adobe-fonts:
+    name: "Adobe Fonts"
+    paths:
+      - src: "~/Library/Application Support/Adobe/CoreSync"
+        dest: "../fonts/adobe/coresync"
+        exclude:
+          - "Cache"
+          - "Logs"
+          - "*.log" 
+        compress: true
 
 # ============================================================================
 # MACHINE-SPECIFIC APP LISTS
@@ -446,7 +469,7 @@ studio_apps_to_backup:
   - davinci-resolve
   - downie
   - eagle
-  - fontbase
+  #- fontbase
   #- github-desktop
   - handbrake
   - ice
@@ -478,7 +501,7 @@ laptop_apps_to_backup:
   - davinci-resolve
   - downie
   - eagle
-  - fontbase
+  #- fontbase
   #- github-desktop
   - handbrake
   - ice
