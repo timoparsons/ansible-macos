@@ -91,7 +91,7 @@
       when: found_apps | length == 0
     
     - name: Check Homebrew and update
-      include_tasks: "{{ playbook_dir }}/tasks/homebrew_check.yml"
+      include_tasks: "{{ repo_root }}/tasks/homebrew_check.yml"
       when: (formula_to_install | length > 0) or (cask_to_install | length > 0)
     
     # ========================================================================
@@ -144,7 +144,7 @@
     # ========================================================================
     
     - name: Install selected DMG/PKG apps
-      include_tasks: "{{ playbook_dir }}/tasks/install_dmg.yml"
+      include_tasks: "{{ repo_root }}/tasks/install_dmg.yml"
       loop: "{{ dmg_to_install }}"
       loop_control:
         loop_var: dmg_item
