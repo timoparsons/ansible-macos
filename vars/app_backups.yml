@@ -406,22 +406,22 @@ app_backup_definitions:
     name: "Typeface"
     paths:
       # The dest should match where we want to restore it
-      - src: "~/Library/Containers/com.criminalbird.typeface"
-        dest: "typeface/container"  # ← Changed this
+      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Application Support"
+        dest: "typeface/container-app-support"
         exclude:
           - "Cache"
-          - "Caches"  
+          - "Caches"
           - "cache"
-          - "caches"
-          - "*Cache*"
-          - "Logs"
-          - "logs"
-          - "*.log"
           - ".DS_Store"
           - "Thumbs.db"
-          - "*.tmp"
+          - "*.log"
         compress: true
-
+      
+      # Container preferences
+      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences"
+        dest: "typeface/container-preferences"
+        exclude:
+          - ".DS_Store"
 
 
   vscode:
