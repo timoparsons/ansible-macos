@@ -405,20 +405,20 @@ app_backup_definitions:
   typeface:
     name: "Typeface"
     paths:
-      # Sandboxed app preferences
-      #- src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences/com.criminalbird.typeface.plist"
-      #  dest: "typeface/com.criminalbird.typeface.plist"
-
-      # Sandboxed app data
-      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Application Support"
-        dest: "typeface/application-support"
-        compress: true
-      # Sandboxed app preferences
-      - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences"
-        dest: "typeface/preferences"
+      - src: "~/Library/Containers/com.criminalbird.typeface"
+        dest: "typeface/container"
         exclude:
-          - "*.stats"
-          - "*.cache"
+          - "Cache"
+          - "Caches"  
+          - "cache"
+          - "caches"
+          - "*Cache*"
+          - "Logs"
+          - "logs"
+          - "*.log"
+          - ".DS_Store"
+          - "Thumbs.db"
+          - "*.tmp"
         compress: true
 
 
