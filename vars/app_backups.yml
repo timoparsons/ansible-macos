@@ -408,7 +408,7 @@ app_backup_definitions:
       # Sandboxed app preferences
       #- src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences/com.criminalbird.typeface.plist"
       #  dest: "typeface/com.criminalbird.typeface.plist"
-      
+
       # Sandboxed app data
       - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Application Support"
         dest: "typeface/application-support"
@@ -419,14 +419,8 @@ app_backup_definitions:
         exclude:
           - "*.stats"
           - "*.cache"
-    # Non-sandboxed location (ADD THIS)
-      - src: "~/Library/Application Support/com.criminalbird.typeface"
-        dest: "typeface/application-support-global"
-        compress: true      
+        compress: true
 
-      # Non-sandboxed preferences (ADD THIS)
-      - src: "~/Library/Preferences/com.criminalbird.typeface.plist"
-        dest: "typeface/com.criminalbird.typeface.plist"
 
 
   vscode:
