@@ -39,7 +39,7 @@
     - name: "Compress directory to local temp (faster)"
       shell: |
         cd "{{ path_item.src | expanduser | dirname }}"
-        tar {{ tar_exclude_opts }} -cf - "{{ path_item.src | expanduser | basename }}" | zstd -T0 -10 -q -o "{{ temp_archive }}"
+        gtar {{ tar_exclude_opts }} --no-xattrs --no-acls --no-selinux -cf - "{{ path_item.src | expanduser | basename }}" | zstd -T0 -10 -q -o "{{ temp_archive }}"
       args:
         creates: "{{ final_archive }}"
       register: tar_result

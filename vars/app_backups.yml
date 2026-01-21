@@ -405,8 +405,9 @@ app_backup_definitions:
   typeface:
     name: "Typeface"
     paths:
+      # The dest should match where we want to restore it
       - src: "~/Library/Containers/com.criminalbird.typeface"
-        dest: "typeface/container"
+        dest: "typeface/container"  # ← Changed this
         exclude:
           - "Cache"
           - "Caches"  

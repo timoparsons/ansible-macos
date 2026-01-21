@@ -74,12 +74,13 @@
         mode: '0755'
       become: "{{ needs_sudo }}"
 
-    # TAR.ZST (preferred - best compression)
     - name: "Extract tar.zst backup"
       shell: |
-        zstd -d -c "{{ backup_path_compressed_zst }}" | tar -xf - -C "{{ expanded_src | dirname }}"
+        zstd -d -c "{{ backup_path_compressed_zst }}" | COPYFILE_DISABLE=1 tar -xf - --disable-copyfile -C "{{ expanded_src | dirname }}"
       when: backup_compressed_zst
       become: "{{ needs_sudo }}"
+      environment:
+        COPYFILE_DISABLE: "1"
       register: extract_zst
 
     # TAR.GZ (fallback - universal compatibility)
