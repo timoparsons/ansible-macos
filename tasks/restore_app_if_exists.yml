@@ -29,6 +29,41 @@
   include_tasks: restore_app.yml
   when: app_is_installed
 
+# NEW: Reset container after restore
+- name: "Reset container for {{ app_backup_definitions[app_key].name }}"
+  when: app_is_installed
+  block:
+    - name: "Kill any remaining processes"
+      ansible.builtin.shell: |
+        killall "{{ app_backup_definitions[app_key].name }}" 2>/dev/null || true
+        sleep 1
+      changed_when: false
+      failed_when: false
+    
+    - name: "Clear saved application state"
+      ansible.builtin.shell: |
+        # Get bundle ID if it exists
+        APP_PATH=$(find /Applications ~/Applications -maxdepth 1 -name "{{ app_backup_definitions[app_key].name }}.app" 2>/dev/null | head -n 1)
+        if [ -n "$APP_PATH" ]; then
+          BUNDLE_ID=$(defaults read "$APP_PATH/Contents/Info.plist" CFBundleIdentifier 2>/dev/null || echo "")
+          if [ -n "$BUNDLE_ID" ]; then
+            rm -rf ~/Library/Saved\ Application\ State/"${BUNDLE_ID}".savedState 2>/dev/null || true
+          fi
+        fi
+      changed_when: false
+      failed_when: false
+    
+    - name: "Touch container to trigger re-scan"
+      ansible.builtin.shell: |
+        # Touch the container directory to update modification time
+        find ~/Library/Containers -maxdepth 1 -name "*typeface*" -o -name "*criminalbird*" | while read -r dir; do
+          touch "$dir" 2>/dev/null || true
+        done
+        sync
+      changed_when: false
+      failed_when: false
+      when: "'typeface' in app_backup_definitions[app_key].name | lower"
+
 - name: "Skip {{ app_backup_definitions[app_key].name }} - not installed"
   debug:
     msg: "⏭️  Skipping {{ app_backup_definitions[app_key].name }} - app not installed"
