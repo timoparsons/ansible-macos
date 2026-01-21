@@ -40,8 +40,6 @@
       shell: |
         cd "{{ path_item.src | expanduser | dirname }}"
         gtar {{ tar_exclude_opts }} --no-xattrs --no-acls --no-selinux -cf - "{{ path_item.src | expanduser | basename }}" | zstd -T0 -10 -q -o "{{ temp_archive }}"
-      args:
-        creates: "{{ final_archive }}"
       register: tar_result
 
     - name: "Get compressed file size"
