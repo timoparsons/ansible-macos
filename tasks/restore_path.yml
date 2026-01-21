@@ -143,6 +143,7 @@
             dest: "{{ expanded_src }}"
             mode: preserve
             backup: yes
+            force: yes
           become: "{{ needs_sudo }}"
 
     # ==========================================
@@ -163,7 +164,7 @@
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: no
+            delete: yes
           become: "{{ needs_sudo }}"
           delegate_to: "{{ inventory_hostname }}"
           when: needs_sudo
@@ -173,7 +174,7 @@
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: no
+            delete: yes
           delegate_to: "{{ inventory_hostname }}"
           when: not needs_sudo
 
