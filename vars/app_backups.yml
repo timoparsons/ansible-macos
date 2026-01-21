@@ -51,6 +51,7 @@ app_backup_definitions:
           - "temp-critical"      # Temporary files
           - "shunt"              # Temporary processing data
           - "*Cache*"
+        compress: true
 
   affinity-photo-2:
     name: "Affinity Photo 2"
@@ -75,6 +76,7 @@ app_backup_definitions:
           - "temp-critical"      # Temporary files
           - "shunt"              # Temporary processing data
           - "*Cache*"
+        compress: true
 
   affinity-publisher-2:
     name: "Affinity Publisher 2"
@@ -241,6 +243,7 @@ app_backup_definitions:
           - "*log*"
           - "*Log*"
           - "Queue*"
+        compress: true
 
 
   ice:
@@ -300,7 +303,10 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Containers/de.t7n.apps.mqtt-explorer/Data/Library/Preferences/de.t7n.apps.mqtt-explorer.plist"
         dest: "mqtt-explorer/de.t7n.apps.mqtt-explorer.plist"
-  
+      - src: "~/Library/Containers/de.t7n.apps.mqtt-explorer/Data/Library/Application Support/MQTT-Explorer/settings.json"
+        dest: "mqtt-explorer/settings.json"
+
+
   neofinder:
     name: "NeoFinder"
     paths:
