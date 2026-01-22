@@ -102,6 +102,16 @@ app_backup_definitions:
           - "shunt"              # Temporary processing data
           - "*Cache*"
 
+  aftereffects:
+    name: "Adobe After Effects 2025"
+    paths:
+      - src: "~/Library/Preferences/com.Adobe.After Effects.25.6.plist"
+        dest: "aftereffects/com.Adobe.After Effects.25.6.plist"
+      - src: "~/Library/Preferences/com.Adobe.After Effects.plist"
+        dest: "aftereffects/com.Adobe.After Effects.plist"
+      - src: "~/Library/Preferences/com.adobe.AfterEffects.application.plist"
+        dest: "aftereffects/com.adobe.AfterEffects.application.plist"
+
   argest:
     name: "ArGest Backup"
     paths:
@@ -230,6 +240,7 @@ app_backup_definitions:
 #        exclude:
 #          - "logs"
   
+
   handbrake:
     name: "HandBrake"
     paths:
