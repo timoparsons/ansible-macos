@@ -316,6 +316,74 @@ grep -A50 "video_apps_to_backup:" vars/app_backups.yml
 
 ---
 
+## Selective App Installation
+
+### Install Specific Apps Only
+
+Instead of installing all apps for a role, you can install just specific apps:
+
+```bash
+# Install specific apps by name
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=spotify,typeface"
+
+# Install single app
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit laptop \
+  -e "apps_list=handbrake"
+
+# Install multiple apps from different sources
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=dockutil,raycast,affinity"
+```
+
+### How It Works
+
+The playbook automatically:
+- Detects which installation method each app uses (brew formula, cask, MAS, or DMG)
+- Installs only the requested apps
+- Shows which apps weren't found in your machine's configuration
+- Suggests adding missing apps to `group_vars/{machine_type}.yml`
+
+### Examples by App Type
+
+```bash
+# CLI tools (formulae)
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=tree,exiftool,starship"
+
+# GUI apps (casks)
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=visual-studio-code,blender,iina"
+
+# Mac App Store apps (use app name, not ID)
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=tailscale,strongbox-pro,typeface"
+
+# DMG/PKG apps
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=crossover,offshoot"
+```
+
+### After Installation
+
+Once apps are installed, restore their settings:
+
+```bash
+# Restore settings for newly installed apps
+ansible-playbook playbooks/selective/restore-apps-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=spotify,typeface"
+```
+
+---
+
 ## System Configuration
 
 ### macOS Defaults
@@ -461,16 +529,36 @@ cd ~/mac-setup
 ansible-playbook site.yml -i inventory.ini --limit personal -K
 ```
 
+
 ### After Manual App Installation
 
 ```bash
-# Restore settings for newly installed apps
-ansible-playbook site.yml -i inventory.ini --limit personal --tags restore
+# Method 1: Restore all installed apps during full provision
+ansible-playbook site.yml -i inventory.ini --limit studio --tags restore
 
-# OR restore specific apps
+# Method 2: Restore specific apps only
 ansible-playbook playbooks/selective/restore-apps-selective.yml \
-  -i inventory.ini --limit personal \
+  -i inventory.ini --limit studio \
   -e "apps_list=newapp1,newapp2"
+
+# Method 3: Install specific apps then restore their settings
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=newapp1,newapp2"
+
+ansible-playbook playbooks/selective/restore-apps-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=newapp1,newapp2"
+```
+
+### Quick App Install + Restore
+
+```bash
+# One-liner to install and restore a new app
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio -e "apps_list=typeface" && \
+ansible-playbook playbooks/selective/restore-apps-selective.yml \
+  -i inventory.ini --limit studio -e "apps_list=typeface"
 ```
 
 ### Before Wiping Machine
