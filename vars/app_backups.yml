@@ -189,7 +189,7 @@ app_backup_definitions:
         compress: true 
 
   discord:
-    name: "Downie 4"
+    name: "Discord"
     paths:
       - src: "~/Library/Preferences/com.hnc.Discord.plist"
         dest: "discord/com.hnc.Discord.plist"
@@ -270,6 +270,11 @@ app_backup_definitions:
           - "Queue*"
         compress: true
 
+  heroic:
+    name: "Heroic"
+    paths:
+      - src: "~/Library/Preferences/com.heroicgameslauncher.hgl.plist"
+        dest: "heroic/com.heroicgameslauncher.hgl.plist"
 
   ice:
     name: "Ice Menu Bar Manager"
