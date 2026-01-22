@@ -188,6 +188,12 @@ app_backup_definitions:
         dest: "crossover/application-support"
         compress: true 
 
+  discord:
+    name: "Downie 4"
+    paths:
+      - src: "~/Library/Preferences/com.hnc.Discord.plist"
+        dest: "discord/com.hnc.Discord.plist"
+
   downie:
     name: "Downie 4"
     paths:
@@ -379,6 +385,9 @@ app_backup_definitions:
   resolve:
     name: "DaVinci Resolve"
     paths:
+      - src: "~/Library/Preferences/com.blackmagic-design.DaVinciResolve.plist"
+        dest: "resolve/com.blackmagic-design.DaVinciResolve.plist"
+
       - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
         dest: "resolve/preferences"
         compress: true
