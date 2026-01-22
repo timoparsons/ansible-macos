@@ -374,6 +374,8 @@ app_backup_definitions:
           - "PersistentCache"  
       - src: "~/Library/Preferences/com.spotify.client.plist"
         dest: "spotify/com.spotify.client.plist"
+      - src: "~/Library/Caches/com.spotify.client/settings.dat"
+        dest: "spotify/settings.dat"
 
 
   strongbox:
