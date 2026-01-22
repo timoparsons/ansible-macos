@@ -3,6 +3,7 @@
 # File: tasks/restore_path.yml
 # Restores a single path (file or directory) from backup
 # Supports both compressed (.tar.zst, .tar.gz, .zip) and uncompressed backups
+# FORCE OVERWRITES existing files/directories
 # ============================================================================
 
 # ==================================================================
@@ -60,7 +61,27 @@
   when: not backup_exists
 
 # ==================================================================
-# 5. RESTORE FROM COMPRESSED BACKUP
+# 5. FORCE DELETE EXISTING FILES ONLY (NOT DIRECTORIES)
+# ==================================================================
+- name: "Check if destination exists and get type"
+  stat:
+    path: "{{ expanded_src }}"
+  register: dest_check
+  when: backup_exists
+
+- name: "Force remove existing FILE (not directory): {{ expanded_src }}"
+  file:
+    path: "{{ expanded_src }}"
+    state: absent
+  become: "{{ needs_sudo }}"
+  when: 
+    - backup_exists
+    - dest_check.stat.exists
+    - dest_check.stat.isreg | default(false)
+  failed_when: false
+
+# ==================================================================
+# 6. RESTORE FROM COMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from compressed backup"
   when: 
@@ -116,7 +137,7 @@
           {% if needs_sudo %}🔐 Used sudo{% endif %}
 
 # ==================================================================
-# 6. RESTORE FROM UNCOMPRESSED BACKUP
+# 7. RESTORE FROM UNCOMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from uncompressed backup"
   when:
@@ -137,12 +158,11 @@
           become: "{{ needs_sudo }}"
           when: (expanded_src | dirname) != '' and (expanded_src | dirname) != '/'
 
-        - name: "Copy file from backup"
+        - name: "Copy file from backup (force overwrite)"
           copy:
             src: "{{ backup_path }}"
             dest: "{{ expanded_src }}"
             mode: preserve
-            backup: yes
             force: yes
           become: "{{ needs_sudo }}"
 
@@ -159,22 +179,22 @@
             mode: '0755'
           become: "{{ needs_sudo }}"
 
-        - name: "Sync directory from backup (with sudo)"
+        - name: "Sync directory from backup (force overwrite with delete)"
           synchronize:
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: yes
+            delete: no
           become: "{{ needs_sudo }}"
           delegate_to: "{{ inventory_hostname }}"
           when: needs_sudo
 
-        - name: "Sync directory from backup (no sudo)"
+        - name: "Sync directory from backup (force overwrite with delete)"
           synchronize:
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: yes
+            delete: no
           delegate_to: "{{ inventory_hostname }}"
           when: not needs_sudo
 
