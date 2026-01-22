@@ -188,21 +188,6 @@ app_backup_definitions:
         dest: "crossover/application-support"
         compress: true 
 
-
-  davinci-resolve:
-    name: "DaVinci Resolve Studio"
-    paths:
-      - src: "~/Library/Preferences/com.blackmagicdesign.resolve*"
-        dest: "davinci-resolve/preferences"
-      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/configs"
-        dest: "davinci-resolve/configs"
-      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/LUT"
-        dest: "davinci-resolve/luts"
-      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/User/PowerGrade"
-        dest: "davinci-resolve/powergrades"
-      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/User/Project Templates"
-        dest: "davinci-resolve/project-templates"
-
   downie:
     name: "Downie 4"
     paths:
@@ -390,7 +375,70 @@ app_backup_definitions:
           - "raycast-activities-enc.sqlite*"
       - src: "~/Library/Preferences/com.raycast.macos.plist"
         dest: "raycast/preferences/com.raycast.macos.plist"
-        
+
+  resolve:
+    name: "DaVinci Resolve"
+    paths:
+      - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
+        dest: "resolve/preferences"
+        compress: true
+        exclude:
+          - "Cache"
+          - "Logs"
+          - "logs"          
+          - "*/Cache"
+          - ".*"           # Hidden files (like .DS_Store, .localized)
+          - "*/.*"         # Hidden files in subdirectories
+          - ".*/"          # Hidden directories (like .Trash)        
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve"
+        dest: "resolve/application-support"
+        compress: true
+        exclude:
+          - "Cache"
+          - "Logs"
+          - "logs"          
+          - "*/Cache"
+          - "*.drvox"
+          - ".*"           # Hidden files (like .DS_Store, .localized)
+          - "*/.*"         # Hidden files in subdirectories
+          - ".*/"          # Hidden directories (like .Trash)
+      - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
+        dest: "resolve/fusion-scripts"
+        compress: true
+      - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins"
+        dest: "resolve/workflow-scripts"
+        compress: true
+        exclude:
+          - "__pycache__"
+          - ".*"
+          - "*/.*"
+          - ".*/"
+      - src: "/Users/Shared/Resolve/Resolve Settings Backups"
+        dest: "resolve/settings"
+        compress: true
+        exclude:
+          - "Logs"
+          - ".*"
+          - "*/.*"
+          - ".*/"
+      - src: "/Users/Shared/Resolve/Resolve Settings Backups"
+        dest: "resolve/settings"
+        compress: true
+        exclude:
+          - "Logs"
+          - ".*"
+          - "*/.*"
+          - ".*/"
+      - src: "/Users/Shared/Resolve/LUT"
+        dest: "resolve/LUT"
+        compress: true
+      - src: "/Users/Shared/Resolve/FX"
+        dest: "resolve/FX"
+        compress: true
+
+ 
+  
+  
   sketchup:
     name: "SketchUp"
     paths:
@@ -538,7 +586,6 @@ studio_apps_to_backup:
   - bloom
   - carbon-copy-cloner
 #  - crossover
-  - davinci-resolve
   - downie
   - eagle
   #- fontbase
@@ -556,6 +603,7 @@ studio_apps_to_backup:
   - photoshop
   - pronotes
   - raycast
+  - resolve
   - sketchup
   - strongbox
 #  - superwhisper
@@ -574,7 +622,6 @@ laptop_apps_to_backup:
   - bloom
   - carbon-copy-cloner
 #  - crossover
-  - davinci-resolve
   - downie
   - eagle
   #- fontbase
@@ -591,6 +638,7 @@ laptop_apps_to_backup:
   - photoshop
   - pronotes
   - raycast
+  - resolve
   - strongbox
 #  - superwhisper
 #  - tailscale
@@ -605,12 +653,12 @@ laptop_apps_to_backup:
 # editor machine only needs production tools
 editor_apps_to_backup:
   - automounter
-  - davinci-resolve
   - eagle
   - handbrake
   - mediahuman-audio-converter
   - neofinder
   - offshoot
+  - resolve
 #  - tailscale
 
 # Fonts  
