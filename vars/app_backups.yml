@@ -270,16 +270,16 @@ app_backup_definitions:
       - src: "~/Library/Preferences/com.adobe.LightroomClassicCC7.plist"
         dest: "lightroom/com.adobe.LightroomClassicCC7.plist"
 
+      - src: "~/Library/Application Support/Adobe/Lightroom"
+        dest: "lightroom/application-support"
+        compress: true
+
       - src: "~/Library/Application Support/Adobe/CameraRaw/CameraProfiles"
         dest: "lightroom/cameraprofiles"
         compress: true
 
-      - src: "~/Library/Application Support/Adobe/CameraRaw/Settings"
-        dest: "lightroom/settings"
-        compress: true
-
-      - src: "~/Library/Application Support/Adobe/Lightroom"
-        dest: "lightroom/application-support"
+      - src: "~/Library/Application Support/Adobe/CameraRaw/Defaults"
+        dest: "lightroom/defaults"
         compress: true
 
   
