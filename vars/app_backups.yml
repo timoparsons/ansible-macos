@@ -376,6 +376,18 @@ app_backup_definitions:
       - src: "~/Library/Preferences/com.sketchup.SketchUp.*.plist"
         dest: "sketchup/preferences"
 
+  slack:
+    name: "Slack"
+    paths:
+      - src: "~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Preferences/com.tinyspeck.slackmacgap.plist"
+        dest: "slack/com.tinyspeck.slackmacgap.plist"
+      - src: "~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/Preferences"
+        dest: "slack/preferences"
+      - src: "~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/local-settings.json"
+        dest: "slack/local-settings.json"
+
+        
+
   spotify:
     name: "Spotify"
     paths:
