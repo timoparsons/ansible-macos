@@ -221,7 +221,30 @@ app_backup_definitions:
         compress: true 
       - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
         dest: "eagle/tw.ogdesign.eagle.plist"
-  
+
+
+  finder:
+    name: "Finder"
+    paths:
+      # Main Finder preferences (view settings, sidebar, etc.)
+      - src: "~/Library/Preferences/com.apple.finder.plist"
+        dest: "finder/com.apple.finder.plist"
+      
+      # Sidebar preferences (THIS IS THE KEY ONE FOR SIDEBAR)
+      - src: "~/Library/Preferences/com.apple.sidebarlists.plist"
+        dest: "finder/com.apple.sidebarlists.plist"
+      
+      # Desktop preferences
+      - src: "~/Library/Preferences/com.apple.desktop.plist"
+        dest: "finder/com.apple.desktop.plist"
+      
+      # Recent items and favorites
+      - src: "~/Library/Application Support/com.apple.sharedfilelist"
+        dest: "finder/sharedfilelist"
+        exclude:
+          - "*.sfl2"  # Exclude some system-generated files
+        compress: true
+
   fontbase:
     name: "FontBase"
     paths:
