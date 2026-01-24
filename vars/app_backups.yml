@@ -441,10 +441,21 @@ app_backup_definitions:
       - src: "/Users/Shared/Resolve/FX"
         dest: "resolve/FX"
         compress: true
+      - src: "~/Library/Application Support/OFX/Plugins"
+        dest: "resolve/OFX"
+      - src: "/Library/Audio/Plug-Ins/VST"
+        dest: "resolve/VST"
+      - src: "/Library/Audio/Plug-Ins/VST3"
+        dest: "resolve/VST3"  
+      - src: "/Library/Audio/Plug-Ins/Components"
+        dest: "resolve/AU"  
+        exclude:
+          - "Apple*"
+          - "ASAF*"
 
  
-  
-  
+
+
   sketchup:
     name: "SketchUp"
     paths:
