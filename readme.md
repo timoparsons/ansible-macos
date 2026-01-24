@@ -56,13 +56,17 @@ ansible-macos/
 │   ├── discover-app-files.sh         # Find app settings locations
 │   └── manage-login-items.sh         # Manage login items manually
 ├── roles/
-│   ├── common/                       # [DEPRECATED - now in each role]
-│   ├── personal/                     # Personal machine (self-contained)
+│   ├── laptop/                       # Laptop machine (self-contained)
 │   │   ├── tasks/
 │   │   │   ├── main.yml              # Main task orchestrator
-│   │   │   └── macos_settings.yml    # Personal-specific macOS overrides
+│   │   │   └── macos_settings.yml    # Laptop-specific macOS overrides
 │   │   └── handlers/                 # System restart handlers
-│   ├── video/                        # Video production (self-contained)
+│   ├── studio/                       # Studio machine (self-contained)
+│   │   ├── tasks/
+│   │   │   ├── main.yml              # Main task orchestrator
+│   │   │   └── macos_settings.yml    # Studio-specific macOS overrides
+│   │   └── handlers/
+│   ├── editor/                       # Editor machine (self-contained)
 │   │   ├── tasks/
 │   │   │   └── main.yml              # Main task orchestrator
 │   │   └── handlers/
@@ -141,37 +145,41 @@ These run after all roles complete since they require apps to be installed:
 
 ## What Gets Installed & Configured
 
-### Common (All Machines)
-- **CLI Tools:** dockutil, git, mas, zstd
-- **Apps:** Affinity Suite, Bloom, Ice, Loop, Spotify, VLC, WhatsApp
-- **System Config:** 
-  - macOS defaults (NZ locale, trackpad, keyboard, Finder, Dock, screenshots, etc.)
-  - Dock configuration
-  - Login items
-  - App settings restore (automatic for installed apps)
-  - SSH keys (public keys for all machines, private keys for personal only)
-  - Fonts (personal/video only)
-
-### Personal Machine
-- **Everything from video role** (personal includes all video tools)
-- **Development:** VS Code, GitHub Desktop
-- **Creative:** Adobe CC, Blender, FontBase, Affinity Suite
+### Studio Machine (Primary Development/Creative Workstation)
+- **Everything** - Full creative suite and development tools
+- **Creative:** Adobe CC, Affinity Suite, Blender, FontBase
 - **Video:** HandBrake, DaVinci Resolve, OffShoot
-- **Utilities:** Raycast, Carbon Copy Cloner, Tailscale, Strongbox, LuLu
-- **Config:** Spotlight/Finder keyboard shortcuts disabled (for Raycast)
-- **SSH:** Full keys (private + public)
-- **Dotfiles:** .zshrc, .gitconfig, starship.toml, etc.
-
-### Video Production Machine
-- **Video:** HandBrake, OffShoot, IINA, DaVinci Resolve
+- **Development:** VS Code, GitHub Desktop
 - **Asset Management:** Eagle, NeoFinder
-- **Network:** Jump Desktop, AutoMounter
-- **SSH:** Public keys only (can be accessed from personal machine)
+- **Network:** Jump Desktop, AutoMounter, Tailscale
+- **Utilities:** Raycast, Carbon Copy Cloner, LuLu, Strongbox
+- **Config:** Spotlight/Finder keyboard shortcuts disabled (for Raycast)
+- **SSH:** Full keys (private + public) - can SSH to other machines
+- **Dotfiles:** .zshrc, .gitconfig, starship.toml, etc.
+- **Fonts:** Full user font library backed up/restored
 
-### Family Machine
+### Laptop Machine (Mobile Creative/Development)
+- **Similar to Studio** but optimized for portability
+- **Creative:** Adobe CC, Affinity Suite
+- **Video:** HandBrake, DaVinci Resolve, OffShoot
+- **Development:** VS Code, GitHub Desktop
+- **Utilities:** Raycast, Carbon Copy Cloner, Tailscale
+- **SSH:** Full keys (private + public)
+- **Dotfiles:** Full dotfiles
+- **Fonts:** Full user font library
+
+### Editor Machine (Video Production Focused)
+- **Video:** HandBrake, OffShoot, IINA
+- **Asset Management:** Eagle, NeoFinder
+- **Network:** Jump Desktop, AutoMounter, Tailscale
+- **SSH:** Public keys only (can be accessed from studio/laptop)
+- **Fonts:** User fonts backed up/restored
+
+### Family Machine (Basic Use)
 - **Basic Apps:** Google Chrome, Plex, Sonos, Bloom
 - **Restrictions:** Minimal toolset, simplified Dock
 - **SSH:** Public keys only
+- **No font management**
 
 ## Tag System
 
@@ -307,29 +315,60 @@ ansible-playbook site.yml -i inventory.ini --limit personal -K -e "restore_app_s
 
 **Smart Restore:** Only apps that are actually installed get their settings restored. Apps that failed to install or were skipped are automatically skipped during restore.
 
-### Backup & Restore Commands
+## Application Settings Backup & Restore
 
-See the [Quick Reference Guide](QUICK_REFERENCE.md) for detailed examples.
+Application settings are automatically backed up to and restored from network storage at `/Volumes/backup_proxmox/macos/apps/`.
+
+### Automatic Restore During Provisioning
+
+When you run the main playbook, app settings are **automatically restored** for any apps that are installed:
+
+```bash
+# Full provision - apps are installed, then settings restored
+ansible-playbook site.yml -i inventory.ini --limit studio -K
+
+# Skip automatic restore
+ansible-playbook site.yml -i inventory.ini --limit studio -K --skip-tags restore
+# OR
+ansible-playbook site.yml -i inventory.ini --limit studio -K -e "restore_app_settings=false"
+
+
+**Smart Restore:** Only apps that are actually installed get their settings restored. Apps that failed to install or were skipped are automatically skipped during restore.
+
+### Backup & Restore Commands
 
 **Quick examples:**
 
 ```bash
-# Backup everything
-ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/backup-fonts.yml -i inventory.ini --limit personal
+# Backup everything (SSH only works on studio/laptop - they have private keys)
+ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit studio
+ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio
+ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit studio
 
 # Restore everything
-ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit personal
-ansible-playbook playbooks/restore-fonts.yml -i inventory.ini --limit personal
+ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit studio
+ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit studio
+ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit studio
 
 # Restore specific apps only
 ansible-playbook playbooks/selective/restore-apps-selective.yml \
-  -i inventory.ini --limit personal -e "apps_list=raycast,vscode"
+  -i inventory.ini --limit studio -e "apps_list=raycast,vscode"
+
+# Install specific apps only
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio -e "apps_list=spotify,typeface"
 ```
+
+### Font Management
+
+Fonts are managed through the app backup system:
+- User fonts → `user-fonts` app in `vars/app_backups.yml`
+- Adobe fonts → `adobe-fonts` app in `vars/app_backups.yml`
+- Automatically backed up/restored with other app settings
+- No separate font playbooks needed
+
+See the [Quick Reference Guide](quick_reference.md) for detailed examples.
+
 
 ### Compression Support
 
@@ -399,15 +438,22 @@ grep -A50 "personal_apps_to_backup:" vars/app_backups.yml
 All machines use network storage at `/Volumes/backup_proxmox/macos/` for:
 
 - **SSH key distribution** - All machines get public keys for SSH access
-- **Application setting backups** (Personal/Video)
-- **Dotfile synchronization** (Personal)
-- **Font backups** (Personal/Video)
+- **Application setting backups** (Studio/Laptop/Editor)
+- **Dotfile synchronization** (Studio/Laptop)
+- **Font backups** (Studio/Laptop/Editor) - managed via app_backups.yml
 - **License storage** (see `docs/licenses.md`)
 
 **SSH Key Strategy:**
-- **All machines** receive public keys (`id_ed25519.pub`, `id_rsa.pub`, `authorized_keys`) from personal backup
-- **Personal machine only** receives private keys (`id_ed25519`, `id_rsa`, `config`)
-- This allows SSH access to video/family machines from personal machine
+- **All machines** receive public keys (`id_ed25519.pub`, `id_rsa.pub`, `authorized_keys`) from studio backup
+- **Studio and Laptop machines** receive full private keys (`id_ed25519`, `id_rsa`, `config`)
+- This allows SSH access to editor/family machines from studio/laptop machines
+
+**Font Strategy:**
+- Fonts are treated as app settings in `vars/app_backups.yml`
+- User fonts: `~/Library/Fonts` → backed up as "user-fonts" app
+- Adobe fonts: `~/Library/Application Support/Adobe/CoreSync` → backed up as "adobe-fonts" app
+- Restored automatically during provisioning if `restore_fonts: true` (default for studio/laptop/editor)
+- Family machines don't backup/restore fonts
 
 **Required:** Mount `/Volumes/backup_proxmox` before running provisioning or backup/restore playbooks.
 
@@ -445,6 +491,31 @@ personal_dmg_pkg_apps:
 See examples in `group_vars/{machine_type}.yml` for dock and login items configuration.
 
 ## Utilities
+
+## Selective Operations
+
+### Install Specific Apps
+
+You can install individual apps without running the full provisioning:
+
+```bash
+# Install specific apps by name
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=spotify,typeface"
+
+# Install and restore settings
+ansible-playbook playbooks/selective/install-app-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=typeface" && \
+ansible-playbook playbooks/selective/restore-apps-selective.yml \
+  -i inventory.ini --limit studio \
+  -e "apps_list=typeface"
+```
+
+The playbook automatically detects which installation method each app uses (brew formula, cask, MAS, or DMG) and installs accordingly.
+
+See [Quick Reference Guide](quick_reference.md) for more examples.
 
 ### Software Audit
 Identify apps that could be managed by Homebrew:

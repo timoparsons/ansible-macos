@@ -427,15 +427,7 @@ app_backup_definitions:
           - ".*"
           - "*/.*"
           - ".*/"
-      - src: "/Users/Shared/Resolve/Resolve Settings Backups"
-        dest: "resolve/settings"
-        compress: true
-        exclude:
-          - "Logs"
-          - ".*"
-          - "*/.*"
-          - ".*/"
-      - src: "/Users/Shared/Resolve/Resolve Settings Backups"
+      - src: "/Users/Shared/Resolve/Resolve Settings"
         dest: "resolve/settings"
         compress: true
         exclude:
