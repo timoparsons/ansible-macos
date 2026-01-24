@@ -441,7 +441,7 @@ app_backup_definitions:
       - src: "/Users/Shared/Resolve/FX"
         dest: "resolve/FX"
         compress: true
-      - src: "~/Library/Application Support/OFX/Plugins"
+      - src: "/Library/OFX/Plugins"
         dest: "resolve/OFX"
       - src: "/Library/Audio/Plug-Ins/VST"
         dest: "resolve/VST"
