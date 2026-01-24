@@ -60,7 +60,11 @@
           ✅ Compressed {{ path_item.src }} to temp location
           📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
           💾 Compressed: {{ (temp_stats.stat.size / 1024 / 1024) | round(2) }} MB
+          {% if (original_size.stdout | int) > 0 %}
           📉 Ratio: {{ ((1 - (temp_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}%
+          {% else %}
+          📉 Ratio: N/A (empty directory)
+          {% endif %}
       when: tar_result is changed  # Only if we just created it
 
     - name: "Display skipped message"
