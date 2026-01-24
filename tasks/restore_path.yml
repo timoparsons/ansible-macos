@@ -3,7 +3,7 @@
 # File: tasks/restore_path.yml
 # Restores a single path (file or directory) from backup
 # Supports both compressed (.tar.zst, .tar.gz, .zip) and uncompressed backups
-# FORCE OVERWRITES existing files/directories by removing them first
+# OVERWRITES files from backup but preserves other files in destination
 # ============================================================================
 
 # ==================================================================
@@ -61,37 +61,7 @@
   when: not backup_exists
 
 # ==================================================================
-# 5. CHECK IF DESTINATION EXISTS
-# ==================================================================
-- name: "Check if destination exists: {{ expanded_src }}"
-  stat:
-    path: "{{ expanded_src }}"
-  register: dest_check
-  when: backup_exists
-
-# ==================================================================
-# 6. FORCE REMOVE EXISTING DESTINATION (CRITICAL FOR CLEAN RESTORE)
-# ==================================================================
-- name: "Force remove existing destination: {{ expanded_src }}"
-  file:
-    path: "{{ expanded_src }}"
-    state: absent
-  become: "{{ needs_sudo }}"
-  when: 
-    - backup_exists
-    - dest_check.stat.exists
-  register: removal_result
-
-- name: "Display removal result"
-  debug:
-    msg: "🗑️  Removed existing {{ expanded_src }} for clean restore"
-  when: 
-    - backup_exists
-    - removal_result is defined
-    - removal_result is changed
-
-# ==================================================================
-# 7. RESTORE FROM COMPRESSED BACKUP
+# 5. RESTORE FROM COMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from compressed backup"
   when: 
@@ -106,7 +76,7 @@
       become: "{{ needs_sudo }}"
 
     # TAR.ZST (preferred - best compression)
-    - name: "Extract tar.zst backup"
+    - name: "Extract tar.zst backup (overwrites files, preserves others)"
       shell: |
         zstd -d -c "{{ backup_path_compressed_zst }}" | COPYFILE_DISABLE=1 tar -xf - --disable-copyfile -C "{{ expanded_src | dirname }}"
       when: backup_compressed_zst
@@ -116,7 +86,7 @@
       register: extract_zst
 
     # TAR.GZ (fallback - universal compatibility)
-    - name: "Extract tar.gz backup"
+    - name: "Extract tar.gz backup (overwrites files, preserves others)"
       unarchive:
         src: "{{ backup_path_compressed_gz }}"
         dest: "{{ expanded_src | dirname }}"
@@ -128,7 +98,7 @@
       register: extract_gz
 
     # ZIP (legacy fallback - for older backups)
-    - name: "Extract zip backup"
+    - name: "Extract zip backup (overwrites files, preserves others)"
       unarchive:
         src: "{{ backup_path_compressed_zip }}"
         dest: "{{ expanded_src | dirname }}"
@@ -146,10 +116,10 @@
           ✅ Extracted compressed backup for {{ path_item.src }}
           {% if backup_compressed_zst %}Format: tar.zst{% elif backup_compressed_gz %}Format: tar.gz{% else %}Format: zip{% endif %}
           {% if needs_sudo %}🔐 Used sudo{% endif %}
-          🗑️  Previous version was removed before restore
+          📝 Overwrote files from backup, preserved other files
 
 # ==================================================================
-# 8. RESTORE FROM UNCOMPRESSED BACKUP
+# 6. RESTORE FROM UNCOMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from uncompressed backup"
   when:
@@ -170,7 +140,7 @@
           become: "{{ needs_sudo }}"
           when: (expanded_src | dirname) != '' and (expanded_src | dirname) != '/'
 
-        - name: "Copy file from backup (force overwrite)"
+        - name: "Copy file from backup (overwrite)"
           copy:
             src: "{{ backup_path }}"
             dest: "{{ expanded_src }}"
@@ -191,22 +161,23 @@
             mode: '0755'
           become: "{{ needs_sudo }}"
 
-        - name: "Sync directory from backup (force overwrite with delete)"
+        # Use rsync-style sync WITHOUT delete - this preserves files not in backup
+        - name: "Sync directory from backup (overwrite files from backup, keep others)"
           synchronize:
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: no
+            delete: no  # CRITICAL: Don't delete files not in backup
           become: "{{ needs_sudo }}"
           delegate_to: "{{ inventory_hostname }}"
           when: needs_sudo
 
-        - name: "Sync directory from backup (force overwrite with delete)"
+        - name: "Sync directory from backup (overwrite files from backup, keep others)"
           synchronize:
             src: "{{ backup_path }}/"
             dest: "{{ expanded_src }}/"
             recursive: yes
-            delete: no
+            delete: no  # CRITICAL: Don't delete files not in backup
           delegate_to: "{{ inventory_hostname }}"
           when: not needs_sudo
 
@@ -215,4 +186,4 @@
         msg: |
           ✅ Restored uncompressed backup for {{ path_item.src }}
           {% if needs_sudo %}🔐 Used sudo{% endif %}
-          🗑️  Previous version was removed before restore
+          📝 Overwrote files from backup, preserved other files
