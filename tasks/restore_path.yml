@@ -3,7 +3,7 @@
 # File: tasks/restore_path.yml
 # Restores a single path (file or directory) from backup
 # Supports both compressed (.tar.zst, .tar.gz, .zip) and uncompressed backups
-# FORCE OVERWRITES existing files/directories
+# FORCE OVERWRITES existing files/directories by removing them first
 # ============================================================================
 
 # ==================================================================
@@ -61,15 +61,18 @@
   when: not backup_exists
 
 # ==================================================================
-# 5. FORCE DELETE EXISTING FILES ONLY (NOT DIRECTORIES)
+# 5. CHECK IF DESTINATION EXISTS
 # ==================================================================
-- name: "Check if destination exists and get type"
+- name: "Check if destination exists: {{ expanded_src }}"
   stat:
     path: "{{ expanded_src }}"
   register: dest_check
   when: backup_exists
 
-- name: "Force remove existing FILE (not directory): {{ expanded_src }}"
+# ==================================================================
+# 6. FORCE REMOVE EXISTING DESTINATION (CRITICAL FOR CLEAN RESTORE)
+# ==================================================================
+- name: "Force remove existing destination: {{ expanded_src }}"
   file:
     path: "{{ expanded_src }}"
     state: absent
@@ -77,11 +80,18 @@
   when: 
     - backup_exists
     - dest_check.stat.exists
-    - dest_check.stat.isreg | default(false)
-  failed_when: false
+  register: removal_result
+
+- name: "Display removal result"
+  debug:
+    msg: "🗑️  Removed existing {{ expanded_src }} for clean restore"
+  when: 
+    - backup_exists
+    - removal_result is defined
+    - removal_result is changed
 
 # ==================================================================
-# 6. RESTORE FROM COMPRESSED BACKUP
+# 7. RESTORE FROM COMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from compressed backup"
   when: 
@@ -95,6 +105,7 @@
         mode: '0755'
       become: "{{ needs_sudo }}"
 
+    # TAR.ZST (preferred - best compression)
     - name: "Extract tar.zst backup"
       shell: |
         zstd -d -c "{{ backup_path_compressed_zst }}" | COPYFILE_DISABLE=1 tar -xf - --disable-copyfile -C "{{ expanded_src | dirname }}"
@@ -135,9 +146,10 @@
           ✅ Extracted compressed backup for {{ path_item.src }}
           {% if backup_compressed_zst %}Format: tar.zst{% elif backup_compressed_gz %}Format: tar.gz{% else %}Format: zip{% endif %}
           {% if needs_sudo %}🔐 Used sudo{% endif %}
+          🗑️  Previous version was removed before restore
 
 # ==================================================================
-# 7. RESTORE FROM UNCOMPRESSED BACKUP
+# 8. RESTORE FROM UNCOMPRESSED BACKUP
 # ==================================================================
 - name: "Restore from uncompressed backup"
   when:
@@ -203,3 +215,4 @@
         msg: |
           ✅ Restored uncompressed backup for {{ path_item.src }}
           {% if needs_sudo %}🔐 Used sudo{% endif %}
+          🗑️  Previous version was removed before restore
