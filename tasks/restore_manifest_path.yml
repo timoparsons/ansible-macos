@@ -77,16 +77,9 @@
           when: path_item.needs_sudo
 
         - name: "Sync directory contents (without sudo)"
-          synchronize:
-            src: "{{ source_path }}/"
-            dest: "{{ dest_path }}/"
-            recursive: yes
-            delete: no
-            rsync_opts:
-              - "--no-perms"
-              - "--no-owner"
-              - "--no-group"
-          delegate_to: "{{ inventory_hostname }}"
+          shell: |
+            rsync -a --no-perms --no-owner --no-group \
+              "{{ source_path }}/" "{{ dest_path }}/"
           when: not path_item.needs_sudo
 
         - name: "Display directory restore"
