@@ -1,0 +1,94 @@
+---
+# ============================================================================
+# File: tasks/restore_manifest_path.yml
+# Restores a single path using manifest metadata
+# Uses sudo only when needed, handles files vs directories correctly
+# ============================================================================
+
+- name: "Expand destination path for {{ path_item.src }}"
+  set_fact:
+    dest_path: "{{ path_item.src | expanduser }}"
+    source_path: "{{ temp_extract_dir }}/{{ app_key }}/{{ path_item.relative }}"
+
+- name: "Check if source exists in backup"
+  stat:
+    path: "{{ source_path }}"
+  register: source_check
+
+- name: "Skip if source not in backup"
+  debug:
+    msg: "⏭️  Skipping {{ path_item.src }} - not found in backup"
+  when: not source_check.stat.exists
+
+# ============================================================================
+# RESTORE OPERATIONS
+# ============================================================================
+
+- name: "Restore {{ path_item.src }}"
+  when: source_check.stat.exists
+  block:
+    # ========================================================================
+    # FILE RESTORATION
+    # ========================================================================
+    
+    - name: "Restore file: {{ path_item.src }}"
+      when: path_item.is_file
+      block:
+        - name: "Create parent directory for file"
+          file:
+            path: "{{ dest_path | dirname }}"
+            state: directory
+            mode: '0755'
+          become: "{{ path_item.needs_sudo }}"
+          when: (dest_path | dirname) != '' and (dest_path | dirname) != '/'
+
+        - name: "Copy file from backup"
+          copy:
+            src: "{{ source_path }}"
+            dest: "{{ dest_path }}"
+            mode: preserve
+            force: yes
+            remote_src: yes
+          become: "{{ path_item.needs_sudo }}"
+
+        - name: "Display file restore"
+          debug:
+            msg: "✅ Restored file: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}"
+
+    # ========================================================================
+    # DIRECTORY RESTORATION
+    # ========================================================================
+    
+    - name: "Restore directory: {{ path_item.src }}"
+      when: not path_item.is_file
+      block:
+        - name: "Create destination directory"
+          file:
+            path: "{{ dest_path }}"
+            state: directory
+            mode: '0755'
+          become: "{{ path_item.needs_sudo }}"
+
+        - name: "Sync directory contents (with sudo)"
+          shell: |
+            rsync -a --no-perms --no-owner --no-group \
+              "{{ source_path }}/" "{{ dest_path }}/"
+          become: "{{ path_item.needs_sudo }}"
+          when: path_item.needs_sudo
+
+        - name: "Sync directory contents (without sudo)"
+          synchronize:
+            src: "{{ source_path }}/"
+            dest: "{{ dest_path }}/"
+            recursive: yes
+            delete: no
+            rsync_opts:
+              - "--no-perms"
+              - "--no-owner"
+              - "--no-group"
+          delegate_to: "{{ inventory_hostname }}"
+          when: not path_item.needs_sudo
+
+        - name: "Display directory restore"
+          debug:
+            msg: "✅ Restored directory: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}"
