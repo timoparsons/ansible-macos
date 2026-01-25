@@ -1,19 +1,151 @@
+# tasks/backup_app.yml
+---
 # ============================================================================
 # File: tasks/backup_app.yml
-# Reusable task to backup a single application
-# Called by backup playbooks, not run directly
+# Creates: apps/appname/appname-role-date.tar.zst
 # ============================================================================
----
-- name: "Backup {{ app_backup_definitions[app_key].name }}"
-  block:
-    - name: Set app definition
-      set_fact:
-        app_def: "{{ app_backup_definitions[app_key] }}"
 
-    
-    - name: "Backup paths for {{ app_def.name }}"
-      include_tasks: "{{ 'backup_compressed_directory.yml' if path_item.compress | default(false) else 'backup_path.yml' }}"
-      loop: "{{ app_def.paths }}"
-      loop_control:
-        loop_var: path_item
-        label: "{{ path_item.src }}"        
+- name: "Set app definition for {{ app_key }}"
+  set_fact:
+    app_def: "{{ app_backup_definitions[app_key] }}"
+
+- name: "Generate backup paths"
+  set_fact:
+    app_backup_dir: "{{ backup_base }}/{{ app_key }}"
+    backup_filename: "{{ app_key }}-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
+
+- name: "Set full backup filepath"
+  set_fact:
+    backup_filepath: "{{ app_backup_dir }}/{{ backup_filename }}"
+    temp_dir: "/tmp/ansible-backup-{{ app_key }}-{{ ansible_date_time.epoch }}"
+
+- name: "Ensure app backup directory exists"
+  file:
+    path: "{{ app_backup_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: "Check if today's backup already exists"
+  stat:
+    path: "{{ backup_filepath }}"
+  register: existing_backup
+
+- name: "Skip if backup exists for today"
+  debug:
+    msg: "⏭️  Backup already exists: {{ app_key }}/{{ backup_filename }}"
+  when: existing_backup.stat.exists
+
+- name: "Create backup for {{ app_def.name }}"
+  when: not existing_backup.stat.exists
+  block:
+    - name: "Create temp staging directory"
+      file:
+        path: "{{ temp_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: "Check which source paths exist"
+      stat:
+        path: "{{ item | expanduser }}"
+      register: path_checks
+      loop: "{{ app_def.paths | map(attribute='src') | list }}"
+
+    - name: "Create list of existing paths"
+      set_fact:
+        existing_paths: "{{ path_checks.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+
+    - name: "Display paths to backup"
+      debug:
+        msg: |
+          📦 Backing up {{ app_def.name }}
+          📁 Found {{ existing_paths | length }}/{{ app_def.paths | length }} paths
+          
+    - name: "Skip if no paths exist"
+      meta: end_host
+      when: existing_paths | length == 0
+
+    - name: "Copy paths to temp staging directory"
+      shell: |
+        # Create destination structure
+        mkdir -p "{{ temp_dir }}/{{ app_key }}"
+        
+        # Copy with structure preservation
+        {% for path in existing_paths %}
+        src="{{ path | expanduser }}"
+        if [ -e "$src" ]; then
+          # Determine relative path for organization
+          if [[ "$src" == "$HOME"* ]]; then
+            rel_path="${src#$HOME/}"
+            dest_dir="{{ temp_dir }}/{{ app_key }}/home/${rel_path%/*}"
+          elif [[ "$src" == "/Library"* ]]; then
+            rel_path="${src#/}"
+            dest_dir="{{ temp_dir }}/{{ app_key }}/${rel_path%/*}"
+          elif [[ "$src" == "/Users/Shared"* ]]; then
+            rel_path="${src#/}"
+            dest_dir="{{ temp_dir }}/{{ app_key }}/${rel_path%/*}"
+          fi
+          
+          mkdir -p "$dest_dir"
+          cp -R "$src" "$dest_dir/"
+        fi
+        {% endfor %}
+      args:
+        executable: /bin/bash
+
+    - name: "Build exclude pattern for tar"
+      set_fact:
+        tar_excludes: "{{ app_def.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | join(' ') }}"
+
+    - name: "Check if zstd is installed"
+      command: which zstd
+      register: zstd_check
+      changed_when: false
+      failed_when: false
+
+    - name: "Install zstd if missing"
+      community.general.homebrew:
+        name: zstd
+        state: present
+      when: zstd_check.rc != 0
+
+    - name: "Get size before compression"
+      shell: du -sk "{{ temp_dir }}" | cut -f1
+      register: original_size
+      changed_when: false
+
+    - name: "Create compressed archive"
+      shell: |
+        cd "{{ temp_dir }}"
+        COPYFILE_DISABLE=1 tar {{ tar_excludes }} \
+          --no-xattrs --no-acls \
+          -cf - "{{ app_key }}" | \
+          zstd -T0 -10 -q -o "{{ backup_filepath }}"
+      environment:
+        COPYFILE_DISABLE: "1"
+      register: compress_result
+
+    - name: "Get compressed size"
+      stat:
+        path: "{{ backup_filepath }}"
+      register: compressed_stats
+
+    - name: "Calculate compression ratio"
+      set_fact:
+        compression_ratio: "{{ ((1 - (compressed_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}"
+      when: (original_size.stdout | int) > 0
+
+    - name: "Display backup summary"
+      debug:
+        msg: |
+          ✅ Backup created: {{ app_key }}/{{ backup_filename }}
+          📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
+          💾 Compressed: {{ (compressed_stats.stat.size / 1024 / 1024) | round(2) }} MB
+          📉 Saved: {{ compression_ratio | default('N/A') }}%
+          📁 Location: {{ backup_filepath }}
+
+  always:
+    - name: "Cleanup temp directory"
+      file:
+        path: "{{ temp_dir }}"
+        state: absent
+      failed_when: false

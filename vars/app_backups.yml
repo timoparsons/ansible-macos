@@ -391,69 +391,30 @@ app_backup_definitions:
     name: "DaVinci Resolve"
     paths:
       - src: "~/Library/Preferences/com.blackmagic-design.DaVinciResolve.plist"
-        dest: "resolve/com.blackmagic-design.DaVinciResolve.plist"
-
       - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
-        dest: "resolve/preferences"
-        compress: true
-        exclude:
-          - "Cache"
-          - "Logs"
-          - "logs"          
-          - "*/Cache"
-          - ".*"           # Hidden files (like .DS_Store, .localized)
-          - "*/.*"         # Hidden files in subdirectories
-          - ".*/"          # Hidden directories (like .Trash)        
       - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve"
-        dest: "resolve/application-support"
-        compress: true
-        exclude:
-          - "Cache"
-          - "Logs"
-          - "logs"          
-          - "*/Cache"
-          - "*.drvox"
-          - ".*"           # Hidden files (like .DS_Store, .localized)
-          - "*/.*"         # Hidden files in subdirectories
-          - ".*/"          # Hidden directories (like .Trash)
       - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
-        dest: "resolve/fusion-scripts"
-        compress: true
       - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins"
-        dest: "resolve/workflow-scripts"
-        compress: true
-        exclude:
-          - "__pycache__"
-          - ".*"
-          - "*/.*"
-          - ".*/"
       - src: "/Users/Shared/Resolve/Resolve Settings"
-        dest: "resolve/settings"
-        compress: true
-        exclude:
-          - "Logs"
-          - ".*"
-          - "*/.*"
-          - ".*/"
       - src: "/Users/Shared/Resolve/LUT"
-        dest: "resolve/LUT"
-        compress: true
       - src: "/Users/Shared/Resolve/FX"
-        dest: "resolve/FX"
-        compress: true
       - src: "/Library/OFX/Plugins"
-        dest: "resolve/OFX"
       - src: "/Library/Audio/Plug-Ins/VST"
-        dest: "resolve/VST"
       - src: "/Library/Audio/Plug-Ins/VST3"
-        dest: "resolve/VST3"  
       - src: "/Library/Audio/Plug-Ins/Components"
-        dest: "resolve/AU"  
-        exclude:
-          - "Apple*"
-          - "ASAF*"
+    exclude:
+      - "Apple*"
+      - "ASAF*"
+      - "Cache"
+      - "Logs"
+      - "logs"          
+      - "*/Cache"
+      - "*.drvox"
+      - ".*"           # Hidden files (like .DS_Store, .localized)
+      - "*/.*"         # Hidden files in subdirectories
+      - ".*/"          # Hidden directories (like .Trash)
+      - "__pycache__"
 
- 
 
 
   sketchup:
