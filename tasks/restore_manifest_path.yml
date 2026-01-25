@@ -71,16 +71,28 @@
 
         - name: "Sync directory contents (with sudo)"
           shell: |
-            rsync -a --no-perms --no-owner --no-group \
-              "{{ source_path }}/" "{{ dest_path }}/"
+            rsync -av --no-perms --no-owner --no-group --inplace \
+              "{{ source_path }}/" "{{ dest_path }}/" | tail -20
           become: "{{ path_item.needs_sudo }}"
           when: path_item.needs_sudo
+          register: rsync_sudo_output
+
+        - name: "Show rsync output (sudo)"
+          debug:
+            msg: "{{ rsync_sudo_output.stdout_lines | default(['No output']) }}"
+          when: path_item.needs_sudo and rsync_sudo_output is defined
 
         - name: "Sync directory contents (without sudo)"
           shell: |
-            rsync -a --no-perms --no-owner --no-group \
-              "{{ source_path }}/" "{{ dest_path }}/"
+            rsync -av --no-perms --no-owner --no-group --inplace \
+              "{{ source_path }}/" "{{ dest_path }}/" | tail -20
           when: not path_item.needs_sudo
+          register: rsync_output
+
+        - name: "Show rsync output (no sudo)"
+          debug:
+            msg: "{{ rsync_output.stdout_lines | default(['No output']) }}"
+          when: not path_item.needs_sudo and rsync_output is defined
 
         - name: "Display directory restore"
           debug:
