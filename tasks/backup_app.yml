@@ -2,7 +2,9 @@
 ---
 # ============================================================================
 # File: tasks/backup_app.yml
-# Creates: apps/appname/appname-role-date.tar.zst
+# Creates: apps/appname/appname-role-YYYYMMDD.tar.zst
+# Compression happens locally in /tmp, then moved to network
+# Includes manifest.json for intelligent restoration
 # ============================================================================
 
 - name: "Set app definition for {{ app_key }}"
@@ -13,13 +15,14 @@
   set_fact:
     app_backup_dir: "{{ backup_base }}/{{ app_key }}"
     backup_filename: "{{ app_key }}-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
-
-- name: "Set full backup filepath"
-  set_fact:
-    backup_filepath: "{{ app_backup_dir }}/{{ backup_filename }}"
     temp_dir: "/tmp/ansible-backup-{{ app_key }}-{{ ansible_date_time.epoch }}"
 
-- name: "Ensure app backup directory exists"
+- name: "Set full backup filepaths"
+  set_fact:
+    temp_archive: "/tmp/{{ backup_filename }}"
+    final_archive: "{{ app_backup_dir }}/{{ backup_filename }}"
+
+- name: "Ensure app backup directory exists on network"
   file:
     path: "{{ app_backup_dir }}"
     state: directory
@@ -27,7 +30,7 @@
 
 - name: "Check if today's backup already exists"
   stat:
-    path: "{{ backup_filepath }}"
+    path: "{{ final_archive }}"
   register: existing_backup
 
 - name: "Skip if backup exists for today"
@@ -38,6 +41,24 @@
 - name: "Create backup for {{ app_def.name }}"
   when: not existing_backup.stat.exists
   block:
+    # ========================================================================
+    # 1. CHECK DISK SPACE
+    # ========================================================================
+    
+    - name: "Check available space in /tmp"
+      shell: df -k /tmp | tail -1 | awk '{print $4}'
+      register: tmp_space
+      changed_when: false
+
+    - name: "Warn if low disk space"
+      debug:
+        msg: "⚠️  Only {{ (tmp_space.stdout | int / 1024 / 1024) | round(2) }} GB available in /tmp"
+      when: (tmp_space.stdout | int) < 5000000  # Less than 5GB
+
+    # ========================================================================
+    # 2. CHECK WHICH PATHS EXIST
+    # ========================================================================
+    
     - name: "Create temp staging directory"
       file:
         path: "{{ temp_dir }}"
@@ -46,52 +67,79 @@
 
     - name: "Check which source paths exist"
       stat:
-        path: "{{ item | expanduser }}"
+        path: "{{ item.src | expanduser }}"
       register: path_checks
-      loop: "{{ app_def.paths | map(attribute='src') | list }}"
+      loop: "{{ app_def.paths }}"
 
-    - name: "Create list of existing paths"
+    - name: "Filter to existing paths only"
       set_fact:
-        existing_paths: "{{ path_checks.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+        existing_path_checks: "{{ path_checks.results | selectattr('stat.exists') | list }}"
 
     - name: "Display paths to backup"
       debug:
         msg: |
           📦 Backing up {{ app_def.name }}
-          📁 Found {{ existing_paths | length }}/{{ app_def.paths | length }} paths
+          📁 Found {{ existing_path_checks | length }}/{{ app_def.paths | length }} paths
           
     - name: "Skip if no paths exist"
       meta: end_host
-      when: existing_paths | length == 0
+      when: existing_path_checks | length == 0
 
-    - name: "Copy paths to temp staging directory"
+    # ========================================================================
+    # 3. BUILD MANIFEST DATA
+    # ========================================================================
+    
+    - name: "Build manifest entries"
+      set_fact:
+        manifest_paths: "{{ manifest_paths | default([]) + [manifest_entry] }}"
+      loop: "{{ existing_path_checks }}"
+      vars:
+        expanded_path: "{{ item.item.src | expanduser }}"
+        manifest_entry:
+          src: "{{ item.item.src }}"
+          type: "{{ 'user_file' if item.stat.isreg and item.item.src.startswith('~') else 'user_directory' if item.stat.isdir and item.item.src.startswith('~') else 'shared_directory' if '/Users/Shared/' in item.item.src else 'system_file' if item.stat.isreg else 'system_directory' }}"
+          relative: "{{ expanded_path | regex_replace('^' + (ansible_env.HOME | regex_escape) + '/', '') | regex_replace('^/', '') }}"
+          needs_sudo: "{{ not item.item.src.startswith('~') }}"
+          is_file: "{{ item.stat.isreg }}"
+
+    - name: "Create manifest file"
+      copy:
+        content: |
+          {
+            "app_key": "{{ app_key }}",
+            "app_name": "{{ app_def.name }}",
+            "backup_date": "{{ ansible_date_time.date }}",
+            "backup_timestamp": "{{ ansible_date_time.iso8601 }}",
+            "machine_type": "{{ machine_type }}",
+            "manifest_version": "1.0",
+            "exclude": {{ app_def.exclude | default([]) | to_json }},
+            "paths": {{ manifest_paths | to_json }}
+          }
+        dest: "{{ temp_dir }}/manifest.json"
+
+    # ========================================================================
+    # 4. STAGE FILES TO TEMP DIRECTORY
+    # ========================================================================
+    
+    - name: "Copy paths to staging directory"
       shell: |
-        # Create destination structure
-        mkdir -p "{{ temp_dir }}/{{ app_key }}"
+        # Create app-specific subdirectory
+        mkdir -p "{{ temp_dir }}/{{ app_key }}/{{ item.relative | dirname }}"
         
-        # Copy with structure preservation
-        {% for path in existing_paths %}
-        src="{{ path | expanduser }}"
-        if [ -e "$src" ]; then
-          # Determine relative path for organization
-          if [[ "$src" == "$HOME"* ]]; then
-            rel_path="${src#$HOME/}"
-            dest_dir="{{ temp_dir }}/{{ app_key }}/home/${rel_path%/*}"
-          elif [[ "$src" == "/Library"* ]]; then
-            rel_path="${src#/}"
-            dest_dir="{{ temp_dir }}/{{ app_key }}/${rel_path%/*}"
-          elif [[ "$src" == "/Users/Shared"* ]]; then
-            rel_path="${src#/}"
-            dest_dir="{{ temp_dir }}/{{ app_key }}/${rel_path%/*}"
-          fi
-          
-          mkdir -p "$dest_dir"
-          cp -R "$src" "$dest_dir/"
-        fi
-        {% endfor %}
-      args:
-        executable: /bin/bash
+        # Copy with preservation of attributes
+        cp -Rp "{{ item.src | expanduser }}" "{{ temp_dir }}/{{ app_key }}/{{ item.relative }}"
+      loop: "{{ manifest_paths }}"
 
+    - name: "Move manifest into app directory"
+      command: mv "{{ temp_dir }}/manifest.json" "{{ temp_dir }}/{{ app_key }}/manifest.json"
+
+
+
+
+    # ========================================================================
+    # 5. COMPRESS LOCALLY
+    # ========================================================================
+    
     - name: "Build exclude pattern for tar"
       set_fact:
         tar_excludes: "{{ app_def.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | join(' ') }}"
@@ -113,20 +161,19 @@
       register: original_size
       changed_when: false
 
-    - name: "Create compressed archive"
+    - name: "Create compressed archive in /tmp (fast local compression)"
       shell: |
         cd "{{ temp_dir }}"
         COPYFILE_DISABLE=1 tar {{ tar_excludes }} \
           --no-xattrs --no-acls \
           -cf - "{{ app_key }}" | \
-          zstd -T0 -10 -q -o "{{ backup_filepath }}"
+          zstd -T0 -10 -q -o "{{ temp_archive }}"
       environment:
         COPYFILE_DISABLE: "1"
-      register: compress_result
 
     - name: "Get compressed size"
       stat:
-        path: "{{ backup_filepath }}"
+        path: "{{ temp_archive }}"
       register: compressed_stats
 
     - name: "Calculate compression ratio"
@@ -134,6 +181,19 @@
         compression_ratio: "{{ ((1 - (compressed_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}"
       when: (original_size.stdout | int) > 0
 
+    # ========================================================================
+    # 6. MOVE TO NETWORK LOCATION
+    # ========================================================================
+    
+    - name: "Move archive to network location (single large transfer)"
+      command: mv "{{ temp_archive }}" "{{ final_archive }}"
+      register: move_result
+      changed_when: move_result.rc == 0
+
+    # ========================================================================
+    # 7. DISPLAY SUMMARY
+    # ========================================================================
+    
     - name: "Display backup summary"
       debug:
         msg: |
@@ -141,11 +201,24 @@
           📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
           💾 Compressed: {{ (compressed_stats.stat.size / 1024 / 1024) | round(2) }} MB
           📉 Saved: {{ compression_ratio | default('N/A') }}%
-          📁 Location: {{ backup_filepath }}
+          📁 Location: {{ final_archive }}
+          📋 Manifest: Included ({{ manifest_paths | length }} paths)
+          🚀 Method: Local compression → Network transfer
 
   always:
-    - name: "Cleanup temp directory"
+    # ========================================================================
+    # 8. CLEANUP
+    # ========================================================================
+    
+    - name: "Cleanup temp staging directory"
       file:
         path: "{{ temp_dir }}"
         state: absent
       failed_when: false
+
+    - name: "Cleanup temp archive if move failed"
+      file:
+        path: "{{ temp_archive }}"
+        state: absent
+      failed_when: false
+      when: move_result is defined and move_result.rc != 0

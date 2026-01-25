@@ -1,18 +1,190 @@
+---
 # ============================================================================
 # File: tasks/restore_app.yml
-# Reusable task to restore a single application
-# Called by restore playbooks, not run directly
+# Restores app settings from tar.zst archive with manifest
+# Extracts locally, then restores to correct paths using manifest metadata
 # ============================================================================
----
-- name: "Restore {{ app_backup_definitions[app_key].name }}"
+
+- name: "Set app definition for {{ app_key }}"
+  set_fact:
+    app_def: "{{ app_backup_definitions[app_key] }}"
+
+- name: "Generate restore paths"
+  set_fact:
+    app_backup_dir: "{{ backup_base }}/{{ app_key }}"
+    temp_extract_dir: "/tmp/ansible-restore-{{ app_key }}-{{ ansible_date_time.epoch }}"
+
+# ============================================================================
+# 1. FIND LATEST BACKUP
+# ============================================================================
+
+- name: "Find latest backup for {{ app_def.name }}"
+  shell: |
+    ls -t "{{ app_backup_dir }}"/*.tar.zst 2>/dev/null | head -n 1
+  register: latest_backup_check
+  changed_when: false
+  failed_when: false
+
+- name: "Set backup archive path"
+  set_fact:
+    backup_archive: "{{ latest_backup_check.stdout }}"
+  when: latest_backup_check.stdout != ""
+
+- name: "Skip if no backup found"
+  debug:
+    msg: "⏭️  No backup found for {{ app_def.name }} in {{ app_backup_dir }}"
+  when: latest_backup_check.stdout == ""
+
+- name: "End task if no backup found"
+  meta: end_host
+  when: latest_backup_check.stdout == ""
+
+# ============================================================================
+# 2. EXTRACT TO LOCAL TEMP (FAST)
+# ============================================================================
+
+- name: "Restore {{ app_def.name }} from backup"
+  when: backup_archive is defined
   block:
-    - name: Set app definition
-      set_fact:
-        app_def: "{{ app_backup_definitions[app_key] }}"
+    - name: "Create temp extraction directory"
+      file:
+        path: "{{ temp_extract_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: "Extract archive to local temp (fast extraction)"
+      shell: |
+        zstd -d -c "{{ backup_archive }}" | tar -xf - -C "{{ temp_extract_dir }}"
+      environment:
+        COPYFILE_DISABLE: "1"
+      register: extract_result
+
+    - name: "Display extraction info"
+      debug:
+        msg: |
+          📥 Extracted backup: {{ backup_archive | basename }}
+          📁 Temp location: {{ temp_extract_dir }}
+
+    # ========================================================================
+    # 3. READ MANIFEST
+    # ========================================================================
     
-    - name: "Restore paths for {{ app_def.name }}"
-      include_tasks: restore_path.yml
-      loop: "{{ app_def.paths }}"
-      loop_control:
-        loop_var: path_item
-        label: "{{ path_item.src }}"
+    - name: "Check for manifest file"
+      stat:
+        path: "{{ temp_extract_dir }}/{{ app_key }}/manifest.json"
+      register: manifest_check
+
+    - name: "Read manifest data"
+      slurp:
+        path: "{{ temp_extract_dir }}/{{ app_key }}/manifest.json"
+      register: manifest_data
+      when: manifest_check.stat.exists
+
+    - name: "Parse manifest"
+      set_fact:
+        manifest: "{{ manifest_data.content | b64decode | from_json }}"
+      when: manifest_check.stat.exists
+
+    - name: "Display manifest info"
+      debug:
+        msg: |
+          📋 Manifest found:
+            • Version: {{ manifest.manifest_version | default('legacy') }}
+            • Backed up: {{ manifest.backup_date | default('unknown') }}
+            • Machine: {{ manifest.machine_type | default('unknown') }}
+            • Paths: {{ manifest.paths | length }}
+      when: manifest_check.stat.exists
+
+    # ========================================================================
+    # 4. RESTORE USING MANIFEST (INTELLIGENT)
+    # ========================================================================
+    
+    - name: "Restore paths from manifest"
+      when: manifest_check.stat.exists
+      block:
+        - name: "Restore each path with proper permissions"
+          include_tasks: restore_manifest_path.yml
+          loop: "{{ manifest.paths }}"
+          loop_control:
+            loop_var: path_item
+            label: "{{ path_item.src }}"
+
+    # ========================================================================
+    # 5. FALLBACK: LEGACY RESTORE (NO MANIFEST)
+    # ========================================================================
+    
+    - name: "Legacy restore without manifest"
+      when: not manifest_check.stat.exists
+      block:
+        - name: "Warn about legacy restore"
+          debug:
+            msg: |
+              ⚠️  No manifest found - using legacy restore method
+              This backup was created before manifest support
+
+        - name: "Restore paths using app definition"
+          include_tasks: restore_path_legacy.yml
+          loop: "{{ app_def.paths }}"
+          loop_control:
+            loop_var: path_item
+            label: "{{ path_item.src }}"
+
+    # ========================================================================
+    # 6. POST-RESTORE REFRESH
+    # ========================================================================
+    
+    - name: "Post-restore system refresh"
+      ansible.builtin.shell: |
+        # Kill app processes
+        killall "{{ app_def.name }}" 2>/dev/null || true
+        sleep 1
+
+        # Flush preference daemon
+        killall -u $(whoami) cfprefsd 2>/dev/null || true
+
+        # Find app and get Bundle ID
+        APP_PATH=$(find /Applications ~/Applications -maxdepth 1 -name "{{ app_def.name }}.app" 2>/dev/null | head -n 1)
+        
+        if [ -n "$APP_PATH" ]; then
+          BUNDLE_ID=$(defaults read "$APP_PATH/Contents/Info.plist" CFBundleIdentifier 2>/dev/null || echo "")
+          
+          if [ -n "$BUNDLE_ID" ]; then
+            # Clear saved state
+            rm -rf ~/Library/Saved\ Application\ State/"${BUNDLE_ID}".savedState 2>/dev/null || true
+            
+            # Touch containers
+            if [ -d "$HOME/Library/Containers/${BUNDLE_ID}" ]; then
+              find "$HOME/Library/Containers/${BUNDLE_ID}" -maxdepth 2 -exec touch {} + 2>/dev/null || true
+            fi
+            
+            # Touch group containers
+            DEV_PREFIX=$(echo $BUNDLE_ID | cut -d. -f1,2)
+            find ~/Library/Group\ Containers -maxdepth 1 \
+              \( -name "*${BUNDLE_ID}*" -o -name "*${DEV_PREFIX}*" \) \
+              -type d | while read -r dir; do
+              find "$dir" -maxdepth 2 -exec touch {} + 2>/dev/null || true
+            done
+            
+            sync
+          fi
+        fi
+      changed_when: false
+      failed_when: false
+
+    - name: "Display restore completion"
+      debug:
+        msg: |
+          ✅ Restored {{ app_def.name }}
+          📦 From: {{ backup_archive | basename }}
+          🔄 Method: {{ 'Manifest-based' if manifest_check.stat.exists else 'Legacy' }}
+
+  always:
+    # ========================================================================
+    # 7. CLEANUP
+    # ========================================================================
+    
+    - name: "Cleanup temp extraction directory"
+      file:
+        path: "{{ temp_extract_dir }}"
+        state: absent
+      failed_when: false
