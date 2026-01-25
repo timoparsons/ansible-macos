@@ -20,7 +20,7 @@
 
 - name: "Find latest backup for {{ app_def.name }}"
   shell: |
-    ls -t "{{ app_backup_dir }}"/*.tar.zst 2>/dev/null | head -n 1
+    ls -t "{{ app_backup_dir }}"/*-{{ restore_from_machine | default(machine_type) }}-*.tar.zst 2>/dev/null | head -n 1
   register: latest_backup_check
   changed_when: false
   failed_when: false
