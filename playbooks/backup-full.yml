@@ -67,14 +67,6 @@
   tags: ['dotfiles']
 
 # ============================================================================
-# BACKUP FONTS (only for studio and laptop)
-# ============================================================================
-- name: Backup User Fonts
-  import_playbook: backup-fonts.yml
-  when: hostvars[inventory_hostname]['machine_type'] in ['studio', 'laptop']
-  tags: ['fonts']
-
-# ============================================================================
 # COMPLETION MESSAGE
 # ============================================================================
 - name: Display Completion Summary

@@ -3,6 +3,13 @@
 # ============================================================================
 # Backup all apps for current machine type
 # Creates: appname-role-YYYYMMDD.tar.zst
+# 
+# Usage:
+#   # Backup all apps for machine type
+#   ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio
+#
+#   # Backup specific apps only (like selective backup)
+#   ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio -e "apps_list=user-fonts,resolve"
 # ============================================================================
 
 - name: Backup Application Settings
@@ -14,7 +21,14 @@
   
   vars:
     backup_base: "{{ macos_network_base }}/apps"
-    apps_to_backup: "{{ lookup('vars', machine_type + '_apps_to_backup', default=[]) }}"
+    # Support both patterns:
+    # 1. apps_list="app1,app2" (same as selective backup)
+    # 2. Default to machine type's full list
+    apps_to_backup: >-
+      {{
+        apps_list.split(',') | map('trim') | list if apps_list is defined
+        else lookup('vars', machine_type + '_apps_to_backup', default=[])
+      }}
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -30,6 +44,11 @@
           📦 Backing up {{ apps_to_backup | length }} applications for {{ machine_type }}
           📁 Destination: {{ backup_base }}/
           📝 Format: appname-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst
+          {% if apps_list is defined %}
+          🎯 Mode: Selective ({{ apps_list }})
+          {% else %}
+          🎯 Mode: Full backup for {{ machine_type }}
+          {% endif %}
     
     - name: Backup each application
       include_tasks: ../tasks/backup_app.yml

@@ -6,24 +6,22 @@
 # Compression happens locally in /tmp, then moved to network
 # Includes manifest.json for intelligent restoration
 # ============================================================================
-- name: "Reset manifest for {{ app_key }}"
-  set_fact:
-    manifest_paths: []  # This clears the accumulation from previous apps
 
 - name: "Set app definition for {{ app_key }}"
   set_fact:
     app_def: "{{ app_backup_definitions[app_key] }}"
 
-- name: "Generate backup paths"
+- name: "Generate backup paths with unique epoch"
   set_fact:
     app_backup_dir: "{{ backup_base }}/{{ app_key }}"
     backup_filename: "{{ app_key }}-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
-    temp_dir: "/tmp/ansible-backup-{{ app_key }}-{{ ansible_date_time.epoch }}"
+    # Use a truly unique temp dir per app backup
+    backup_epoch: "{{ ansible_date_time.epoch }}-{{ 999999 | random }}"
 
-- name: "Set full backup filepaths"
+- name: "Set temp paths with unique identifiers"
   set_fact:
-    # Add epoch here to prevent filename collisions in /tmp
-    temp_archive: "/tmp/{{ ansible_date_time.epoch }}-{{ backup_filename }}"
+    temp_dir: "/tmp/ansible-backup-{{ app_key }}-{{ backup_epoch }}"
+    temp_archive: "/tmp/{{ backup_epoch }}-{{ backup_filename }}"
     final_archive: "{{ app_backup_dir }}/{{ backup_filename }}"
 
 - name: "Ensure app backup directory exists on network"
@@ -95,12 +93,16 @@
       when: existing_path_checks | length == 0
 
     # ========================================================================
-    # 3. BUILD MANIFEST DATA
+    # 3. BUILD MANIFEST DATA (Scoped to this block)
     # ========================================================================
+    
+    - name: "Initialize manifest paths for this app"
+      set_fact:
+        current_manifest_paths: []
     
     - name: "Build manifest entries"
       set_fact:
-        manifest_paths: "{{ manifest_paths | default([]) + [manifest_entry] }}"
+        current_manifest_paths: "{{ current_manifest_paths + [manifest_entry] }}"
       loop: "{{ existing_path_checks }}"
       vars:
         expanded_path: "{{ item.item.src | expanduser }}"
@@ -122,7 +124,7 @@
             "machine_type": "{{ machine_type }}",
             "manifest_version": "1.0",
             "exclude": {{ app_def.exclude | default([]) | to_json }},
-            "paths": {{ manifest_paths | to_json }}
+            "paths": {{ current_manifest_paths | to_json }}
           }
         dest: "{{ temp_dir }}/manifest.json"
 
@@ -138,7 +140,7 @@
         
         mkdir -p "$(dirname "$DEST")"
         cp -Rp "$SRC" "$DEST"
-      loop: "{{ manifest_paths }}"
+      loop: "{{ current_manifest_paths }}"
       loop_control:
         label: "{{ item.src }} → {{ item.dest }}"
 
@@ -235,7 +237,7 @@
           💾 Compressed: {{ (compressed_stats.stat.size / 1024 / 1024) | round(2) }} MB
           📉 Saved: {{ compression_ratio | default('N/A') }}%
           📁 Location: {{ final_archive }}
-          📋 Manifest: Included ({{ manifest_paths | length }} paths)
+          📋 Manifest: Included ({{ current_manifest_paths | length }} paths)
           🚀 Method: Local compression → Network transfer
 
   always:
