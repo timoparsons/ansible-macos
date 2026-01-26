@@ -2,13 +2,13 @@
 # ============================================================================
 # File: tasks/restore_manifest_path.yml
 # Restores a single path using manifest metadata
-# FIXED: No wrapper directory - reads directly from temp_extract_dir
+# Uses dest field from manifest to locate files in archive
 # ============================================================================
 
 - name: "Expand destination path for {{ path_item.src }}"
   set_fact:
     dest_path: "{{ path_item.src | expanduser }}"
-    source_path: "{{ temp_extract_dir }}/{{ path_item.relative }}"
+    source_path: "{{ temp_extract_dir }}/{{ path_item.dest }}"
 
 - name: "Check if source exists in backup"
   stat:

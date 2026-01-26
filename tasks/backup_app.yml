@@ -53,7 +53,7 @@
     - name: "Warn if low disk space"
       debug:
         msg: "⚠️  Only {{ (tmp_space.stdout | int / 1024 / 1024) | round(2) }} GB available in /tmp"
-      when: (tmp_space.stdout | int) < 5000000  # Less than 5GB
+      when: (tmp_space.stdout | int) < 5000000
 
     # ========================================================================
     # 2. CHECK WHICH PATHS EXIST
@@ -97,8 +97,8 @@
         expanded_path: "{{ item.item.src | expanduser }}"
         manifest_entry:
           src: "{{ item.item.src }}"
+          dest: "{{ item.item.dest }}"
           type: "{{ 'user_file' if item.stat.isreg and item.item.src.startswith('~') else 'user_directory' if item.stat.isdir and item.item.src.startswith('~') else 'shared_directory' if '/Users/Shared/' in item.item.src else 'system_file' if item.stat.isreg else 'system_directory' }}"
-          relative: "{{ expanded_path | regex_replace('^' + (ansible_env.HOME | regex_escape) + '/', '') | regex_replace('^/', '') }}"
           needs_sudo: "{{ not item.item.src.startswith('~') }}"
           is_file: "{{ item.stat.isreg }}"
 
@@ -123,20 +123,45 @@
     
     - name: "Copy paths to staging directory"
       shell: |
-        # Create subdirectory structure if needed
-        mkdir -p "{{ temp_dir }}/{{ item.relative | dirname }}"
+        set -e
+        SRC="{{ item.src | expanduser }}"
+        DEST="{{ temp_dir }}/{{ item.dest }}"
         
-        # Copy with preservation of attributes
-        cp -Rp "{{ item.src | expanduser }}" "{{ temp_dir }}/{{ item.relative }}"
+        mkdir -p "$(dirname "$DEST")"
+        cp -Rp "$SRC" "$DEST"
       loop: "{{ manifest_paths }}"
+      loop_control:
+        label: "{{ item.src }} → {{ item.dest }}"
+
+    - name: "DEBUG - List staged files"
+      shell: |
+        echo "=== Staged files in {{ temp_dir }} ==="
+        find "{{ temp_dir }}" -maxdepth 3 -ls | head -50
+      register: debug_staging
+      
+    - name: "DEBUG - Show staging"
+      debug:
+        var: debug_staging.stdout_lines
 
     # ========================================================================
-    # 5. COMPRESS LOCALLY (FIXED - No wrapper directory)
+    # 5. COMPRESS LOCALLY
     # ========================================================================
     
     - name: "Build exclude pattern for tar"
       set_fact:
         tar_excludes: "{{ app_def.exclude | default([]) | map('regex_replace', '^(.*)$', '--exclude=\\1') | join(' ') }}"
+      when: app_def.exclude is defined and app_def.exclude | length > 0
+    
+    - name: "Set empty excludes if none defined"
+      set_fact:
+        tar_excludes: ""
+      when: app_def.exclude is not defined or app_def.exclude | length == 0
+    
+    - name: "DEBUG - Show exclude pattern"
+      debug:
+        msg: |
+          Exclude pattern: {{ tar_excludes }}
+          Number of excludes: {{ app_def.exclude | default([]) | length }}
 
     - name: "Check if zstd is installed"
       command: which zstd
@@ -158,9 +183,14 @@
     - name: "Create compressed archive without wrapper directory"
       shell: |
         cd "{{ temp_dir }}"
-        COPYFILE_DISABLE=1 tar {{ tar_excludes }} \
-          --no-xattrs --no-acls \
-          -cf - manifest.json $(ls -A | grep -v manifest.json) | \
+        # Use gtar for better compatibility and GNU tar features
+        COPYFILE_DISABLE=1 gtar \
+          {{ tar_excludes }} \
+          --exclude-backups \
+          --exclude-vcs \
+          --no-xattrs \
+          --no-acls \
+          -cf - . | \
           zstd -T0 -10 -q -o "{{ temp_archive }}"
       environment:
         COPYFILE_DISABLE: "1"

@@ -391,29 +391,64 @@ app_backup_definitions:
     name: "DaVinci Resolve"
     paths:
       - src: "~/Library/Preferences/com.blackmagic-design.DaVinciResolve.plist"
+        dest: "resolve/preferences/com.blackmagic-design.DaVinciResolve.plist"
+      
       - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
+        dest: "resolve/preferences/DaVinci Resolve"
+      
       - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve"
+        dest: "resolve/application-support"
+      
       - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
+        dest: "resolve/system-fusion"
+      
       - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins"
+        dest: "resolve/workflow-plugins"
+      
       - src: "/Users/Shared/Resolve/Resolve Settings"
+        dest: "resolve/resolve-settings"
+      
       - src: "/Users/Shared/Resolve/LUT"
+        dest: "resolve/lut"
+      
       - src: "/Users/Shared/Resolve/FX"
+        dest: "resolve/fx"
+      
       - src: "/Library/OFX/Plugins"
+        dest: "resolve/ofx-plugins"
+      
       - src: "/Library/Audio/Plug-Ins/VST"
+        dest: "resolve/vst"
+      
       - src: "/Library/Audio/Plug-Ins/VST3"
+        dest: "resolve/vst3"
+      
       - src: "/Library/Audio/Plug-Ins/Components"
+        dest: "resolve/components"
+    
     exclude:
+      # Apple system plugins (not user-installed)
       - "Apple*"
+      # ASAF spatial audio plugins (system, not user settings)
       - "ASAF*"
+      # Cache directories
       - "Cache"
-      - "Logs"
-      - "logs"          
+      - "Caches"
       - "*/Cache"
+      - "*/Caches"
+      # Log files
+      - "Logs"
+      - "logs"
+      - "*.log"
+      - "*Log*"
+      # Temporary files
       - "*.drvox"
-      - ".*"           # Hidden files (like .DS_Store, .localized)
-      - "*/.*"         # Hidden files in subdirectories
-      - ".*/"          # Hidden directories (like .Trash)
       - "__pycache__"
+      # Hidden system files (but keep directories for structure)
+      - ".DS_Store"
+      - ".Trashes"
+      - ".Spotlight-V100"
+      - ".localized"
 
 
 
