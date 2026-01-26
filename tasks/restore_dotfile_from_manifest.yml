@@ -1,0 +1,80 @@
+---
+# ============================================================================
+# File: tasks/restore_dotfile_from_manifest.yml
+# Restores a single dotfile using manifest metadata
+# Called with path_item and source_dir variables
+# ============================================================================
+
+- name: "Expand destination path for {{ path_item.src }}"
+  set_fact:
+    dest_path: "{{ path_item.src | expanduser }}"
+    source_path: "{{ source_dir }}/{{ path_item.dest }}"
+
+- name: "Check if source exists in backup"
+  stat:
+    path: "{{ source_path }}"
+  register: source_check
+
+- name: "Skip if source not in backup"
+  debug:
+    msg: "⏭️  Skipping {{ path_item.src }} - not found in backup"
+  when: not source_check.stat.exists
+
+# ============================================================================
+# RESTORE OPERATIONS
+# ============================================================================
+
+- name: "Restore {{ path_item.src }}"
+  when: source_check.stat.exists
+  block:
+    # ========================================================================
+    # FILE RESTORATION
+    # ========================================================================
+    
+    - name: "Restore file: {{ path_item.src }}"
+      when: path_item.is_file
+      block:
+        - name: "Create parent directory for file"
+          file:
+            path: "{{ dest_path | dirname }}"
+            state: directory
+            mode: '0755'
+          when: (dest_path | dirname) != '' and (dest_path | dirname) != '/'
+
+        - name: "Copy file from backup"
+          copy:
+            src: "{{ source_path }}"
+            dest: "{{ dest_path }}"
+            mode: "{{ path_item.mode }}"
+            force: yes
+            remote_src: yes
+            backup: yes
+
+        - name: "Display file restore"
+          debug:
+            msg: "✅ Restored file: {{ path_item.src }}"
+
+    # ========================================================================
+    # DIRECTORY RESTORATION
+    # ========================================================================
+    
+    - name: "Restore directory: {{ path_item.src }}"
+      when: not path_item.is_file
+      block:
+        - name: "Ensure destination directory exists"
+          file:
+            path: "{{ dest_path }}"
+            state: directory
+            mode: '0755'
+
+        - name: "Sync directory contents"
+          synchronize:
+            src: "{{ source_path }}/"
+            dest: "{{ dest_path }}/"
+            recursive: yes
+            delete: no
+          delegate_to: "{{ inventory_hostname }}"
+
+        - name: "Display directory restore"
+          debug:
+            msg: "✅ Restored directory: {{ path_item.src }}"
