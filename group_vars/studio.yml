@@ -191,10 +191,6 @@ studio_dmg_pkg_apps:
 
 
 
-   
-
-
-
 # ============================================================================
 # Dock Configuration
 # ============================================================================
@@ -246,6 +242,10 @@ studio_login_items:
 
   - name: "Raycast"
     path: "/Applications/Raycast.app"
+    hidden: false
+
+  - name: "Resilio Sync"
+    path: "/Applications/Resilio Sync.app"
     hidden: false
 
   - name: "superwhisper"

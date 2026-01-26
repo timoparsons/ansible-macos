@@ -1,16 +1,18 @@
+---
 # ============================================================================
 # File: playbooks/backup-dotfiles.yml
-# Backup dotfiles to network volume
+# Backup dotfiles with compression and manifest
+# Creates: dotfiles/dotfiles-{role}-YYYYMMDD.tar.zst
 # Usage: ansible-playbook playbooks/backup-dotfiles.yml -i inventory.ini --limit studio
 # ============================================================================
----
+
 - name: Backup Dotfiles to Network Volume
   hosts: all
   become: false
   
   vars:
-    backup_base: "{{ macos_network_base }}/dotfiles/{{ machine_type }}"
-    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+    backup_base: "{{ macos_network_base }}/dotfiles"
+    backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -20,15 +22,9 @@
       tags: ['always']
           
   tasks:
-    - name: Verify network volume is mounted
-      stat:
-        path: "{{ macos_network_base }}"
-      register: network_check
-      failed_when: not network_check.stat.exists
-    
     - name: Get dotfiles list for this machine type
       set_fact:
-        dotfiles_list: "{{ lookup('vars', machine_type + '_dotfiles_files', default=dotfiles_files) }}"
+        dotfiles_list: "{{ lookup('vars', machine_type + '_dotfiles_files', default=[]) }}"
     
     - name: Display backup summary
       debug:
@@ -36,69 +32,220 @@
           📦 Backing up dotfiles for {{ machine_type }} machine
           📁 Destination: {{ backup_base }}/
           📝 Files to backup: {{ dotfiles_list | length }}
-          {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
+          📦 Format: dotfiles-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst
     
     - name: Skip if no dotfiles configured
       debug:
         msg: "⏭️  No dotfiles configured for {{ machine_type }} machine type"
       when: dotfiles_list | length == 0
     
-    - name: Create backup directory
-      file:
-        path: "{{ backup_base }}"
-        state: directory
-        mode: '0755'
+    - name: End if no dotfiles
+      meta: end_host
+      when: dotfiles_list | length == 0
+
+    # ========================================================================
+    # BACKUP PROCESS
+    # ========================================================================
+    
+    - name: Backup dotfiles with compression
       when: dotfiles_list | length > 0
-    
-    - name: Create timestamped backup directory
-      file:
-        path: "{{ backup_base }}/backups/{{ backup_timestamp }}"
-        state: directory
-        mode: '0755'
-      when: 
-        - backup_create_timestamped | default(false) | bool
-        - dotfiles_list | length > 0
-    
-    - name: Check which dotfiles exist
-      stat:
-        path: "{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
-      register: dotfile_check
-      loop: "{{ dotfiles_list }}"
-      loop_control:
-        label: "{{ item.dest }}"
-      when: dotfiles_list | length > 0
-    
-    - name: Create list of existing dotfiles
-      set_fact:
-        existing_dotfiles: "{{ dotfile_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
-        missing_dotfiles: "{{ dotfile_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
-      when: dotfiles_list | length > 0
-    
-    - name: Display missing dotfiles
-      debug:
-        msg: "⏭️  Skipping {{ item.dest }} - does not exist"
-      loop: "{{ missing_dotfiles }}"
-      loop_control:
-        label: "{{ item.dest }}"
-      when: 
-        - dotfiles_list | length > 0
-        - missing_dotfiles | length > 0
-    
-    - name: Backup each dotfile
-      include_tasks: ../tasks/backup_dotfile.yml
-      loop: "{{ existing_dotfiles }}"
-      loop_control:
-        loop_var: dotfile_item
-        label: "{{ dotfile_item.dest }}"
-      when: dotfiles_list | length > 0
-    
-    - name: Display completion message
-      debug:
-        msg: |
-          ✅ Dotfiles backup complete!
-          📁 Location: {{ backup_base }}/
-          📝 Backed up {{ existing_dotfiles | default([]) | length }} dotfiles
-          {% if backup_create_timestamped %}
-          🕒 Timestamped backup: {{ backup_base }}/backups/{{ backup_timestamp }}/
-          {% endif %}
-      when: dotfiles_list | length > 0
+      block:
+        - name: Generate backup paths with unique epoch
+          set_fact:
+            backup_filename: "dotfiles-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
+            backup_epoch: "{{ ansible_date_time.epoch }}-{{ 999999 | random }}"
+
+        - name: Set temp paths
+          set_fact:
+            temp_dir: "/tmp/ansible-backup-dotfiles-{{ backup_epoch }}"
+            temp_archive: "/tmp/{{ backup_epoch }}-{{ backup_filename }}"
+            final_archive: "{{ backup_base }}/{{ backup_filename }}"
+
+        - name: Ensure backup directory exists
+          file:
+            path: "{{ backup_base }}"
+            state: directory
+            mode: '0755'
+
+        - name: Check if today's backup already exists
+          stat:
+            path: "{{ final_archive }}"
+          register: existing_backup
+
+        - name: Skip if backup exists
+          debug:
+            msg: "⏭️  Backup already exists: {{ backup_filename }}"
+          when: existing_backup.stat.exists
+
+        - name: Create dotfiles backup
+          when: not existing_backup.stat.exists
+          block:
+            # ========================================================
+            # 1. CHECK WHICH FILES EXIST
+            # ========================================================
+            
+            - name: Force cleanup of staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: absent
+
+            - name: Create temp staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: directory
+                mode: '0755'
+
+            - name: Check which dotfiles exist
+              stat:
+                path: "{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
+              register: dotfile_checks
+              loop: "{{ dotfiles_list }}"
+              loop_control:
+                label: "{{ item.dest }}"
+
+            - name: Filter to existing files
+              set_fact:
+                existing_dotfiles: "{{ dotfile_checks.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+
+            - name: Display files to backup
+              debug:
+                msg: "📁 Found {{ existing_dotfiles | length }}/{{ dotfiles_list | length }} dotfiles"
+
+            - name: Skip if no files exist
+              meta: end_host
+              when: existing_dotfiles | length == 0
+
+            # ========================================================
+            # 2. BUILD MANIFEST
+            # ========================================================
+            
+            - name: Initialize manifest paths
+              set_fact:
+                manifest_paths: []
+
+            - name: Build manifest entries
+              set_fact:
+                manifest_paths: "{{ manifest_paths + [manifest_entry] }}"
+              loop: "{{ existing_dotfiles }}"
+              vars:
+                corresponding_check: "{{ dotfile_checks.results | selectattr('item', 'equalto', item) | first }}"
+                manifest_entry:
+                  src: "~/{{ item.dest }}"
+                  dest: "{{ item.dest }}"
+                  mode: "{{ item.mode | default('0644') }}"
+                  is_file: "{{ corresponding_check.stat.isreg }}"
+                  needs_sudo: false
+
+            - name: Create manifest file
+              copy:
+                content: |
+                  {
+                    "backup_type": "dotfiles",
+                    "backup_date": "{{ ansible_date_time.date }}",
+                    "backup_timestamp": "{{ ansible_date_time.iso8601 }}",
+                    "machine_type": "{{ machine_type }}",
+                    "manifest_version": "1.0",
+                    "paths": {{ manifest_paths | to_json }}
+                  }
+                dest: "{{ temp_dir }}/manifest.json"
+
+            # ========================================================
+            # 3. STAGE FILES
+            # ========================================================
+            
+            - name: Copy dotfiles to staging directory
+              shell: |
+                set -e
+                SRC="{{ ansible_facts['env']['HOME'] }}/{{ item.dest }}"
+                DEST="{{ temp_dir }}/{{ item.dest }}"
+                
+                mkdir -p "$(dirname "$DEST")"
+                cp -Rp "$SRC" "$DEST"
+              loop: "{{ existing_dotfiles }}"
+              loop_control:
+                label: "{{ item.dest }}"
+
+            # ========================================================
+            # 4. COMPRESS
+            # ========================================================
+            
+            - name: Check if zstd is installed
+              command: which zstd
+              register: zstd_check
+              changed_when: false
+              failed_when: false
+
+            - name: Install zstd if missing
+              community.general.homebrew:
+                name: zstd
+                state: present
+              when: zstd_check.rc != 0
+
+            - name: Get size before compression
+              shell: du -sk "{{ temp_dir }}" | cut -f1
+              register: original_size
+              changed_when: false
+
+            - name: Create compressed archive
+              shell: |
+                cd "{{ temp_dir }}"
+                COPYFILE_DISABLE=1 gtar \
+                  --exclude-backups \
+                  --exclude-vcs \
+                  --no-xattrs \
+                  --no-acls \
+                  -cf - . | \
+                  zstd -T0 -10 -q -o "{{ temp_archive }}"
+              environment:
+                COPYFILE_DISABLE: "1"
+
+            - name: Get compressed size
+              stat:
+                path: "{{ temp_archive }}"
+              register: compressed_stats
+
+            - name: Calculate compression ratio
+              set_fact:
+                compression_ratio: "{{ ((1 - (compressed_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}"
+              when: (original_size.stdout | int) > 0
+
+            # ========================================================
+            # 5. MOVE TO NETWORK
+            # ========================================================
+            
+            - name: Move archive to network location
+              command: mv "{{ temp_archive }}" "{{ final_archive }}"
+              register: move_result
+              changed_when: move_result.rc == 0
+
+            # ========================================================
+            # 6. SUMMARY
+            # ========================================================
+            
+            - name: Display backup summary
+              debug:
+                msg: |
+                  ✅ Dotfiles backup created: {{ backup_filename }}
+                  📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
+                  💾 Compressed: {{ (compressed_stats.stat.size / 1024 / 1024) | round(2) }} MB
+                  📉 Saved: {{ compression_ratio | default('N/A') }}%
+                  📁 Location: {{ final_archive }}
+                  📋 Manifest: {{ manifest_paths | length }} paths
+
+          always:
+            # ========================================================
+            # 7. CLEANUP
+            # ========================================================
+            
+            - name: Cleanup temp staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: absent
+              failed_when: false
+
+            - name: Cleanup temp archive if move failed
+              file:
+                path: "{{ temp_archive }}"
+                state: absent
+              failed_when: false
+              when: move_result is defined and move_result.rc != 0
