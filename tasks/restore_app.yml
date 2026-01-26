@@ -2,7 +2,7 @@
 # ============================================================================
 # File: tasks/restore_app.yml
 # Restores app settings from tar.zst archive with manifest
-# Extracts locally, then restores to correct paths using manifest metadata
+# Extracts directly to temp (no wrapper directory)
 # ============================================================================
 
 - name: "Set app definition for {{ app_key }}"
@@ -40,7 +40,7 @@
   when: latest_backup_check.stdout == ""
 
 # ============================================================================
-# 2. EXTRACT TO LOCAL TEMP (FAST)
+# 2. EXTRACT TO LOCAL TEMP (FIXED - Direct extraction)
 # ============================================================================
 
 - name: "Restore {{ app_def.name }} from backup"
@@ -52,7 +52,7 @@
         state: directory
         mode: '0755'
 
-    - name: "Extract archive to local temp (fast extraction)"
+    - name: "Extract archive directly to temp (no wrapper directory)"
       shell: |
         zstd -d -c "{{ backup_archive }}" | tar -xf - -C "{{ temp_extract_dir }}"
       environment:
@@ -71,12 +71,12 @@
     
     - name: "Check for manifest file"
       stat:
-        path: "{{ temp_extract_dir }}/{{ app_key }}/manifest.json"
+        path: "{{ temp_extract_dir }}/manifest.json"
       register: manifest_check
 
     - name: "Read manifest data"
       slurp:
-        path: "{{ temp_extract_dir }}/{{ app_key }}/manifest.json"
+        path: "{{ temp_extract_dir }}/manifest.json"
       register: manifest_data
       when: manifest_check.stat.exists
 

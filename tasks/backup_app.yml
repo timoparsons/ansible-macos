@@ -123,21 +123,15 @@
     
     - name: "Copy paths to staging directory"
       shell: |
-        # Create app-specific subdirectory
-        mkdir -p "{{ temp_dir }}/{{ app_key }}/{{ item.relative | dirname }}"
+        # Create subdirectory structure if needed
+        mkdir -p "{{ temp_dir }}/{{ item.relative | dirname }}"
         
         # Copy with preservation of attributes
-        cp -Rp "{{ item.src | expanduser }}" "{{ temp_dir }}/{{ app_key }}/{{ item.relative }}"
+        cp -Rp "{{ item.src | expanduser }}" "{{ temp_dir }}/{{ item.relative }}"
       loop: "{{ manifest_paths }}"
 
-    - name: "Move manifest into app directory"
-      command: mv "{{ temp_dir }}/manifest.json" "{{ temp_dir }}/{{ app_key }}/manifest.json"
-
-
-
-
     # ========================================================================
-    # 5. COMPRESS LOCALLY
+    # 5. COMPRESS LOCALLY (FIXED - No wrapper directory)
     # ========================================================================
     
     - name: "Build exclude pattern for tar"
@@ -161,12 +155,12 @@
       register: original_size
       changed_when: false
 
-    - name: "Create compressed archive in /tmp (fast local compression)"
+    - name: "Create compressed archive without wrapper directory"
       shell: |
         cd "{{ temp_dir }}"
         COPYFILE_DISABLE=1 tar {{ tar_excludes }} \
           --no-xattrs --no-acls \
-          -cf - "{{ app_key }}" | \
+          -cf - manifest.json $(ls -A | grep -v manifest.json) | \
           zstd -T0 -10 -q -o "{{ temp_archive }}"
       environment:
         COPYFILE_DISABLE: "1"

@@ -2,13 +2,13 @@
 # ============================================================================
 # File: tasks/restore_manifest_path.yml
 # Restores a single path using manifest metadata
-# Uses sudo only when needed, handles files vs directories correctly
+# FIXED: No wrapper directory - reads directly from temp_extract_dir
 # ============================================================================
 
 - name: "Expand destination path for {{ path_item.src }}"
   set_fact:
     dest_path: "{{ path_item.src | expanduser }}"
-    source_path: "{{ temp_extract_dir }}/{{ app_key }}/{{ path_item.relative }}"
+    source_path: "{{ temp_extract_dir }}/{{ path_item.relative }}"
 
 - name: "Check if source exists in backup"
   stat:
