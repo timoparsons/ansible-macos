@@ -449,6 +449,7 @@ app_backup_definitions:
       - ".Trashes"
       - ".Spotlight-V100"
       - ".localized"
+      - ".license"
 
 
 

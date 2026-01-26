@@ -2,13 +2,14 @@
 # ============================================================================
 # File: tasks/restore_manifest_path.yml
 # Restores a single path using manifest metadata
-# Uses dest field from manifest to locate files in archive
+# FIXED: No wrapper directory - reads directly from temp_extract_dir
+# ADDED: Automatic ownership fix for sudo-restored paths
 # ============================================================================
 
 - name: "Expand destination path for {{ path_item.src }}"
   set_fact:
     dest_path: "{{ path_item.src | expanduser }}"
-    source_path: "{{ temp_extract_dir }}/{{ path_item.dest }}"
+    source_path: "{{ temp_extract_dir }}/{{ path_item.relative }}"
 
 - name: "Check if source exists in backup"
   stat:
@@ -50,10 +51,19 @@
             force: yes
             remote_src: yes
           become: "{{ path_item.needs_sudo }}"
+        
+        - name: "Fix file ownership after sudo restore"
+          file:
+            path: "{{ dest_path }}"
+            owner: "{{ ansible_user_id }}"
+            group: staff
+          become: true
+          when: path_item.needs_sudo
+          failed_when: false
 
         - name: "Display file restore"
           debug:
-            msg: "✅ Restored file: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}"
+            msg: "✅ Restored file: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}{{ ' [ownership fixed]' if path_item.needs_sudo else '' }}"
 
     # ========================================================================
     # DIRECTORY RESTORATION
@@ -89,7 +99,15 @@
           environment:
             LANG: C
             LC_ALL: C
+        
+        - name: "Fix ownership after sudo restore"
+          shell: |
+            # Fix ownership to current user for paths we restored with sudo
+            chown -R {{ ansible_user_id }}:staff "{{ dest_path }}"
+          become: true
+          when: path_item.needs_sudo
+          failed_when: false
 
         - name: "Display directory restore"
           debug:
-            msg: "✅ Restored directory: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}"
+            msg: "✅ Restored directory: {{ path_item.src }}{{ ' (sudo)' if path_item.needs_sudo else '' }}{{ ' [ownership fixed]' if path_item.needs_sudo else '' }}"
