@@ -6,6 +6,9 @@
 # Compression happens locally in /tmp, then moved to network
 # Includes manifest.json for intelligent restoration
 # ============================================================================
+- name: "Reset manifest for {{ app_key }}"
+  set_fact:
+    manifest_paths: []  # This clears the accumulation from previous apps
 
 - name: "Set app definition for {{ app_key }}"
   set_fact:
@@ -19,7 +22,8 @@
 
 - name: "Set full backup filepaths"
   set_fact:
-    temp_archive: "/tmp/{{ backup_filename }}"
+    # Add epoch here to prevent filename collisions in /tmp
+    temp_archive: "/tmp/{{ ansible_date_time.epoch }}-{{ backup_filename }}"
     final_archive: "{{ app_backup_dir }}/{{ backup_filename }}"
 
 - name: "Ensure app backup directory exists on network"
@@ -58,7 +62,12 @@
     # ========================================================================
     # 2. CHECK WHICH PATHS EXIST
     # ========================================================================
-    
+
+    - name: "Force cleanup of staging directory before starting"
+      file:
+        path: "{{ temp_dir }}"
+        state: absent
+
     - name: "Create temp staging directory"
       file:
         path: "{{ temp_dir }}"

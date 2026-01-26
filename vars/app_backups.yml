@@ -51,7 +51,7 @@ app_backup_definitions:
           - "temp-critical"      # Temporary files
           - "shunt"              # Temporary processing data
           - "*Cache*"
-        compress: true
+        
 
   affinity-photo-2:
     name: "Affinity Photo 2"
@@ -76,7 +76,7 @@ app_backup_definitions:
           - "temp-critical"      # Temporary files
           - "shunt"              # Temporary processing data
           - "*Cache*"
-        compress: true
+        
 
   affinity-publisher-2:
     name: "Affinity Publisher 2"
@@ -186,7 +186,7 @@ app_backup_definitions:
         dest: "crossover/com.codeweavers.CrossOver.wineloader.plist"
       - src: "~/Library/Application Support/CrossOver"
         dest: "crossover/application-support"
-        compress: true 
+         
 
   discord:
     name: "Discord"
@@ -209,7 +209,7 @@ app_backup_definitions:
         exclude:
           - "Cache"
           - "logs"
-        compress: true 
+         
       - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
         dest: "eagle/tw.ogdesign.eagle.plist"
 
@@ -234,7 +234,7 @@ app_backup_definitions:
         dest: "finder/sharedfilelist"
         exclude:
           - "*.sfl2"  # Exclude some system-generated files
-        compress: true
+        
 
   fontbase:
     name: "FontBase"
@@ -268,7 +268,7 @@ app_backup_definitions:
           - "*log*"
           - "*Log*"
           - "Queue*"
-        compress: true
+        
 
   heroic:
     name: "Heroic"
@@ -291,15 +291,12 @@ app_backup_definitions:
 
       - src: "~/Library/Application Support/Adobe/Lightroom"
         dest: "lightroom/application-support"
-        compress: true
 
       - src: "~/Library/Application Support/Adobe/CameraRaw/CameraProfiles"
         dest: "lightroom/cameraprofiles"
-        compress: true
 
       - src: "~/Library/Application Support/Adobe/CameraRaw/Defaults"
         dest: "lightroom/defaults"
-        compress: true
 
   
   loop:
@@ -311,10 +308,8 @@ app_backup_definitions:
   lulu:
     name: "LuLu Firewall"
     paths:
-      - src: "~/Library/Preferences/com.objective-see.lulu.plist"
-        dest: "lulu/com.objective-see.lulu.plist"
-      - src: "~/Library/Application Support/com.objective-see.lulu"
-        dest: "lulu/application-support"
+      - src: "~/Library/Preferences/com.objective-see.lulu.app.plist"
+        dest: "lulu/com.objective-see.lulu.app.plist"
   
   mediahuman-audio-converter:
     name: "MediaHuman Audio Converter"
@@ -534,7 +529,7 @@ app_backup_definitions:
           - ".DS_Store"
           - "Thumbs.db"
           - "*.log"
-        compress: true
+        
       
       # Container preferences
       - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences"
@@ -567,7 +562,7 @@ app_backup_definitions:
     name: "User Fonts"
     paths:
       - src: "~/Library/Fonts"
-        dest: "../fonts/user"
+        dest: "user"  # Changed from "../fonts/user"
         exclude:
           - ".DS_Store"
           - "Thumbs.db"
@@ -576,12 +571,12 @@ app_backup_definitions:
     name: "Adobe Fonts"
     paths:
       - src: "~/Library/Application Support/Adobe/CoreSync"
-        dest: "../fonts/adobe/coresync"
+        dest: "adobe/coresync"  # Changed from "../fonts/adobe/coresync"
         exclude:
           - "Cache"
           - "Logs"
-          - "*.log" 
-        compress: true
+          - "*.log"
+        
 
 # ============================================================================
 # MACHINE-SPECIFIC APP LISTS
@@ -614,11 +609,11 @@ studio_apps_to_backup:
   - mqtt-explorer
   - neofinder
   - offshoot
-  - photoshop
+  #- photoshop
   - pronotes
   - raycast
   - resolve
-  - sketchup
+  #- sketchup
   - strongbox
 #  - superwhisper
 #  - tailscale
@@ -649,7 +644,7 @@ laptop_apps_to_backup:
   - mqtt-explorer
   - neofinder
   - offshoot
-  - photoshop
+  #- photoshop
   - pronotes
   - raycast
   - resolve
