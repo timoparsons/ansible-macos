@@ -2,14 +2,14 @@
 # ============================================================================
 # File: tasks/restore_manifest_path.yml
 # Restores a single path using manifest metadata
-# FIXED: No wrapper directory - reads directly from temp_extract_dir
+# FIXED: Uses path_item.dest (the relative path in backup)
 # ADDED: Automatic ownership fix for sudo-restored paths
 # ============================================================================
 
 - name: "Expand destination path for {{ path_item.src }}"
   set_fact:
     dest_path: "{{ path_item.src | expanduser }}"
-    source_path: "{{ temp_extract_dir }}/{{ path_item.relative }}"
+    source_path: "{{ temp_extract_dir }}/{{ path_item.dest }}"
 
 - name: "Check if source exists in backup"
   stat:
@@ -82,23 +82,27 @@
         - name: "Sync directory contents (with sudo)"
           shell: |
             rsync -av --no-perms --no-owner --no-group --inplace \
-              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$.log 2>&1
+              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$$.log 2>&1
             echo "Rsync completed for {{ path_item.src }}"
           become: "{{ path_item.needs_sudo }}"
           when: path_item.needs_sudo
           environment:
             LANG: C
             LC_ALL: C
+          register: rsync_sudo
+          changed_when: true
 
         - name: "Sync directory contents (without sudo)"
           shell: |
             rsync -av --no-perms --no-owner --no-group --inplace \
-              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$.log 2>&1
+              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$$.log 2>&1
             echo "Rsync completed for {{ path_item.src }}"
           when: not path_item.needs_sudo
           environment:
             LANG: C
             LC_ALL: C
+          register: rsync_no_sudo
+          changed_when: true
         
         - name: "Fix ownership after sudo restore"
           shell: |
