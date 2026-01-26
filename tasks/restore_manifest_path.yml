@@ -72,15 +72,13 @@
         - name: "Sync directory contents (with sudo)"
           shell: |
             rsync -av --no-perms --no-owner --no-group --inplace \
-              "{{ source_path }}/" "{{ dest_path }}/" | tail -20
+              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$.log 2>&1
+            echo "Rsync completed for {{ path_item.src }}"
           become: "{{ path_item.needs_sudo }}"
           when: path_item.needs_sudo
-          register: rsync_sudo_output
-
-        - name: "Show rsync output (sudo)"
-          debug:
-            msg: "{{ rsync_sudo_output.stdout_lines | default(['No output']) }}"
-          when: path_item.needs_sudo and rsync_sudo_output is defined
+          environment:
+            LANG: C
+            LC_ALL: C
 
         - name: "Sync directory contents (without sudo)"
           shell: |
