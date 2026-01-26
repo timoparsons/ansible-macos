@@ -35,22 +35,22 @@ app_backup_definitions:
         dest: "affinity2/designer/com.seriflabs.affinitydesigner2.plist"
       - src: "~/Library/Containers/com.seriflabs.affinitydesigner2/Data/Library/Application Support"
         dest: "affinity2/designer/application-support"
-        exclude:
-          - "AddressBook"
-          - "iCloud"  
-          - "SyncServices"
-          - "autosave"           # Auto-save files (document-specific)
-          - "backup"             # Backup files (document-specific)
-          - "CrashReporter"      # Crash logs
-          - "*.log"              # Log files
-          - "Log*"
-          - "NSDataCache"        # Cache data
-          - "previews"           # Document preview thumbnails
-          - "sess.db*"           # Session database (regenerates)
-          - "temp"               # Temporary files
-          - "temp-critical"      # Temporary files
-          - "shunt"              # Temporary processing data
-          - "*Cache*"
+    exclude:
+      - "AddressBook"
+      - "iCloud"  
+      - "SyncServices"
+      - "autosave"           # Auto-save files (document-specific)
+      - "backup"             # Backup files (document-specific)
+      - "CrashReporter"      # Crash logs
+      - "*.log"              # Log files
+      - "Log*"
+      - "NSDataCache"        # Cache data
+      - "previews"           # Document preview thumbnails
+      - "sess.db*"           # Session database (regenerates)
+      - "temp"               # Temporary files
+      - "temp-critical"      # Temporary files
+      - "shunt"              # Temporary processing data
+      - "*Cache*"
         
 
   affinity-photo-2:
@@ -60,22 +60,22 @@ app_backup_definitions:
         dest: "affinity2/photo/com.seriflabs.affinityphoto2.plist"
       - src: "~/Library/Containers/com.seriflabs.affinityphoto2/Data/Library/Application Support"
         dest: "affinity2/photo/application-support"
-        exclude:
-          - "AddressBook"
-          - "iCloud"  
-          - "SyncServices"
-          - "autosave"           # Auto-save files (document-specific)
-          - "backup"             # Backup files (document-specific)
-          - "CrashReporter"      # Crash logs
-          - "*.log"              # Log files
-          - "Log*"
-          - "NSDataCache"        # Cache data
-          - "previews"           # Document preview thumbnails
-          - "sess.db*"           # Session database (regenerates)
-          - "temp"               # Temporary files
-          - "temp-critical"      # Temporary files
-          - "shunt"              # Temporary processing data
-          - "*Cache*"
+    exclude:
+      - "AddressBook"
+      - "iCloud"  
+      - "SyncServices"
+      - "autosave"           # Auto-save files (document-specific)
+      - "backup"             # Backup files (document-specific)
+      - "CrashReporter"      # Crash logs
+      - "*.log"              # Log files
+      - "Log*"
+      - "NSDataCache"        # Cache data
+      - "previews"           # Document preview thumbnails
+      - "sess.db*"           # Session database (regenerates)
+      - "temp"               # Temporary files
+      - "temp-critical"      # Temporary files
+      - "shunt"              # Temporary processing data
+      - "*Cache*"
         
 
   affinity-publisher-2:
@@ -85,22 +85,22 @@ app_backup_definitions:
         dest: "affinity2/publisher/com.seriflabs.affinitypublisher2.plist"
       - src: "~/Library/Containers/com.seriflabs.affinitypublisher2/Data/Library/Application Support"
         dest: "affinity2/publisher/application-support"
-        exclude:
-          - "AddressBook"
-          - "iCloud"  
-          - "SyncServices"
-          - "autosave"           # Auto-save files (document-specific)
-          - "backup"             # Backup files (document-specific)
-          - "CrashReporter"      # Crash logs
-          - "*.log"              # Log files
-          - "Log*"
-          - "NSDataCache"        # Cache data
-          - "previews"           # Document preview thumbnails
-          - "sess.db*"           # Session database (regenerates)
-          - "temp"               # Temporary files
-          - "temp-critical"      # Temporary files
-          - "shunt"              # Temporary processing data
-          - "*Cache*"
+    exclude:
+      - "AddressBook"
+      - "iCloud"  
+      - "SyncServices"
+      - "autosave"           # Auto-save files (document-specific)
+      - "backup"             # Backup files (document-specific)
+      - "CrashReporter"      # Crash logs
+      - "*.log"              # Log files
+      - "Log*"
+      - "NSDataCache"        # Cache data
+      - "previews"           # Document preview thumbnails
+      - "sess.db*"           # Session database (regenerates)
+      - "temp"               # Temporary files
+      - "temp-critical"      # Temporary files
+      - "shunt"              # Temporary processing data
+      - "*Cache*"
 
   aftereffects:
     name: "Adobe After Effects 2025"
@@ -121,8 +121,8 @@ app_backup_definitions:
         dest: "argest/com.owc.argestbackup.pref"
       - src: "/Library/Application Support/ArGest Backup"
         dest: "argest/application-support"
-        exclude:
-          - "/*tmp"
+    exclude:
+      - "/*tmp"
 
   
   automounter:
@@ -136,9 +136,9 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/Blender"
         dest: "blender"
-        exclude:
-          - "*/cache"
-  
+    exclude:
+      - "*/cache"
+
   bloom:
     name: "Bloom"
     paths:
@@ -206,13 +206,11 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/Eagle"
         dest: "eagle/application-support"
-        exclude:
-          - "Cache"
-          - "logs"
-         
       - src: "~/Library/Preferences/tw.ogdesign.eagle.plist"
         dest: "eagle/tw.ogdesign.eagle.plist"
-
+    exclude:
+      - "Cache"
+      - "logs"
 
   finder:
     name: "Finder"
@@ -232,8 +230,8 @@ app_backup_definitions:
       # Recent items and favorites
       - src: "~/Library/Application Support/com.apple.sharedfilelist"
         dest: "finder/sharedfilelist"
-        exclude:
-          - "*.sfl2"  # Exclude some system-generated files
+    exclude:
+      - "*.sfl2"  # Exclude some system-generated files
         
 
   fontbase:
@@ -241,11 +239,11 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/FontBase"
         dest: "fontbase/application-support"
-        exclude:
-          - "Cache"
       - src: "~/Library/Preferences/com.dominiklevitsky.fontbase.plist"
         dest: "fontbase/com.dominiklevitsky.fontbase.plist"
-  
+    exclude:
+      - "Cache"  
+
 #  github-desktop:
 #    name: "GitHub Desktop"
 #    paths:
@@ -263,11 +261,11 @@ app_backup_definitions:
       # Application Support (contains presets, queue, activity logs)
       - src: "~/Library/Containers/fr.handbrake.HandBrake/Data/Library/Application Support/HandBrake"
         dest: "handbrake/application-support"
-        exclude:
-          - "EncodeLogs"
-          - "*log*"
-          - "*Log*"
-          - "Queue*"
+    exclude:
+      - "EncodeLogs"
+      - "*log*"
+      - "*Log*"
+      - "Queue*"
         
 
   heroic:
@@ -310,7 +308,18 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Preferences/com.objective-see.lulu.app.plist"
         dest: "lulu/com.objective-see.lulu.app.plist"
-  
+
+  marked2:
+    name: "Marked 2"
+    paths:
+      - src: "~/Library/Preferences/com.brettterpstra.marked2.plist"
+        dest: "marked/com.brettterpstra.marked2.plist"
+      - src: "~/Library/Application Support/Marked 2"
+        dest: "marked/application-support"
+    exclude:
+      - ".DS_Store"
+
+
   mediahuman-audio-converter:
     name: "MediaHuman Audio Converter"
     paths:
@@ -460,13 +469,12 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/Spotify/prefs"
         dest: "spotify/application-support/prefs"   
-        exclude:
-          - "PersistentCache"  
       - src: "~/Library/Preferences/com.spotify.client.plist"
         dest: "spotify/com.spotify.client.plist"
       #- src: "~/Library/Caches/com.spotify.client/settings.dat"
       #  dest: "spotify/settings.dat"
-
+    exclude:
+      - "PersistentCache"  
 
   strongbox:
     name: "Strongbox Pro"
@@ -479,10 +487,10 @@ app_backup_definitions:
 
       - src: "~/Library/Group Containers/group.strongbox.mac.mcguill/sync-manager"
         dest: "strongbox/sync-manager"  
-        exclude:
-          - "*.log"
-          - "Cache"
-          - "Caches"
+    exclude:
+      - "*.log"
+      - "Cache"
+      - "Caches"
 
   superwhisper:
     name: "superwhisper"
@@ -508,21 +516,17 @@ app_backup_definitions:
     paths:
       # The dest should match where we want to restore it
       - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Application Support"
-        dest: "typeface/container-app-support"
-        exclude:
-          - "Cache"
-          - "Caches"
-          - "cache"
-          - ".DS_Store"
-          - "Thumbs.db"
-          - "*.log"
-        
-      
+        dest: "typeface/container-app-support" 
       # Container preferences
       - src: "~/Library/Containers/com.criminalbird.typeface/Data/Library/Preferences"
         dest: "typeface/container-preferences"
-        exclude:
-          - ".DS_Store"
+    exclude:
+      - "Cache"
+      - "Caches"
+      - "cache"
+      - ".DS_Store"
+      - "Thumbs.db"
+      - "*.log"
 
 
   vscode:
@@ -530,14 +534,14 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Application Support/Code/User"
         dest: "vscode/user"
-        exclude:
-          - "workspaceStorage"
-          - "globalStorage"
-          - "History"
-          - "CachedData"
-          - "sync"              
-          - "Backups"           
-          - "logs"              
+    exclude:
+      - "workspaceStorage"
+      - "globalStorage"
+      - "History"
+      - "CachedData"
+      - "sync"              
+      - "Backups"           
+      - "logs"              
 
 
 
@@ -550,19 +554,19 @@ app_backup_definitions:
     paths:
       - src: "~/Library/Fonts"
         dest: "user"  # Changed from "../fonts/user"
-        exclude:
-          - ".DS_Store"
-          - "Thumbs.db"
+    exclude:
+      - ".DS_Store"
+      - "Thumbs.db"
 
   adobe-fonts:
     name: "Adobe Fonts"
     paths:
       - src: "~/Library/Application Support/Adobe/CoreSync"
         dest: "adobe/coresync"  # Changed from "../fonts/adobe/coresync"
-        exclude:
-          - "Cache"
-          - "Logs"
-          - "*.log"
+    exclude:
+      - "Cache"
+      - "Logs"
+      - "*.log"
         
 
 # ============================================================================
@@ -590,6 +594,7 @@ studio_apps_to_backup:
   - lightroom
   - loop
   - lulu
+  - marked2
   - mediahuman-audio-converter
   - monitorcontrol
   - mqtt-explorer
@@ -625,6 +630,7 @@ laptop_apps_to_backup:
   - lightroom
   - loop
   - lulu
+  - marked2
   - mediahuman-audio-converter  
   - mqtt-explorer
   - neofinder
