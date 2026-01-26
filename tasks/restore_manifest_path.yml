@@ -85,14 +85,12 @@
         - name: "Sync directory contents (without sudo)"
           shell: |
             rsync -av --no-perms --no-owner --no-group --inplace \
-              "{{ source_path }}/" "{{ dest_path }}/" | tail -20
+              "{{ source_path }}/" "{{ dest_path }}/" > /tmp/rsync-output-$.log 2>&1
+            echo "Rsync completed for {{ path_item.src }}"
           when: not path_item.needs_sudo
-          register: rsync_output
-
-        - name: "Show rsync output (no sudo)"
-          debug:
-            msg: "{{ rsync_output.stdout_lines | default(['No output']) }}"
-          when: not path_item.needs_sudo and rsync_output is defined
+          environment:
+            LANG: C
+            LC_ALL: C
 
         - name: "Display directory restore"
           debug:
