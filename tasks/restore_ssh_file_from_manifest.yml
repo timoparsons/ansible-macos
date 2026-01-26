@@ -1,0 +1,42 @@
+---
+# ============================================================================
+# File: tasks/restore_ssh_file_from_manifest.yml
+# Restores a single SSH file using manifest metadata
+# Called with path_item and source_dir variables
+# ============================================================================
+
+- name: "Set paths for {{ path_item.dest }}"
+  set_fact:
+    dest_path: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ path_item.dest }}"
+    source_path: "{{ source_dir }}/{{ path_item.dest }}"
+
+- name: "Check if source exists in backup"
+  stat:
+    path: "{{ source_path }}"
+  register: source_check
+
+- name: "Skip if source not in backup"
+  debug:
+    msg: "⏭️  Skipping {{ path_item.dest }} - not found in backup"
+  when: not source_check.stat.exists
+
+# ============================================================================
+# RESTORE OPERATIONS
+# ============================================================================
+
+- name: "Restore {{ path_item.dest }}"
+  when: source_check.stat.exists
+  block:
+    - name: "Copy SSH file from backup"
+      copy:
+        src: "{{ source_path }}"
+        dest: "{{ dest_path }}"
+        mode: "{{ path_item.mode }}"
+        force: yes
+        remote_src: yes
+        backup: yes
+      no_log: "{{ path_item.is_private_key | default(false) }}"
+
+    - name: "Display restore result"
+      debug:
+        msg: "✅ Restored: {{ path_item.dest }}{{ ' 🔐' if path_item.is_private_key | default(false) else '' }}"

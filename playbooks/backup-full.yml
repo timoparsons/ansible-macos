@@ -49,7 +49,6 @@
 # ============================================================================
 - name: Backup SSH Configuration
   import_playbook: backup-ssh.yml
-  when: hostvars[inventory_hostname]['machine_type'] in ['studio', 'laptop']
   tags: ['ssh']
 
 # ============================================================================

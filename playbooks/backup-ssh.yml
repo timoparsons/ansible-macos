@@ -1,18 +1,19 @@
+---
 # ============================================================================
 # File: playbooks/backup-ssh.yml
-# Backup SSH keys and config to network volume
-# Backs up from studio and laptop machines (where private keys exist)
+# Backup SSH keys with compression and manifest
+# Creates: ssh/ssh-{role}-YYYYMMDD.tar.zst
+# Only runs on studio and laptop (machines with private keys)
 # Usage: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit studio
-# Usage: ansible-playbook playbooks/backup-ssh.yml -i inventory.ini --limit laptop
 # ============================================================================
----
+
 - name: Backup SSH Configuration to Network Volume
-  hosts: studio,laptop  # ← CHANGED: Both machines have private keys
+  hosts: studio,laptop
   become: false
   
   vars:
-    backup_base: "{{ macos_network_base }}/ssh/{{ machine_type }}"  # ← Uses machine_type for separate backups
-    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+    backup_base: "{{ macos_network_base }}/ssh"
+    backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -22,104 +23,224 @@
       tags: ['always']
           
   tasks:
-    - name: Verify network volume is mounted
-      stat:
-        path: "{{ macos_network_base }}"
-      register: network_check
-      failed_when: not network_check.stat.exists
-
-    - name: Ensure SSH backup directory exists
-      file:
-        path: "{{ backup_base }}"
-        state: directory
-        mode: '0700'
-    
-    - name: Create timestamped backup directory
-      file:
-        path: "{{ backup_base }}/backups/{{ backup_timestamp }}"
-        state: directory
-        mode: '0700'
-      when: backup_create_timestamped | default(false) | bool
-    
-    - name: Check which SSH files exist locally
-      stat:
-        path: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
-      register: ssh_file_check
-      loop: "{{ ssh_files }}"
-      loop_control:
-        label: "{{ item.src }}"
-    
-    - name: Create list of existing SSH files
-      set_fact:
-        existing_ssh_files: "{{ ssh_file_check.results | selectattr('stat.exists') | map(attribute='item') | list }}"
-        missing_ssh_files: "{{ ssh_file_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
-    
-    - name: Display missing SSH files
-      debug:
-        msg: "⏭️  Skipping {{ item.src }} - does not exist locally"
-      loop: "{{ missing_ssh_files }}"
-      loop_control:
-        label: "{{ item.src }}"
-      when: missing_ssh_files | length > 0
-    
     - name: Display backup summary
       debug:
         msg: |
-          📦 Backing up SSH files for {{ machine_type }} machine
+          📦 Backing up SSH keys for {{ machine_type }} machine
           📁 Destination: {{ backup_base }}/
-          📝 Files to backup: {{ existing_ssh_files | length }}
-          {% if backup_create_timestamped %}🕒 Creating timestamped backup: {{ backup_timestamp }}{% endif %}
+          📝 Files to backup: {{ ssh_files | length }}
+          📦 Format: ssh-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst
+          🔐 Includes private keys ({{ machine_type }} has full SSH access)
+
+    # ========================================================================
+    # BACKUP PROCESS
+    # ========================================================================
     
-    - name: Backup SSH files to network volume
-      copy:
-        src: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
-        dest: "{{ backup_base }}/{{ item.src }}"
-        mode: preserve
-        backup: no
-      loop: "{{ existing_ssh_files }}"
-      loop_control:
-        label: "{{ item.src }}"
-      no_log: true
-    
-    - name: Timestamped backup of SSH files
-      copy:
-        src: "{{ backup_base }}/{{ item.src }}"
-        dest: "{{ backup_base }}/backups/{{ backup_timestamp }}/{{ item.src }}"
-        mode: preserve
-      loop: "{{ existing_ssh_files }}"
-      loop_control:
-        label: "{{ item.src }}"
-      when: backup_create_timestamped | default(false) | bool
-      no_log: true
-    
-    - name: Set correct permissions on backed up private keys
-      file:
-        path: "{{ backup_base }}/{{ item }}"
-        mode: '0600'
-      loop:
-        - id_ed25519
-        - id_rsa
-        - config
-        - authorized_keys
-      ignore_errors: yes
-    
-    - name: Set correct permissions on backed up public keys
-      file:
-        path: "{{ backup_base }}/{{ item }}"
-        mode: '0644'
-      loop:
-        - id_ed25519.pub
-        - id_rsa.pub
-      ignore_errors: yes
-    
-    - name: Display completion message
-      debug:
-        msg: |
-          ✅ SSH backup complete!
-          📁 Location: {{ backup_base }}/
-          📝 Backed up {{ existing_ssh_files | length }} SSH files
-          {% if backup_create_timestamped %}
-          🕒 Timestamped backup: {{ backup_base }}/backups/{{ backup_timestamp }}/
-          {% endif %}
-          
-          🔒 Permissions have been set correctly
+    - name: Backup SSH keys with compression
+      block:
+        - name: Generate backup paths with unique epoch
+          set_fact:
+            backup_filename: "ssh-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
+            backup_epoch: "{{ ansible_date_time.epoch }}-{{ 999999 | random }}"
+
+        - name: Set temp paths
+          set_fact:
+            temp_dir: "/tmp/ansible-backup-ssh-{{ backup_epoch }}"
+            temp_archive: "/tmp/{{ backup_epoch }}-{{ backup_filename }}"
+            final_archive: "{{ backup_base }}/{{ backup_filename }}"
+
+        - name: Ensure backup directory exists
+          file:
+            path: "{{ backup_base }}"
+            state: directory
+            mode: '0700'
+
+        - name: Check if today's backup already exists
+          stat:
+            path: "{{ final_archive }}"
+          register: existing_backup
+
+        - name: Skip if backup exists
+          debug:
+            msg: "⏭️  Backup already exists: {{ backup_filename }}"
+          when: existing_backup.stat.exists
+
+        - name: Create SSH backup
+          when: not existing_backup.stat.exists
+          block:
+            # ========================================================
+            # 1. CHECK WHICH FILES EXIST
+            # ========================================================
+            
+            - name: Force cleanup of staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: absent
+
+            - name: Create temp staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: directory
+                mode: '0700'
+
+            - name: Check which SSH files exist
+              stat:
+                path: "{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
+              register: ssh_file_checks
+              loop: "{{ ssh_files }}"
+              loop_control:
+                label: "{{ item.src }}"
+
+            - name: Filter to existing files
+              set_fact:
+                existing_ssh_files: "{{ ssh_file_checks.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+
+            - name: Display files to backup
+              debug:
+                msg: "📁 Found {{ existing_ssh_files | length }}/{{ ssh_files | length }} SSH files"
+
+            - name: Skip if no files exist
+              meta: end_host
+              when: existing_ssh_files | length == 0
+
+            # ========================================================
+            # 2. BUILD MANIFEST
+            # ========================================================
+            
+            - name: Initialize manifest paths
+              set_fact:
+                manifest_paths: []
+
+            - name: Build manifest entries
+              set_fact:
+                manifest_paths: "{{ manifest_paths + [manifest_entry] }}"
+              loop: "{{ existing_ssh_files }}"
+              vars:
+                corresponding_check: "{{ ssh_file_checks.results | selectattr('item', 'equalto', item) | first }}"
+                manifest_entry:
+                  src: "~/.ssh/{{ item.src }}"
+                  dest: "{{ item.src }}"
+                  mode: "{{ item.mode }}"
+                  is_file: "{{ corresponding_check.stat.isreg }}"
+                  needs_sudo: false
+                  is_private_key: "{{ item.src in ['id_ed25519', 'id_rsa', 'config'] }}"
+
+            - name: Create manifest file
+              copy:
+                content: |
+                  {
+                    "backup_type": "ssh",
+                    "backup_date": "{{ ansible_date_time.date }}",
+                    "backup_timestamp": "{{ ansible_date_time.iso8601 }}",
+                    "machine_type": "{{ machine_type }}",
+                    "manifest_version": "1.0",
+                    "has_private_keys": true,
+                    "paths": {{ manifest_paths | to_json }}
+                  }
+                dest: "{{ temp_dir }}/manifest.json"
+
+            # ========================================================
+            # 3. STAGE FILES
+            # ========================================================
+            
+            - name: Copy SSH files to staging directory
+              shell: |
+                set -e
+                SRC="{{ ansible_facts['env']['HOME'] }}/.ssh/{{ item.src }}"
+                DEST="{{ temp_dir }}/{{ item.dest }}"
+                
+                mkdir -p "$(dirname "$DEST")"
+                cp -p "$SRC" "$DEST"
+              loop: "{{ existing_ssh_files }}"
+              loop_control:
+                label: "{{ item.src }}"
+              no_log: true
+
+            # ========================================================
+            # 4. COMPRESS
+            # ========================================================
+            
+            - name: Check if zstd is installed
+              command: which zstd
+              register: zstd_check
+              changed_when: false
+              failed_when: false
+
+            - name: Install zstd if missing
+              community.general.homebrew:
+                name: zstd
+                state: present
+              when: zstd_check.rc != 0
+
+            - name: Get size before compression
+              shell: du -sk "{{ temp_dir }}" | cut -f1
+              register: original_size
+              changed_when: false
+
+            - name: Create compressed archive
+              shell: |
+                cd "{{ temp_dir }}"
+                COPYFILE_DISABLE=1 gtar \
+                  --no-xattrs \
+                  --no-acls \
+                  -cf - . | \
+                  zstd -T0 -10 -q -o "{{ temp_archive }}"
+              environment:
+                COPYFILE_DISABLE: "1"
+
+            - name: Get compressed size
+              stat:
+                path: "{{ temp_archive }}"
+              register: compressed_stats
+
+            - name: Calculate compression ratio
+              set_fact:
+                compression_ratio: "{{ ((1 - (compressed_stats.stat.size / (original_size.stdout | int * 1024))) * 100) | round(1) }}"
+              when: (original_size.stdout | int) > 0
+
+            # ========================================================
+            # 5. MOVE TO NETWORK
+            # ========================================================
+            
+            - name: Move archive to network location
+              command: mv "{{ temp_archive }}" "{{ final_archive }}"
+              register: move_result
+              changed_when: move_result.rc == 0
+
+            - name: Set secure permissions on backup
+              file:
+                path: "{{ final_archive }}"
+                mode: '0600'
+
+            # ========================================================
+            # 6. SUMMARY
+            # ========================================================
+            
+            - name: Display backup summary
+              debug:
+                msg: |
+                  ✅ SSH backup created: {{ backup_filename }}
+                  📦 Original: {{ (original_size.stdout | int / 1024) | round(2) }} MB
+                  💾 Compressed: {{ (compressed_stats.stat.size / 1024 / 1024) | round(2) }} MB
+                  📉 Saved: {{ compression_ratio | default('N/A') }}%
+                  📁 Location: {{ final_archive }}
+                  📋 Manifest: {{ manifest_paths | length }} paths
+                  🔐 Contains private keys
+
+          always:
+            # ========================================================
+            # 7. CLEANUP
+            # ========================================================
+            
+            - name: Cleanup temp staging directory
+              file:
+                path: "{{ temp_dir }}"
+                state: absent
+              failed_when: false
+
+            - name: Cleanup temp archive if move failed
+              file:
+                path: "{{ temp_archive }}"
+                state: absent
+              failed_when: false
+              when: move_result is defined and move_result.rc != 0
