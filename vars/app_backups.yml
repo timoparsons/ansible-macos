@@ -386,7 +386,7 @@ app_backup_definitions:
       
       - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
         dest: "resolve/preferences/DaVinci Resolve"
-      
+
       - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve"
         dest: "resolve/application-support"
       
@@ -441,6 +441,9 @@ app_backup_definitions:
       - ".Spotlight-V100"
       - ".localized"
       - ".license"
+      # Exclude UI.preset from preferences folder because it is specific to each machine
+      # Backup and restore Layout Presets per-machine instead
+      - "UI.preset"
 
 
 
@@ -606,7 +609,7 @@ studio_apps_to_backup:
   - resolve
   #- sketchup
   - strongbox
-#  - superwhisper
+  - superwhisper
 #  - tailscale
   - terminal
   - typeface
@@ -640,7 +643,7 @@ laptop_apps_to_backup:
   - raycast
   - resolve
   - strongbox
-#  - superwhisper
+  - superwhisper
 #  - tailscale
   - terminal
   - typeface
