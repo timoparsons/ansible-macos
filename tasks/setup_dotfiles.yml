@@ -29,6 +29,8 @@
     label: "{{ item.src }}"
   when:
     - macos_network_base is defined
+    - dotfiles_check is defined
+    - dotfiles_check.stat is defined
     - dotfiles_check.stat.exists
     - dotfiles_list | length > 0
 
@@ -38,7 +40,10 @@
     missing_dotfiles: "{{ dotfile_exists_check.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
   when:
     - macos_network_base is defined
+    - dotfiles_check is defined
+    - dotfiles_check.stat is defined
     - dotfiles_check.stat.exists
+    - dotfile_exists_check is defined
     - dotfiles_list | length > 0
 
 - name: Display missing dotfiles warning
@@ -62,6 +67,8 @@
     label: "{{ item.src }}"
   when: 
     - macos_network_base is defined
+    - dotfiles_check is defined
+    - dotfiles_check.stat is defined
     - dotfiles_check.stat.exists
     - available_dotfiles is defined
     - available_dotfiles | length > 0
