@@ -3,6 +3,28 @@
 # Baseline macOS settings applied to all machine types
 
 ###############################################################################
+# Remote Access
+###############################################################################
+- name: Check if Remote Login (SSH) is already enabled
+  ansible.builtin.shell: |
+    sudo launchctl list | grep -q com.openssh.sshd && echo "enabled" || echo "disabled"
+  register: ssh_status
+  changed_when: false
+  failed_when: false
+
+- name: Enable Remote Login (SSH server)
+  ansible.builtin.command: launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+  become: true
+  when: ssh_status.stdout == "disabled"
+  register: ssh_enable
+  changed_when: ssh_enable.rc == 0
+  failed_when: ssh_enable.rc != 0 and ssh_enable.rc != 37  # 37 = already loaded
+
+- name: Display Remote Login status
+  debug:
+    msg: "{{ '✅ Remote Login enabled' if ssh_status.stdout == 'disabled' else '✅ Remote Login already enabled' }}"
+    
+###############################################################################
 # General UI/UX
 ###############################################################################
 - name: Expand save and print panels by default
