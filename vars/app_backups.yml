@@ -296,6 +296,25 @@ app_backup_definitions:
       - src: "~/Library/Application Support/Adobe/CameraRaw/Defaults"
         dest: "lightroom/defaults"
 
+  lightroom-catalogs:
+    name: "Lightroom Catalogs"
+    paths:
+      # Main catalogs directory (all catalogs)
+      - src: "~/Pictures/Lightroom"
+        dest: "lightroom-catalogs"
+    
+    exclude:
+      # Exclude large preview files (regenerable)
+      - "*/Previews.lrdata"
+      - "*Previews.lrdata"
+      
+      # Exclude old/redundant backups if you prefer
+      - "Old Lightroom Catalogs"
+      
+      # Exclude temp/lock files
+      - "*.lock"
+      - "*-lock"
+      - "*.tmp"
   
   loop:
     name: "Loop Window Manager"
@@ -350,6 +369,46 @@ app_backup_definitions:
         dest: "neofinder/de.wfs-apps.neofinder.plist"
       - src: "~/Library/Preferences/de.wfs-apps.neofinder.statusBar.plist"
         dest: "neofinder/de.wfs-apps.neofinder.statusBar.plist"
+
+  obsidian:
+    name: "Obsidian"
+    paths:
+      - src: "~/Library/Preferences/md.obsidian.plist"
+        dest: "obsidian/md.obsidian.plist"
+      - src: "~/Library/Application Support/obsidian/obsidian.json"
+        dest: "obsidian/obsidian.json"
+      - src: "~/Library/Application Support/obsidian/Preferences"
+        dest: "obsidian/Preferences"
+      
+      # Plugin settings (may be in LocalStorage)
+      - src: "~/Library/Application Support/obsidian/Local Storage"
+        dest: "obsidian/local-storage"
+      
+      # Optional: IndexedDB (some plugins use this)
+      - src: "~/Library/Application Support/obsidian/IndexedDB"
+        dest: "obsidian/indexeddb"
+  
+  exclude:
+    - "Cache"
+    - "Code Cache"
+    - "GPUCache"
+    - "DawnGraphiteCache"
+    - "DawnWebGPUCache"
+    - "blob_storage"
+    - "Session Storage"
+    - "Cookies*"
+    - "Network Persistent State"
+    - "*.log"
+
+  obsidian-vaults:
+    name: "Obsidian Vaults"
+    paths:
+      - src: "~/Library/Mobile Documents/iCloud~md~obsidian/Documents"
+        dest: "obsidian-vaults/documents"
+    exclude:
+      - ".trash"
+      - ".obsidian/workspace*"  # Workspace is machine-specific
+      - ".obsidian/cache"
 
   offshoot:
     name: "OffShoot"
@@ -595,6 +654,7 @@ studio_apps_to_backup:
   - handbrake
   - ice
   - lightroom
+  - lightroom-catalogs
   - loop
   - lulu
   - marked2
@@ -602,8 +662,9 @@ studio_apps_to_backup:
   - monitorcontrol
   - mqtt-explorer
   - neofinder
+  - obsidian
+  - obsidian-vaults
   - offshoot
-  #- photoshop
   - pronotes
   - raycast
   - resolve
@@ -637,8 +698,8 @@ laptop_apps_to_backup:
   - mediahuman-audio-converter  
   - mqtt-explorer
   - neofinder
+  - obsidian
   - offshoot
-  #- photoshop
   - pronotes
   - raycast
   - resolve
