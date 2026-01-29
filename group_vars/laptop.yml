@@ -57,6 +57,7 @@ laptop_formula_apps:
   - exiftool
   - gnu-tar
   - immich-go
+  - pandoc
   - mkvtoolnix
   - starship
   - tree

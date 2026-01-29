@@ -58,6 +58,7 @@ studio_formula_apps:
   - gnu-tar
   - immich-go
   - mkvtoolnix
+  - pandoc
   - starship
   - tree
 
