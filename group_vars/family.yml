@@ -17,8 +17,10 @@ family_formula_apps:
   # Common (from old common role)
   - dockutil
   - git
+  - gnu-tar  
   - mas
   - zstd
+
 
 # GUI Applications (Brew Casks)
 family_cask_apps:
