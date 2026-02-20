@@ -46,7 +46,7 @@
       block:
         - name: Generate backup paths with unique epoch
           set_fact:
-            backup_filename: "ssh-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst"
+            backup_filename: ssh-{{ ansible_date_time.date }}.tar.zst
             backup_epoch: "{{ ansible_date_time.epoch }}-{{ 999999 | random }}"
 
         - name: Set temp paths
