@@ -8,7 +8,6 @@ set -euo pipefail
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INVENTORY="$SCRIPT_DIR/inventory.ini"
 
 # ── Colours / style ───────────────────────────────────────────────────────────
 export GUM_CHOOSE_CURSOR_FOREGROUND="212"
@@ -69,34 +68,44 @@ prompt_machine() {
 }
 
 # ── Role detection ─────────────────────────────────────────────────────────────
-detect_role() {
-  local hostname
-  hostname="$(hostname -s | tr '[:upper:]' '[:lower:]')"
+ROLE_FILE="$HOME/.mac-setup-role"
 
-  # Match hostname against inventory group names
-  # inventory.ini groups: [studio], [laptop], [editor], [family]
-  for role in studio laptop editor family; do
-    if echo "$hostname" | grep -qi "$role"; then
-      echo "$role"
-      return
-    fi
-  done
-
-  # Fallback: check if inventory has a host entry matching hostname
-  if [[ -f "$INVENTORY" ]]; then
-    for role in studio laptop editor family; do
-      if grep -A5 "^\[$role\]" "$INVENTORY" | grep -qi "$hostname"; then
-        echo "$role"
-        return
-      fi
-    done
+read_role() {
+  if [[ -f "$ROLE_FILE" ]]; then
+    cat "$ROLE_FILE"
+  else
+    echo ""
   fi
+}
 
-  echo ""
+save_role() {
+  local role="$1"
+  echo "$role" > "$ROLE_FILE"
+  gum style --foreground "$MUTED" "  Saved to $ROLE_FILE"
 }
 
 pick_role() {
   gum choose --header "Select machine role:" studio laptop editor family
+}
+
+resolve_role() {
+  local role
+  role=$(read_role)
+
+  header >&2
+  echo "" >&2
+
+  if [[ -n "$role" ]]; then
+    gum style --foreground "$MUTED" "  Role: $(gum style --foreground "$PINK" --bold "$role")  $(gum style --foreground "$MUTED" "(from ~/.mac-setup-role)")" >&2
+    echo "" >&2
+  else
+    gum style --foreground "$MUTED" "  No role set yet for this user." >&2
+    echo "" >&2
+    role=$(pick_role)
+    save_role "$role" >&2
+  fi
+
+  echo "$role"
 }
 
 # ── Submenus ──────────────────────────────────────────────────────────────────
@@ -281,24 +290,9 @@ main() {
   # Change to repo root so relative paths in ansible commands work
   cd "$SCRIPT_DIR"
 
-  # Detect or pick role
+  # Resolve role from dotfile or first-run picker
   local role
-  role=$(detect_role)
-
-  header
-  echo ""
-
-  if [[ -n "$role" ]]; then
-    gum style --foreground "$MUTED" "  Detected role: $(gum style --foreground "$PINK" --bold "$role")"
-    echo ""
-    if ! gum confirm "Use '$role'?"; then
-      role=$(pick_role)
-    fi
-  else
-    gum style --foreground "$MUTED" "  Could not detect role from hostname."
-    echo ""
-    role=$(pick_role)
-  fi
+  role=$(resolve_role)
 
   # Main loop
   while true; do
@@ -319,7 +313,7 @@ main() {
       "  Restore")   menu_restore "$role" ;;
       "  Provision") menu_provision "$role" ;;
       "  Utilities") menu_utilities "$role" ;;
-      "  Switch role") role=$(pick_role) ;;
+      "  Switch role") role=$(pick_role); save_role "$role" ;;
       "  Quit") echo ""; exit 0 ;;
     esac
   done
