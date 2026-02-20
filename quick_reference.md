@@ -26,13 +26,13 @@ Common commands and examples for macOS Ansible provisioning with compressed back
 
 ```bash
 # Backup single app
-ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio -e "apps_list=strongbox"
+ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit studio -e "apps_list=resolve"
 
 # List all files in a backup
-zstd -d -c /Volumes/backup_proxmox/macos/apps/raycast/raycast-studio-20260127.tar.zst | tar -tf -
+zstd -d -c /Volumes/backup_proxmox/macos/apps/resolve/resolve-studio-20260127.tar.zst | tar -tf -
 
 # View manifest with jq (pretty-printed)
-zstd -d -c /Volumes/backup_proxmox/macos/apps/raycast/raycast-studio-20260127.tar.zst | tar -xOf - manifest.json | jq .
+zstd -d -c /Volumes/backup_proxmox/macos/apps/resolve/resolve-studio-20260127.tar.zst | tar -xOf - manifest.json | jq .
 
 ```
 

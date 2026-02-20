@@ -8,12 +8,12 @@
 # ============================================================================
 
 - name: Backup SSH Configuration to Network Volume
-  hosts: studio,laptop
+  hosts: all  # ← Changed from studio,laptop to all
   become: false
   
   vars:
-    backup_base: "{{ macos_network_base }}/ssh"
-    backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    backup_base: "{{ macos_network_base }}/ssh/{{ machine_type }}"
+    backup_timestamp: "{{ ansible_date_time.iso8601_basic_short'] }}"
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -23,14 +23,20 @@
       tags: ['always']
           
   tasks:
-    - name: Display backup summary
+    - name: Verify network volume is mounted
+      stat:
+        path: "{{ macos_network_base }}"
+      register: network_check
+      failed_when: not network_check.stat.exists
+
+    - name: Display backup type based on role
       debug:
         msg: |
-          📦 Backing up SSH keys for {{ machine_type }} machine
-          📁 Destination: {{ backup_base }}/
-          📝 Files to backup: {{ ssh_files | length }}
-          📦 Format: ssh-{{ machine_type }}-{{ ansible_date_time.date }}.tar.zst
-          🔐 Includes private keys ({{ machine_type }} has full SSH access)
+          {% if machine_type in ['studio', 'laptop'] %}
+          🔑 Backing up FULL SSH keys (private + public) for {{ machine_type }}
+          {% else %}
+          🔓 Backing up PUBLIC SSH keys only for {{ machine_type }}
+          {% endif %}
 
     # ========================================================================
     # BACKUP PROCESS
