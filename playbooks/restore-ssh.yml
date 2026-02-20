@@ -1,23 +1,19 @@
 ---
 # ============================================================================
 # File: playbooks/restore-ssh.yml
-# Restore SSH keys from compressed backup with manifest
-# Supports cross-role restoration (e.g., studio → laptop)
-# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit laptop
-# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit laptop -e "restore_from_machine=studio"
+# Restore SSH keys from compressed backup
+# All roles restore from the same backup - ssh_files in group_vars controls
+# which files get applied (full keys for studio/laptop, public only for others)
+# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit studio
+# Usage: ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit family
 # ============================================================================
 
 - name: Restore SSH Configuration from Network Volume
   hosts: all
   become: false
-  
+
   vars:
     backup_base: "{{ macos_network_base }}/ssh"
-    # Allow specifying which machine's backup to restore from
-    # Default behavior:
-    #   - studio/laptop: restore their own (has private keys)
-    #   - editor/family: restore from studio (public keys only from their ssh_files definition)
-    restore_from_machine: "{{ restore_from_machine | default('studio' if machine_type in ['editor', 'family'] else machine_type) }}"
 
   pre_tasks:
     - name: Check required network volumes are mounted
@@ -25,39 +21,27 @@
       vars:
         required_volumes: "{{ required_network_volumes }}"
       tags: ['always']
-          
+
   tasks:
-    - name: Get SSH files to restore for this machine type
-      set_fact:
-        files_to_restore: "{{ ssh_files | default([]) }}"
-    
     - name: Determine if restoring private keys
       set_fact:
-        has_private_keys: "{{ files_to_restore | selectattr('src', 'in', ['id_ed25519', 'id_rsa', 'config']) | list | length > 0 }}"
+        has_private_keys: "{{ ssh_files | selectattr('is_private_key', 'defined') | selectattr('is_private_key') | list | length > 0 }}"
 
     - name: Display restore summary
       debug:
         msg: |
           📥 Restoring SSH files for {{ machine_type }} machine
           📂 Source: {{ backup_base }}/
-          🔄 From backup: {{ restore_from_machine }}
-          📝 Files to restore: {{ files_to_restore | length }}
-          {% if restore_from_machine != machine_type %}
-          ⚠️  Cross-role restore: {{ restore_from_machine }} → {{ machine_type }}
-          {% endif %}
-          {% if has_private_keys %}
-          🔑 Restoring full SSH keys (private + public)
-          {% else %}
-          🔓 Restoring public keys only (for SSH host mode)
-          {% endif %}
+          📝 Files to restore: {{ ssh_files | length }}
+          {{ '🔑 Restoring full SSH keys (private + public)' if has_private_keys else '🔓 Restoring public keys only' }}
 
     # ========================================================================
     # FIND LATEST BACKUP
     # ========================================================================
-    
+
     - name: Find latest backup
       shell: |
-        ls -t "{{ backup_base }}"/ssh-{{ restore_from_machine }}-*.tar.zst 2>/dev/null | head -n 1
+        ls -t "{{ backup_base }}"/ssh-*.tar.zst 2>/dev/null | head -n 1
       register: latest_backup_check
       changed_when: false
       failed_when: false
@@ -70,30 +54,30 @@
     - name: Fail if no backup found
       fail:
         msg: |
-          ❌ No SSH backup found for {{ restore_from_machine }}
+          ❌ No SSH backup found
           
-          Expected format: {{ backup_base }}/ssh-{{ restore_from_machine }}-YYYYMMDD.tar.zst
+          Expected format: {{ backup_base }}/ssh-YYYYMMDD.tar.zst
           
-          Available backups:
+          Available files:
           {{ lookup('pipe', 'ls -1 ' + backup_base + '/*.tar.zst 2>/dev/null || echo "  None found"') }}
       when: latest_backup_check.stdout == ""
 
     # ========================================================================
     # RESTORE PROCESS
     # ========================================================================
-    
+
     - name: Restore SSH keys
       when: backup_archive is defined
       block:
+        - name: Generate unique temp dir
+          set_fact:
+            temp_extract_dir: "/tmp/ansible-restore-ssh-{{ ansible_date_time.epoch }}"
+
         - name: Ensure .ssh directory exists
           file:
             path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
             state: directory
             mode: '0700'
-
-        - name: Generate restore paths
-          set_fact:
-            temp_extract_dir: "/tmp/ansible-restore-ssh-{{ ansible_date_time.epoch }}"
 
         - name: Create temp extraction directory
           file:
@@ -101,80 +85,44 @@
             state: directory
             mode: '0700'
 
-        - name: Extract archive
+        - name: Extract backup archive
           shell: |
             zstd -d -c "{{ backup_archive }}" | tar -xf - -C "{{ temp_extract_dir }}"
-          environment:
-            COPYFILE_DISABLE: "1"
-          register: extract_result
+          changed_when: true
 
-        - name: Display extraction info
-          debug:
-            msg: |
-              📥 Extracted backup: {{ backup_archive | basename }}
-              📁 Temp location: {{ temp_extract_dir }}
-
-        # ====================================================================
-        # READ MANIFEST
-        # ====================================================================
-        
-        - name: Check for manifest file
+        - name: Check for manifest
           stat:
             path: "{{ temp_extract_dir }}/manifest.json"
           register: manifest_check
 
-        - name: Read manifest data
-          slurp:
-            path: "{{ temp_extract_dir }}/manifest.json"
-          register: manifest_data
-          when: manifest_check.stat.exists
-
-        - name: Parse manifest
-          set_fact:
-            manifest: "{{ manifest_data.content | b64decode | from_json }}"
-          when: manifest_check.stat.exists
-
-        - name: Display manifest info
-          debug:
-            msg: |
-              📋 Manifest found:
-                • Version: {{ manifest.manifest_version | default('legacy') }}
-                • Backed up: {{ manifest.backup_date | default('unknown') }}
-                • Source machine: {{ manifest.machine_type | default('unknown') }}
-                • Paths: {{ manifest.paths | length }}
-                • Has private keys: {{ manifest.has_private_keys | default(false) }}
-          when: manifest_check.stat.exists
-
         # ====================================================================
-        # FILTER FILES BASED ON CURRENT MACHINE'S SSH_FILES
+        # MANIFEST-BASED RESTORE
         # ====================================================================
-        
-        - name: Filter manifest to only restore files defined for this machine
-          set_fact:
-            files_to_restore_names: "{{ files_to_restore | map(attribute='src') | list }}"
-          when: manifest_check.stat.exists
 
-        - name: Filter manifest paths
-          set_fact:
-            filtered_manifest_paths: "{{ manifest.paths | selectattr('dest', 'in', files_to_restore_names) | list }}"
-          when: manifest_check.stat.exists
-
-        - name: Display filtered files
-          debug:
-            msg: |
-              📋 Filtered for {{ machine_type }}:
-                • Available in backup: {{ manifest.paths | length }}
-                • Will restore: {{ filtered_manifest_paths | length }}
-                • Skipping: {{ manifest.paths | length - filtered_manifest_paths | length }}
-          when: manifest_check.stat.exists
-
-        # ====================================================================
-        # RESTORE USING MANIFEST
-        # ====================================================================
-        
-        - name: Restore paths from manifest
+        - name: Restore using manifest
           when: manifest_check.stat.exists
           block:
+            - name: Read manifest
+              slurp:
+                src: "{{ temp_extract_dir }}/manifest.json"
+              register: manifest_raw
+
+            - name: Parse manifest
+              set_fact:
+                manifest: "{{ manifest_raw.content | b64decode | from_json }}"
+
+            - name: Filter manifest to files defined for this machine
+              set_fact:
+                filtered_manifest_paths: "{{ manifest.paths | selectattr('dest', 'in', (ssh_files | map(attribute='src') | list)) | list }}"
+
+            - name: Display filtered files
+              debug:
+                msg: |
+                  📋 Filtered for {{ machine_type }}:
+                    • Available in backup: {{ manifest.paths | length }}
+                    • Will restore: {{ filtered_manifest_paths | length }}
+                    • Skipping: {{ manifest.paths | length - filtered_manifest_paths | length }}
+
             - name: Restore each SSH file
               include_tasks: ../tasks/restore_ssh_file_from_manifest.yml
               loop: "{{ filtered_manifest_paths }}"
@@ -187,19 +135,17 @@
         # ====================================================================
         # FALLBACK: LEGACY RESTORE
         # ====================================================================
-        
+
         - name: Legacy restore without manifest
           when: not manifest_check.stat.exists
           block:
             - name: Warn about legacy restore
               debug:
-                msg: |
-                  ⚠️  No manifest found - using legacy restore method
-                  This backup was created before manifest support
+                msg: "⚠️  No manifest found - using legacy restore method"
 
             - name: Restore SSH files using definition
               include_tasks: ../tasks/restore_ssh_file_legacy.yml
-              loop: "{{ files_to_restore }}"
+              loop: "{{ ssh_files }}"
               loop_control:
                 loop_var: ssh_item
                 label: "{{ ssh_item.dest }}"
@@ -207,9 +153,9 @@
                 source_dir: "{{ temp_extract_dir }}"
 
         # ====================================================================
-        # SET CORRECT PERMISSIONS
+        # PERMISSIONS
         # ====================================================================
-        
+
         - name: Ensure correct permissions on .ssh directory
           file:
             path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
@@ -220,24 +166,17 @@
         # ====================================================================
         # COMPLETION
         # ====================================================================
-        
+
         - name: Display completion message
           debug:
             msg: |
               ✅ SSH keys restored!
               📦 From: {{ backup_archive | basename }}
               🔄 Method: {{ 'Manifest-based' if manifest_check.stat.exists else 'Legacy' }}
-              📝 Restored: {{ filtered_manifest_paths | default(files_to_restore) | length }} files
-              {% if restore_from_machine != machine_type %}
-              🔄 Cross-role: {{ restore_from_machine }} → {{ machine_type }}
-              {% endif %}
-              🔒 Permissions have been set correctly
+              📝 Restored: {{ filtered_manifest_paths | default(ssh_files) | length }} files
+              🔒 Permissions set correctly
 
       always:
-        # ====================================================================
-        # CLEANUP
-        # ====================================================================
-        
         - name: Cleanup temp extraction directory
           file:
             path: "{{ temp_extract_dir }}"

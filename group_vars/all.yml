@@ -22,7 +22,7 @@ backup_create_timestamped: false  # Set to true for versioned backups
 # ============================================================================
 # All machines get public keys from studio backup for SSH access
 # Studio machine overrides this in group_vars to include private keys
-ssh_source_base: "{{ macos_network_base }}/ssh/studio"
+ssh_source_base: "{{ macos_network_base }}/ssh"
 
 ssh_files:
   - { src: "id_ed25519.pub", dest: "id_ed25519.pub", mode: '0644' }
