@@ -504,6 +504,119 @@ app_backup_definitions:
       # Backup and restore Layout Presets per-machine instead
       - "UI.preset"
 
+# ============================================================================
+# DaVinci Resolve — Granular Sub-Keys
+# ============================================================================
+
+  resolve-user-prefs:
+    name: "DaVinci Resolve User Preferences"
+    paths:
+      # Application plist — stores general prefs, some UI state.
+      # Window positions may need adjustment on different monitor setups.
+      - src: "~/Library/Preferences/com.blackmagic-design.DaVinciResolve.plist"
+        dest: "resolve-user-prefs/com.blackmagic-design.DaVinciResolve.plist"
+
+      # Main preferences directory — config.dat, config.user.xml, keyboard
+      # presets, smart bins/filters, metadata presets, UI preset etc.
+      - src: "~/Library/Preferences/Blackmagic Design/DaVinci Resolve"
+        dest: "resolve-user-prefs/DaVinci Resolve"
+    exclude:
+      - "Cache"
+      - "Caches"
+      - "*/Cache"
+      - "*/Caches"
+      - "Logs"
+      - "logs"
+      - "*.log"
+      - "*Log*"
+      - ".DS_Store"
+      - ".localized"
+      # UI preset is monitor/layout specific — restore Layout Presets manually
+      - "UI.preset"
+
+
+  resolve-settings:
+    name: "DaVinci Resolve Shared Settings"
+    paths:
+      # Shared settings folder — Deliver Presets, Project Settings,
+      # Keyboard Settings. These are imported manually into Resolve
+      # via the menus rather than taking effect on file copy alone.
+      - src: "/Users/Shared/Resolve/Resolve Settings"
+        dest: "resolve-settings/Resolve Settings"
+    exclude:
+      - ".DS_Store"
+      - ".localized"
+      - "*.log"
+
+
+  resolve-luts:
+    name: "DaVinci Resolve LUTs"
+    paths:
+      - src: "/Users/Shared/Resolve/LUT"
+        dest: "resolve-luts/LUT"
+    exclude:
+      - ".DS_Store"
+      - ".localized"
+      # Exclude the hidden LUT cache directory
+      - ".LUT"
+
+
+  resolve-fusion:
+    name: "DaVinci Resolve Fusion & Workflow Plugins"
+    paths:
+      # System-wide Fusion scripts, templates, macros
+      - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
+        dest: "resolve-fusion/system-fusion"
+
+      # System-wide Workflow Integration Plugins
+      - src: "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins"
+        dest: "resolve-fusion/workflow-plugins"
+
+      # User-level Fusion — custom scripts, macros, templates per user.
+      # Nested under Application Support but only this subfolder is needed.
+      - src: "~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
+        dest: "resolve-fusion/user-fusion"
+    exclude:
+      - "Cache"
+      - "Caches"
+      - "*/Cache"
+      - "*/Caches"
+      - ".DS_Store"
+      - ".localized"
+      - "*.log"
+      - "__pycache__"
+
+
+  resolve-plugins:
+    name: "DaVinci Resolve Plugins & FX"
+    paths:
+      # OFX plugins (system-wide, requires sudo)
+      - src: "/Library/OFX/Plugins"
+        dest: "resolve-plugins/ofx-plugins"
+
+      # VST audio plugins (system-wide, requires sudo)
+      - src: "/Library/Audio/Plug-Ins/VST"
+        dest: "resolve-plugins/vst"
+
+      # VST3 audio plugins (system-wide, requires sudo)
+      - src: "/Library/Audio/Plug-Ins/VST3"
+        dest: "resolve-plugins/vst3"
+
+      # Audio Unit components (system-wide, requires sudo)
+      - src: "/Library/Audio/Plug-Ins/Components"
+        dest: "resolve-plugins/components"
+
+      # FX — shared, no sudo required
+      - src: "/Users/Shared/Resolve/FX"
+        dest: "resolve-plugins/fx"
+    exclude:
+      # Apple-supplied system plugins — not user-installed
+      - "Apple*"
+      # ASAF spatial audio system plugins
+      - "ASAF*"
+      - ".DS_Store"
+      - ".localized"
+      - "*.log"
 
 
   sketchup:
@@ -667,7 +780,12 @@ studio_apps_to_backup:
   - offshoot
   - pronotes
   - raycast
-  - resolve
+  - resolve                  # monolithic — retained during transition
+  - resolve-user-prefs
+  - resolve-settings
+  - resolve-luts
+  - resolve-fusion
+  - resolve-plugins
   #- sketchup
   - strongbox
   - superwhisper
@@ -685,7 +803,6 @@ laptop_apps_to_backup:
   - automounter
   - bloom
   - carbon-copy-cloner
-#  - crossover
   - downie
   - eagle
   #- github-desktop
@@ -695,14 +812,19 @@ laptop_apps_to_backup:
   - loop
   - lulu
   - marked2
-  - mediahuman-audio-converter  
+  - mediahuman-audio-converter
   - mqtt-explorer
   - neofinder
   - obsidian
   - offshoot
   - pronotes
   - raycast
-  - resolve
+  - resolve                  # monolithic — retained during transition
+  - resolve-user-prefs
+  - resolve-settings
+  - resolve-luts
+  - resolve-fusion
+  - resolve-plugins
   - strongbox
   - superwhisper
 #  - tailscale
@@ -722,7 +844,12 @@ editor_apps_to_backup:
   - mediahuman-audio-converter
   - neofinder
   - offshoot
-  - resolve
+  - resolve                  # monolithic — retained during transition
+  - resolve-user-prefs
+  - resolve-settings
+  - resolve-luts
+  - resolve-fusion
+  - resolve-plugins
 #  - tailscale
 
 # Fonts  
@@ -731,3 +858,7 @@ editor_apps_to_backup:
 
 # Family machine minimal
 family_apps_to_backup: []
+
+
+
+
