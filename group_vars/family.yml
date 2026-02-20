@@ -27,6 +27,7 @@ family_formula_apps:
 family_cask_apps:
   # Common (from old common role)
   - bloom
+  - ghostty
   - jordanbaird-ice
   - loop
   - spotify

@@ -108,6 +108,52 @@ resolve_role() {
   echo "$role"
 }
 
+# ── Inspect backup helper ─────────────────────────────────────────────────────
+# Usage: inspect_backup <backup_dir> <role> [ssh]
+# For app backups, pass the full app dir e.g. .../apps/terminal
+# For dotfiles, pass parent dir — finds role-specific file e.g. dotfiles-studio-YYYYMMDD.tar.zst
+# For ssh, pass parent dir — finds any .tar.zst (no role in filename)
+inspect_backup() {
+  local backup_dir="$1"
+  local role="$2"
+  local mode="${3:-}"
+
+  if [[ ! -d "$backup_dir" ]]; then
+    echo ""
+    gum style --foreground "196" "  ✗ No backup folder found: $backup_dir"
+    echo ""
+    gum input --placeholder "Press enter to continue…" > /dev/null || true
+    return
+  fi
+
+  # SSH has no role in filename, dotfiles/apps do
+  local latest
+  if [[ "$mode" == "ssh" ]]; then
+    latest=$(ls -t "$backup_dir"/*.tar.zst 2>/dev/null | head -1)
+  else
+    latest=$(ls -t "$backup_dir"/*-"$role"-*.tar.zst 2>/dev/null | head -1)
+  fi
+
+  if [[ -z "$latest" ]]; then
+    echo ""
+    gum style --foreground "196" "  ✗ No .tar.zst files found in $backup_dir"
+    echo ""
+    gum input --placeholder "Press enter to continue…" > /dev/null || true
+    return
+  fi
+
+  echo ""
+  gum style --foreground "$MUTED" "  Most recent: $(basename "$latest")"
+  echo ""
+  gum confirm "List contents?" || return
+  echo ""
+  zstd -d -c "$latest" | tar -tf - | sort
+  echo ""
+  gum style --foreground "$PINK" "✓ Done"
+  echo ""
+  gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+}
+
 # ── Submenus ──────────────────────────────────────────────────────────────────
 menu_backup() {
   local role="$1"
@@ -157,11 +203,9 @@ menu_restore() {
     choice=$(gum choose \
       "Restore everything" \
       "Restore specific apps…" \
+      "Restore specific apps from another machine…" \
       "Restore SSH keys" \
       "Restore dotfiles" \
-      "Restore SSH from different machine…" \
-      "Restore dotfiles from different machine…" \
-      "Restore apps from different machine…" \
       "── Back")
 
     case "$choice" in
@@ -175,23 +219,17 @@ ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\""
         ;;
+      "Restore specific apps from another machine…")
+        local apps; apps=$(prompt_apps)
+        [[ -z "$apps" ]] && continue
+        local from; from=$(prompt_machine)
+        run_cmd "ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\" -e \"restore_from_machine=$from\""
+        ;;
       "Restore SSH keys")
         run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role"
         ;;
       "Restore dotfiles")
         run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
-        ;;
-      "Restore SSH from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
-        ;;
-      "Restore dotfiles from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
-        ;;
-      "Restore apps from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
         ;;
       "── Back") break ;;
     esac
@@ -263,6 +301,9 @@ menu_utilities() {
       "Check playbook syntax" \
       "List available tags" \
       "List recent backups" \
+      "Inspect app backup…" \
+      "Inspect dotfiles backup" \
+      "Inspect SSH backup" \
       "── Back")
 
     case "$choice" in
@@ -277,6 +318,18 @@ menu_utilities() {
         ;;
       "List recent backups")
         run_cmd "ls -lht /Volumes/backup_proxmox/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
+        ;;
+      "Inspect app backup…")
+        local app
+        app=$(gum input --placeholder "app name  e.g. terminal" --prompt "> " --width 40)
+        [[ -z "$app" ]] && continue
+        inspect_backup "/Volumes/backup_proxmox/macos/apps/$app" "$role"
+        ;;
+      "Inspect dotfiles backup")
+        inspect_backup "/Volumes/backup_proxmox/macos/dotfiles" "$role"
+        ;;
+      "Inspect SSH backup")
+        inspect_backup "/Volumes/backup_proxmox/macos/ssh" "$role" "ssh"
         ;;
       "── Back") break ;;
     esac

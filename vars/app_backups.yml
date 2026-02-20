@@ -244,6 +244,13 @@ app_backup_definitions:
     exclude:
       - "Cache"  
 
+  ghostty:
+    name: "Ghostty"
+    paths:
+      - src: "~/.config/ghostty/config"
+        dest: "ghostty/config"
+
+
 #  github-desktop:
 #    name: "GitHub Desktop"
 #    paths:
@@ -763,6 +770,7 @@ studio_apps_to_backup:
   - crossover
   - downie
   - eagle
+  - ghostty
   #- github-desktop
   - handbrake
   - ice
@@ -805,6 +813,7 @@ laptop_apps_to_backup:
   - carbon-copy-cloner
   - downie
   - eagle
+  - ghostty
   #- github-desktop
   - handbrake
   - ice
@@ -840,6 +849,7 @@ laptop_apps_to_backup:
 editor_apps_to_backup:
   - automounter
   - eagle
+  - ghostty
   - handbrake
   - mediahuman-audio-converter
   - neofinder
