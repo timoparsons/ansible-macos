@@ -56,6 +56,7 @@ laptop_formula_apps:
   # laptop-specific
   - exiftool
   - gnu-tar
+  - gum
   - immich-go
   - pandoc
   - mkvtoolnix

@@ -19,6 +19,7 @@ editor_formula_apps:
   - dockutil
   - git
   - gnu-tar  
+  - gum
   - mas
   - zstd
   # editor-specific

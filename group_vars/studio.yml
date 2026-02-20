@@ -57,6 +57,7 @@ studio_formula_apps:
   # Studio specific
   - exiftool
   - gnu-tar
+  - gum
   - immich-go
   - mkvtoolnix
   - pandoc

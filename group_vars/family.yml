@@ -18,6 +18,7 @@ family_formula_apps:
   - dockutil
   - git
   - gnu-tar  
+  - gum
   - mas
   - zstd
 
