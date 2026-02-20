@@ -157,11 +157,9 @@ menu_restore() {
     choice=$(gum choose \
       "Restore everything" \
       "Restore specific apps…" \
+      "Restore specific apps from another machine…" \
       "Restore SSH keys" \
       "Restore dotfiles" \
-      "Restore SSH from different machine…" \
-      "Restore dotfiles from different machine…" \
-      "Restore apps from different machine…" \
       "── Back")
 
     case "$choice" in
@@ -175,23 +173,17 @@ ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\""
         ;;
+      "Restore specific apps from another machine…")
+        local apps; apps=$(prompt_apps)
+        [[ -z "$apps" ]] && continue
+        local from; from=$(prompt_machine)
+        run_cmd "ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\" -e \"restore_from_machine=$from\""
+        ;;
       "Restore SSH keys")
         run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role"
         ;;
       "Restore dotfiles")
         run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
-        ;;
-      "Restore SSH from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
-        ;;
-      "Restore dotfiles from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
-        ;;
-      "Restore apps from different machine…")
-        local from; from=$(prompt_machine)
-        run_cmd "ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
         ;;
       "── Back") break ;;
     esac
