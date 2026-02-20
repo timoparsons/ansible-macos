@@ -34,19 +34,19 @@
   roles:
     - role: studio
       when: machine_type == 'studio'
-      tags: ['studio', 'apps', 'config']
+      tags: ['studio']
       
     - role: laptop
       when: machine_type == 'laptop'
-      tags: ['laptop', 'apps', 'config']
+      tags: ['laptop']
 
     - role: editor
       when: machine_type == 'editor' 
-      tags: ['editor', 'apps', 'config']
+      tags: ['editor']
       
     - role: family
       when: machine_type == 'family'
-      tags: ['family', 'apps', 'config']
+      tags: ['family']
 
 
 
