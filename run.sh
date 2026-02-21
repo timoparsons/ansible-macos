@@ -304,6 +304,7 @@ menu_utilities() {
       "Inspect app backup…" \
       "Inspect dotfiles backup" \
       "Inspect SSH backup" \
+      "Mount network volume" \
       "Refresh repo from GitHub" \
       "── Back")
 
@@ -331,6 +332,37 @@ menu_utilities() {
         ;;
       "Inspect SSH backup")
         inspect_backup "/Volumes/backup_proxmox/macos/ssh" "$role" "ssh"
+        ;;
+      "Mount network volume")
+        echo ""
+        if mount | grep -q "/Volumes/backup_proxmox"; then
+          gum style --foreground "$PINK" "  ✓ Volume already mounted at /Volumes/backup_proxmox"
+          echo ""
+          gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+          continue
+        fi
+        gum style --foreground "$MUTED" "  Attempting mount without credentials…"
+        echo ""
+        if open "smb://10.1.1.10/backup_proxmox" 2>/dev/null && sleep 2 && mount | grep -q "/Volumes/backup_proxmox"; then
+          gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
+        else
+          gum style --foreground "$MUTED" "  Credentials required."
+          echo ""
+          local smb_user smb_pass
+          smb_user=$(gum input --placeholder "username" --prompt "  User: " --width 40)
+          [[ -z "$smb_user" ]] && continue
+          smb_pass=$(gum input --placeholder "password" --prompt "  Pass: " --width 40 --password)
+          [[ -z "$smb_pass" ]] && continue
+          echo ""
+          mkdir -p /Volumes/backup_proxmox
+          if mount_smbfs "//${smb_user}:${smb_pass}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox; then
+            gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
+          else
+            gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
+          fi
+        fi
+        echo ""
+        gum input --placeholder "Press enter to return to menu…" > /dev/null || true
         ;;
       "Refresh repo from GitHub")
         echo ""
