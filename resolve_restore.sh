@@ -317,9 +317,11 @@ PYEOF
 extract_selected() {
   TEMP_DIR=$(mktemp -d /tmp/resolve_restore.XXXXXX)
 
-  gum spin --title "Extracting archive…" --spinner dot -- \
-    zsh -c "zstd -d -c ${(q)ARCHIVE} | tar -xf - -C ${(q)TEMP_DIR}" \
-    2>/dev/null || true
+  # Run extraction directly (not in a gum spin subshell) so TEMP_DIR is visible
+  # to restore_entry. Progress is shown via a simple message instead.
+  gum style --foreground "$MUTED" "  Extracting archive…"
+  zstd -d -c "$ARCHIVE" | tar -xf - -C "$TEMP_DIR" 2>/dev/null || true
+  gum style --foreground "$PINK" "  ✓ Extracted"
 }
 
 # ── Restore a single entry ────────────────────────────────────────────────────
