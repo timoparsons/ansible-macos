@@ -335,8 +335,7 @@ restore_entry() {
     dest_abs="$src"
   fi
 
-  # archive extracts as ./resolve/... — TEMP_DIR/./resolve/resolve-settings etc.
-  local source_path="${TEMP_DIR}/./${dest}"
+  local source_path="${TEMP_DIR}/${dest}"
 
   if [[ ! -e "$source_path" ]]; then
     gum style --foreground "$MUTED" "    ⚠  not in archive: $dest"
