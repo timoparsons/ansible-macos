@@ -32,10 +32,7 @@ RESOLVE_SUBPATH="macos/apps/resolve"
 # Files and folders within the DaVinci Resolve preferences directory that will
 # NOT be restored. Add to this list to block machine-specific or volatile state.
 # Globs are supported (rsync --exclude syntax).
-PREFS_EXCLUDE=(
-  ".credentials"       # machine-specific auth tokens
-  ".update"            # update state — machine-specific
-)
+PREFS_EXCLUDE=()
 
 # ── Colours / style ───────────────────────────────────────────────────────────
 export GUM_CHOOSE_CURSOR_FOREGROUND="212"
@@ -375,10 +372,10 @@ restore_entry() {
     fi
     if [[ "$needs_sudo" == "1" ]]; then
       sudo mkdir -p "$dest_abs"
-      sudo rsync -a --no-owner --no-group $excl_flags "$source_path/" "$dest_abs/"
+      sudo rsync -a --ignore-times --no-owner --no-group $excl_flags "$source_path/" "$dest_abs/"
     else
       mkdir -p "$dest_abs"
-      rsync -a --no-owner --no-group $excl_flags "$source_path/" "$dest_abs/"
+      rsync -a --ignore-times --no-owner --no-group $excl_flags "$source_path/" "$dest_abs/"
     fi
   fi
 }
