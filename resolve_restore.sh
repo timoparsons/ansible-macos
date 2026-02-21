@@ -310,38 +310,15 @@ PYEOF
   done <<< "$raw"
 }
 
-# ── Selective extraction ───────────────────────────────────────────────────────
-# Streams the archive a second time, pulling only the dest paths for the
-# chosen categories. tar exits non-zero if a pattern matches nothing — that's
-# fine, restore_entry handles missing paths gracefully.
+# ── Extraction ──────────────────────────────────────────────────────────────────────────────
+# BSD tar (macOS) does not reliably support wildcard path filtering, so we
+# extract the full archive into a temp dir and let restore_entry copy only the
+# paths belonging to the selected categories.
 extract_selected() {
-  local selected_keys=("$@")
-
   TEMP_DIR=$(mktemp -d /tmp/resolve_restore.XXXXXX)
 
-  local patterns=()
-  for key in $selected_keys; do
-    local paths="${CAT_PATHS[$key]:-}"
-    while IFS='|' read -r src dest sudo_ is_file; do
-      [[ -z "$dest" ]] && continue
-      patterns+=("$dest")
-    done <<< "$paths"
-  done
-
-  if [[ ${#patterns[@]} -eq 0 ]]; then
-    gum style --foreground "196" "✗ No paths to extract."
-    exit 1
-  fi
-
-  # tar stores paths as ./resolve/... so prefix each pattern with ./
-  # and add a wildcard so directory contents are included
-  local -a prefixed=()
-  for p in $patterns; do
-    prefixed+=("./${p}" "./${p}/*")
-  done
-
-  gum spin --title "Extracting selected settings…" --spinner dot -- \
-    zsh -c "zstd -d -c ${(q)ARCHIVE} | tar -xf - -C ${(q)TEMP_DIR} --wildcards ${(q)prefixed[@]}" \
+  gum spin --title "Extracting archive…" --spinner dot -- \
+    zsh -c "zstd -d -c ${(q)ARCHIVE} | tar -xf - -C ${(q)TEMP_DIR}" \
     2>/dev/null || true
 }
 
@@ -358,9 +335,8 @@ restore_entry() {
     dest_abs="$src"
   fi
 
-  # tar extracts with a leading ./ so check both paths
-  local source_path="${TEMP_DIR}/${dest}"
-  [[ ! -e "$source_path" ]] && source_path="${TEMP_DIR}/./${dest}"
+  # archive extracts as ./resolve/... — TEMP_DIR/./resolve/resolve-settings etc.
+  local source_path="${TEMP_DIR}/./${dest}"
 
   if [[ ! -e "$source_path" ]]; then
     gum style --foreground "$MUTED" "    ⚠  not in archive: $dest"
