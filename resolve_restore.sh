@@ -34,8 +34,7 @@ RESOLVE_SUBPATH="macos/apps/resolve"
 # Globs are supported (rsync --exclude syntax).
 PREFS_EXCLUDE=(
   ".credentials"       # machine-specific auth tokens
-  ".update"    
-  ".version"        # update state — machine-specific
+  ".update"            # update state — machine-specific
 )
 
 # ── Colours / style ───────────────────────────────────────────────────────────
@@ -334,8 +333,15 @@ extract_selected() {
     exit 1
   fi
 
+  # tar stores paths as ./resolve/... so prefix each pattern with ./
+  # and add a wildcard so directory contents are included
+  local -a prefixed=()
+  for p in $patterns; do
+    prefixed+=("./${p}" "./${p}/*")
+  done
+
   gum spin --title "Extracting selected settings…" --spinner dot -- \
-    zsh -c "zstd -d -c ${(q)ARCHIVE} | tar -xf - -C ${(q)TEMP_DIR} ${(q)patterns[@]}" \
+    zsh -c "zstd -d -c ${(q)ARCHIVE} | tar -xf - -C ${(q)TEMP_DIR} --wildcards ${(q)prefixed[@]}" \
     2>/dev/null || true
 }
 
@@ -352,7 +358,9 @@ restore_entry() {
     dest_abs="$src"
   fi
 
+  # tar extracts with a leading ./ so check both paths
   local source_path="${TEMP_DIR}/${dest}"
+  [[ ! -e "$source_path" ]] && source_path="${TEMP_DIR}/./${dest}"
 
   if [[ ! -e "$source_path" ]]; then
     gum style --foreground "$MUTED" "    ⚠  not in archive: $dest"
