@@ -69,8 +69,7 @@
     # ========================================================================
     
     - name: Configure login items
-      include_tasks: tasks/configure_login_items.yml
-      when: configure_login_items | default(true)
+      import_tasks: tasks/configure_login_items.yml
       tags: ['login_items', 'config']
 
     # ========================================================================
@@ -84,7 +83,7 @@
       when: 
         - restore_app_settings | default(true)
         - macos_network_base is defined
-      tags: ['restore', 'config']
+      tags: ['restore']
 
     - name: Check if app settings backup exists
       stat:
@@ -93,7 +92,7 @@
       when: 
         - restore_app_settings | default(true)
         - macos_network_base is defined
-      tags: ['restore', 'config']
+      tags: ['restore']
     
     - name: Load app backup definitions
       include_vars:
@@ -101,7 +100,7 @@
       when:
         - restore_app_settings | default(true)
         - macos_network_base is defined
-      tags: ['restore', 'config']
+      tags: ['restore']
     
     - name: Restore settings for installed apps only
       include_tasks: tasks/restore_app_if_exists.yml
@@ -116,7 +115,7 @@
         - app_backup_check.stat.exists | default(false)
         - macos_network_base is defined
         - not ansible_check_mode  
-      tags: ['restore', 'config']
+      tags: ['restore']
 
     # ========================================================================
     # COMPLETION MESSAGE

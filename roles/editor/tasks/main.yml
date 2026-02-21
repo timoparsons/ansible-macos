@@ -86,8 +86,7 @@
 # ============================================================================
 
 - name: Setup SSH keys
-  include_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
-  when: ssh_files is defined and ssh_files | length > 0
+  import_tasks: "{{ playbook_dir }}/tasks/setup_ssh.yml"
   tags: ['ssh', 'config']
 
 # ============================================================================
@@ -95,8 +94,7 @@
 # ============================================================================
 
 - name: Setup dotfiles
-  include_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
-  when: macos_network_base is defined
+  import_tasks: "{{ playbook_dir }}/tasks/setup_dotfiles.yml"
   tags: ['dotfiles', 'config']
 
 # ============================================================================
@@ -104,5 +102,5 @@
 # ============================================================================
 
 - name: Apply baseline macOS settings
-  include_tasks: "{{ playbook_dir }}/tasks/macos_baseline_settings.yml"
+  import_tasks: "{{ playbook_dir }}/tasks/macos_baseline_settings.yml"
   tags: ['macos_defaults', 'config']
