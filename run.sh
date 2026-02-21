@@ -277,7 +277,7 @@ list_missing_apps() {
     if $in_mas_block && [[ "$line" =~ id:[[:space:]]*([0-9]+) ]]; then
       local mas_id="${BASH_REMATCH[1]}"
       local mas_name
-      mas_name=$(echo "$line" | grep -oP "name:[[:space:]]*'\K[^']+")
+      mas_name=$(echo "$line" | sed "s/.*name:[[:space:]]*['\"]//;s/['\"].*//")
       if [[ -n "$mas_id" ]] && ! echo "$installed_mas" | grep -qx "$mas_id"; then
         mas_missing+=("$mas_name ($mas_id)")
       fi
