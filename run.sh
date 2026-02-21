@@ -376,6 +376,23 @@ menu_utilities() {
   done
 }
 
+# ── Auto-mount network volume ─────────────────────────────────────────────────
+mount_network_volume() {
+  if mount | grep -q "/Volumes/backup_proxmox"; then
+    return 0
+  fi
+  open "smb://10.1.1.10/backup_proxmox" 2>/dev/null
+  local i=0
+  while [[ $i -lt 15 ]]; do
+    sleep 1
+    if mount | grep -q "/Volumes/backup_proxmox"; then
+      return 0
+    fi
+    (( i++ ))
+  done
+  return 1
+}
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
   check_deps
@@ -386,6 +403,17 @@ main() {
   # Resolve role from dotfile or first-run picker
   local role
   role=$(resolve_role)
+
+  # Attempt to mount network volume in the background
+  header >&2
+  echo "" >&2
+  gum style --foreground "$MUTED" "  Connecting to network volume…" >&2
+  if mount_network_volume; then
+    gum style --foreground "$PINK" "  ✓ Network volume mounted" >&2
+  else
+    gum style --foreground "196" "  ✗ Could not mount network volume — use Utilities → Mount if needed" >&2
+  fi
+  sleep 1
 
   # Main loop
   while true; do
