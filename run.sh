@@ -9,14 +9,24 @@ set -euo pipefail
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOME_MOUNT="$HOME/mnt/backup_proxmox"
+VOLUMES_MOUNT="/Volumes/backup_proxmox"
+
+# Returns the active mount base path, preferring /Volumes then ~/mnt
+active_mount() {
+  if mount | grep -q "$VOLUMES_MOUNT"; then
+    echo "$VOLUMES_MOUNT"
+  elif mount | grep -q "$HOME_MOUNT"; then
+    echo "$HOME_MOUNT"
+  else
+    echo "$VOLUMES_MOUNT"  # default, will fail gracefully if not mounted
+  fi
+}
 
 # ── Cleanup on exit ───────────────────────────────────────────────────────────
 cleanup() {
   if mount | grep -q "$HOME_MOUNT"; then
     diskutil unmount "$HOME_MOUNT" 2>/dev/null       || umount "$HOME_MOUNT" 2>/dev/null       || true
   fi
-  # Only remove dir/symlink if we mounted it ourselves (not /Volumes)
-  [[ -L "$MOUNT_POINT" ]] && rm -f "$MOUNT_POINT" 2>/dev/null || true
   rmdir "$HOME_MOUNT" 2>/dev/null || true
   rmdir "$HOME/mnt" 2>/dev/null || true
 }
@@ -335,19 +345,19 @@ menu_utilities() {
         run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --list-tags"
         ;;
       "List recent backups")
-        run_cmd "ls -lht $MOUNT_POINT/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
+        run_cmd "ls -lht $(active_mount)/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
         ;;
       "Inspect app backup…")
         local app
         app=$(gum input --placeholder "app name  e.g. terminal" --prompt "> " --width 40)
         [[ -z "$app" ]] && continue
-        inspect_backup "$MOUNT_POINT/macos/apps/$app" "$role"
+        inspect_backup "$(active_mount)/macos/apps/$app" "$role"
         ;;
       "Inspect dotfiles backup")
-        inspect_backup "$MOUNT_POINT/macos/dotfiles" "$role"
+        inspect_backup "$(active_mount)/macos/dotfiles" "$role"
         ;;
       "Inspect SSH backup")
-        inspect_backup "$MOUNT_POINT/macos/ssh" "$role" "ssh"
+        inspect_backup "$(active_mount)/macos/ssh" "$role" "ssh"
         ;;
       "Mount network volume")
         echo ""
@@ -369,10 +379,6 @@ menu_utilities() {
         mkdir -p "$actual_mount"
         if mount_smbfs "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" "$actual_mount"; then
           gum style --foreground "$PINK" "  ✓ Mounted at $actual_mount"
-          # Attempt symlink /Volumes/backup_proxmox -> ~/mnt/backup_proxmox (may fail under SIP)
-          if [[ ! -e "$MOUNT_POINT" ]]; then
-            ln -sf "$actual_mount" "$MOUNT_POINT" 2>/dev/null               && gum style --foreground "$MUTED" "  ✓ Symlinked at $MOUNT_POINT"               || gum style --foreground "$MUTED" "  Note: could not symlink to $MOUNT_POINT (SIP) — using $actual_mount"
-          fi
         else
           gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
           rmdir "$actual_mount" 2>/dev/null || true
@@ -416,8 +422,6 @@ menu_utilities() {
     esac
   done
 }
-
-MOUNT_POINT="/Volumes/backup_proxmox"
 
 # ── Auto-mount network volume ─────────────────────────────────────────────────
 mount_network_volume() {
