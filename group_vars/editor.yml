@@ -31,6 +31,7 @@ editor_cask_apps:
   - affinity
   - appcleaner
   - bloom
+  - ghostty
   - jordanbaird-ice
   - loop
   - vlc
