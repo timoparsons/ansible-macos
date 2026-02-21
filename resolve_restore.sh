@@ -391,14 +391,14 @@ restore_category() {
   while IFS='|' read -r src dest sudo_ is_file; do
     [[ -z "$src" ]] && continue
     if restore_entry "$src" "$dest" "$sudo_" "$is_file" 2>/dev/null; then
-      (( ok++ ))
+      (( ++ok ))
     else
-      (( fail++ ))
+      (( ++fail ))
       gum style --foreground "196" "  ✗ Failed: $dest"
     fi
   done <<< "$paths"
 
-  if (( fail == 0 )); then
+  if [[ $fail -eq 0 ]]; then
     gum style --foreground "$PINK" \
       "  ✓ $label $(gum style --foreground "$MUTED" "(${ok} item(s))")"
   else
@@ -410,7 +410,7 @@ restore_category() {
 # ── Check if a selection needs sudo ──────────────────────────────────────────
 selection_needs_sudo() {
   local keys=("$@")
-  for key in $keys; do
+  for key in "${keys[@]}"; do
     local paths="${CAT_PATHS[$key]:-}"
     if echo "$paths" | awk -F'|' '$3=="1"{found=1} END{exit !found}' 2>/dev/null; then
       return 0
@@ -422,7 +422,7 @@ selection_needs_sudo() {
 # ── Selection → confirm → extract → restore ───────────────────────────────────
 run_selection_menu() {
   local available_keys=()
-  for key in $CATEGORY_KEYS; do
+  for key in "${CATEGORY_KEYS[@]}"; do
     [[ -n "${CAT_PRESENT[$key]:-}" ]] && available_keys+=("$key")
   done
 
@@ -433,7 +433,7 @@ run_selection_menu() {
   fi
 
   local display_items=()
-  for key in $available_keys; do
+  for key in "${available_keys[@]}"; do
     display_items+=("${CATEGORY_LABELS[$key]}")
   done
 
@@ -455,7 +455,7 @@ run_selection_menu() {
   # Map chosen display labels back to category keys
   local selected_keys=()
   while IFS= read -r label; do
-    for key in $available_keys; do
+    for key in "${available_keys[@]}"; do
       if [[ "${CATEGORY_LABELS[$key]}" == "$label" ]]; then
         selected_keys+=("$key")
         break
@@ -472,11 +472,11 @@ run_selection_menu() {
   echo ""
   gum style --foreground "$PINK" --bold "  Ready to restore:"
   echo ""
-  for key in $selected_keys; do
+  for key in "${selected_keys[@]}"; do
     gum style --foreground "$MUTED" "     • ${CATEGORY_LABELS[$key]}"
   done
 
-  if selection_needs_sudo $selected_keys; then
+  if selection_needs_sudo "${selected_keys[@]}"; then
     echo ""
     gum style --foreground "214" \
       "  ⚠  Some items write to system paths — you will be prompted for sudo."
@@ -503,13 +503,13 @@ run_selection_menu() {
 
   # ── Selective extraction — only pull the chosen paths from the archive ─────
   echo ""
-  extract_selected $selected_keys
+  extract_selected "${selected_keys[@]}"
 
   # ── Restore ───────────────────────────────────────────────────────────────
   echo ""
   gum style --foreground "$PINK" --bold "  Restoring…"
   echo ""
-  for key in $selected_keys; do
+  for key in "${selected_keys[@]}"; do
     restore_category "$key"
   done
 
