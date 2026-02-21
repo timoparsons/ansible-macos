@@ -445,7 +445,7 @@ run_selection_menu() {
   local chosen
   chosen=$(gum choose --no-limit \
     --header "Select settings to restore:" \
-    $display_items) || true
+    "${display_items[@]}") || true
 
   [[ -z "$chosen" ]] && {
     gum style --foreground "$MUTED" "Nothing selected. Cancelled."
