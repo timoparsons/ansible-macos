@@ -11,8 +11,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Colours / style ───────────────────────────────────────────────────────────
 export GUM_CHOOSE_CURSOR_FOREGROUND="212"
-export GUM_CHOOSE_SELECTED_FOREGROUND="212"
-export GUM_CONFIRM_SELECTED_FOREGROUND="212"
+export GUM_CHOOSE_SELECTED_FOREGROUND="0"
+export GUM_CHOOSE_SELECTED_BACKGROUND="212"
+export GUM_CONFIRM_SELECTED_FOREGROUND="0"
+export GUM_CONFIRM_SELECTED_BACKGROUND="212"
 export GUM_INPUT_CURSOR_FOREGROUND="212"
 export GUM_SPIN_SPINNER_FOREGROUND="212"
 
@@ -348,13 +350,14 @@ menu_utilities() {
         [[ -z "$smb_pass" ]] && continue
         echo ""
         gum style --foreground "$MUTED" "  Mounting…"
-        mkdir -p /Volumes/backup_proxmox
         local smb_pass_encoded="${smb_pass//@/%40}"
-        if mount_smbfs -o nobrowse "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox 2>/dev/null; then
+        # sudo needed only to create the mount point under /Volumes
+        sudo mkdir -p /Volumes/backup_proxmox
+        if mount_smbfs "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox; then
           gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
         else
           gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
-          rmdir /Volumes/backup_proxmox 2>/dev/null || true
+          sudo rmdir /Volumes/backup_proxmox 2>/dev/null || true
         fi
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true
