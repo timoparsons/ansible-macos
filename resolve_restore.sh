@@ -304,6 +304,15 @@ PYEOF
       _cat=$(get_category "$_dest")
       CAT_PATHS[$_cat]+="${_src}|${_dest}|${_sudo}|${_isfile}"$'\n'
       CAT_PRESENT[$_cat]=1
+
+      # application-support covers the whole user DaVinci Resolve dir as one entry.
+      # Inject a synthetic entry so ~/...Fusion also appears under fusion_system.
+      if [[ "$_dest" == "resolve/application-support" ]]; then
+        local _fusion_src="${_src%/}/Fusion"
+        local _fusion_dest="resolve/application-support/Fusion"
+        CAT_PATHS[fusion_system]+="${_fusion_src}|${_fusion_dest}|${_sudo}|0"$'\n'
+        CAT_PRESENT[fusion_system]=1
+      fi
     fi
   done <<< "$raw"
 }
