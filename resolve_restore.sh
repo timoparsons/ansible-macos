@@ -388,23 +388,27 @@ restore_category() {
     return 0
   fi
 
+  gum style --foreground "$PINK" --bold "  $label"
+
   while IFS='|' read -r src dest sudo_ is_file; do
     [[ -z "$src" ]] && continue
     if restore_entry "$src" "$dest" "$sudo_" "$is_file" 2>/dev/null; then
       (( ++ok ))
+      gum style --foreground "$MUTED" "      ${src}"
     else
       (( ++fail ))
-      gum style --foreground "196" "  ✗ Failed: $dest"
+      gum style --foreground "196" "    ✗ Failed: $src"
     fi
   done <<< "$paths"
 
   if [[ $fail -eq 0 ]]; then
     gum style --foreground "$PINK" \
-      "  ✓ $label $(gum style --foreground "$MUTED" "(${ok} item(s))")"
+      "  ✓ Done $(gum style --foreground "$MUTED" "(${ok} item(s))")"
   else
     gum style --foreground "214" \
-      "  ⚠  $label $(gum style --foreground "$MUTED" "(${ok} ok, ${fail} failed)")"
+      "  ⚠  $(gum style --foreground "$MUTED" "(${ok} ok, ${fail} failed)")"
   fi
+  echo ""
 }
 
 # ── Check if a selection needs sudo ──────────────────────────────────────────
@@ -506,8 +510,6 @@ run_selection_menu() {
   extract_selected "${selected_keys[@]}"
 
   # ── Restore ───────────────────────────────────────────────────────────────
-  echo ""
-  gum style --foreground "$PINK" --bold "  Restoring…"
   echo ""
   for key in "${selected_keys[@]}"; do
     restore_category "$key"
