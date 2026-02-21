@@ -407,7 +407,13 @@ ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
         run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role"
         ;;
       "Restore dotfiles")
-        run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
+        local from
+        from=$(gum choose --header "Restore dotfiles FROM which machine?" studio laptop editor family "(this machine)")
+        if [[ "$from" == "(this machine)" ]]; then
+          run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
+        else
+          run_cmd "ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role -e \"restore_from_machine=$from\""
+        fi
         ;;
       "── Back") break ;;
     esac
