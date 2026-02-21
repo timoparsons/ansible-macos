@@ -202,7 +202,7 @@ get_category() {
     resolve/resolve-settings*)                     echo "shared_settings" ;;
     resolve/application-support/Fusion/Templates*) echo "fusion_templates" ;;
     resolve/application-support/Fusion/Scripts*)   echo "fusion_scripts" ;;
-    resolve/application-support/Fusion*)           echo "fusion_user" ;;
+    resolve/application-support/Fusion*)           echo "fusion_system" ;;
     resolve/application-support/Scripts*)          echo "resolve_scripts" ;;
     resolve/system-fusion*)                        echo "fusion_system" ;;
     resolve/workflow-plugins*)                     echo "fusion_system" ;;
@@ -223,7 +223,6 @@ typeset -a CATEGORY_KEYS=(
   shared_settings
   fusion_templates
   fusion_scripts
-  fusion_user
   fusion_system
   resolve_scripts
   luts
@@ -242,8 +241,7 @@ typeset -A CATEGORY_LABELS=(
   [fx]="FX + OFX Plugins"
   [fusion_templates]="Fusion Templates (user)"
   [fusion_scripts]="Fusion Scripts (user)"
-  [fusion_user]="Fusion — all user data"
-  [fusion_system]="Fusion Scripts — system-wide"
+  [fusion_system]="Fusion Scripts (system + user)"
   [resolve_scripts]="Resolve Scripts (user)"
   [vst_plugins]="VST / Audio Component Plugins"
 )
