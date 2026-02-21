@@ -20,6 +20,7 @@ family_formula_apps:
   - gnu-tar  
   - gum
   - mas
+  - rsync
   - zstd
 
 

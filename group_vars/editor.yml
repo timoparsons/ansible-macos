@@ -17,13 +17,14 @@ configure_login_items: true
 editor_formula_apps:
   # Common (from old common role)
   - dockutil
+  - ffmpeg
   - git
   - gnu-tar  
   - gum
   - mas
+  - rsync
   - zstd
-  # editor-specific
-  - ffmpeg
+
 
 # GUI Applications (Brew Casks)
 editor_cask_apps:

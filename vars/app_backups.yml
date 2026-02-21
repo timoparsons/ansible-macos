@@ -501,6 +501,7 @@ app_backup_definitions:
       # Temporary files
       - "*.drvox"
       - "__pycache__"
+      - "*.bak"
       # Hidden system files (but keep directories for structure)
       - ".DS_Store"
       - ".Trashes"
@@ -510,6 +511,10 @@ app_backup_definitions:
       # Exclude UI.preset from preferences folder because it is specific to each machine
       # Backup and restore Layout Presets per-machine instead
       - "UI.preset"
+      # Other Preferences Files
+      - ".credentials"
+      - ".update"    
+      - ".version" 
 
 # ============================================================================
 # DaVinci Resolve — Granular Sub-Keys
@@ -788,12 +793,7 @@ studio_apps_to_backup:
   - offshoot
   - pronotes
   - raycast
-  - resolve                  # monolithic — retained during transition
-  - resolve-user-prefs
-  - resolve-settings
-  - resolve-luts
-  - resolve-fusion
-  - resolve-plugins
+  - resolve 
   #- sketchup
   - strongbox
   - superwhisper
@@ -828,12 +828,7 @@ laptop_apps_to_backup:
   - offshoot
   - pronotes
   - raycast
-  - resolve                  # monolithic — retained during transition
-  - resolve-user-prefs
-  - resolve-settings
-  - resolve-luts
-  - resolve-fusion
-  - resolve-plugins
+  - resolve
   - strongbox
   - superwhisper
 #  - tailscale
@@ -854,12 +849,7 @@ editor_apps_to_backup:
   - mediahuman-audio-converter
   - neofinder
   - offshoot
-  - resolve                  # monolithic — retained during transition
-  - resolve-user-prefs
-  - resolve-settings
-  - resolve-luts
-  - resolve-fusion
-  - resolve-plugins
+  - resolve
 #  - tailscale
 
 # Fonts  

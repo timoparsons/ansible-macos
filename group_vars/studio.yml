@@ -51,18 +51,18 @@ studio_dotfiles_files:
 studio_formula_apps:
   # Common to all roles
   - dockutil
-  - git
-  - mas
-  - zstd
-  # Studio specific
   - exiftool
+  - git
   - gnu-tar
   - gum
   - immich-go
+  - mas
   - mkvtoolnix
   - pandoc
+  - rsync
   - starship
   - tree
+  - zstd
 
 # GUI Applications (Brew Casks)
 studio_cask_apps:

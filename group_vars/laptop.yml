@@ -50,18 +50,18 @@ laptop_dotfiles_files:
 laptop_formula_apps:
   # Common (from old common role)
   - dockutil
-  - git
-  - mas
-  - zstd
-  # laptop-specific
   - exiftool
+  - git
   - gnu-tar
   - gum
   - immich-go
-  - pandoc
+  - mas
   - mkvtoolnix
+  - pandoc
+  - rsync
   - starship
   - tree
+  - zstd
 
 # GUI Applications (Brew Casks)
 laptop_cask_apps:
