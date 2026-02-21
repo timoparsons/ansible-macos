@@ -341,25 +341,20 @@ menu_utilities() {
           gum input --placeholder "Press enter to return to menu…" > /dev/null || true
           continue
         fi
-        gum style --foreground "$MUTED" "  Attempting mount without credentials…"
-        echo ""
-        if open "smb://10.1.1.10/backup_proxmox" 2>/dev/null && sleep 2 && mount | grep -q "/Volumes/backup_proxmox"; then
-          gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
-        else
-          gum style --foreground "$MUTED" "  Credentials required."
-          echo ""
-          local smb_user smb_pass
-          smb_user=$(gum input --placeholder "username" --prompt "  User: " --width 40)
-          [[ -z "$smb_user" ]] && continue
-          smb_pass=$(gum input --placeholder "password" --prompt "  Pass: " --width 40 --password)
-          [[ -z "$smb_pass" ]] && continue
-          echo ""
-          mkdir -p /Volumes/backup_proxmox
-          if mount_smbfs "//${smb_user}:${smb_pass}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox; then
+        gum style --foreground "$MUTED" "  Opening mount dialog…"
+        open "smb://10.1.1.10/backup_proxmox"
+        # Wait up to 15 seconds for the volume to appear after macOS auth dialog
+        local i=0
+        while [[ $i -lt 15 ]]; do
+          sleep 1
+          if mount | grep -q "/Volumes/backup_proxmox"; then
             gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
-          else
-            gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
+            break
           fi
+          (( i++ ))
+        done
+        if ! mount | grep -q "/Volumes/backup_proxmox"; then
+          gum style --foreground "196" "  ✗ Mount failed or timed out"
         fi
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true
