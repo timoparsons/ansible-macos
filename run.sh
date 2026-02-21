@@ -338,8 +338,8 @@ menu_utilities() {
         ;;
       "Mount network volume")
         echo ""
-        if mount | grep -q "$MOUNT_POINT"; then
-          gum style --foreground "$PINK" "  ✓ Volume already mounted at $MOUNT_POINT"
+        if mount | grep -q "backup_proxmox"; then
+          gum style --foreground "$PINK" "  ✓ Volume already mounted"
           echo ""
           gum input --placeholder "Press enter to return to menu…" > /dev/null || true
           continue
@@ -355,11 +355,11 @@ menu_utilities() {
         local actual_mount="$HOME/mnt/backup_proxmox"
         mkdir -p "$actual_mount"
         if mount_smbfs "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" "$actual_mount"; then
-          # Symlink ~/mnt/backup_proxmox → /Volumes/backup_proxmox if not already there
-          if [[ ! -e "$MOUNT_POINT" ]]; then
-            ln -sf "$actual_mount" "$MOUNT_POINT" 2>/dev/null               && gum style --foreground "$MUTED" "  Symlinked $actual_mount → $MOUNT_POINT"               || true
-          fi
           gum style --foreground "$PINK" "  ✓ Mounted at $actual_mount"
+          # Attempt symlink /Volumes/backup_proxmox -> ~/mnt/backup_proxmox (may fail under SIP)
+          if [[ ! -e "$MOUNT_POINT" ]]; then
+            ln -sf "$actual_mount" "$MOUNT_POINT" 2>/dev/null               && gum style --foreground "$MUTED" "  ✓ Symlinked at $MOUNT_POINT"               || gum style --foreground "$MUTED" "  Note: could not symlink to $MOUNT_POINT (SIP) — using $actual_mount"
+          fi
         else
           gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
           rmdir "$actual_mount" 2>/dev/null || true
@@ -412,19 +412,21 @@ MOUNT_POINT="/Volumes/backup_proxmox"
 
 # ── Auto-mount network volume ─────────────────────────────────────────────────
 mount_network_volume() {
-  # Already mounted
-  if mount | grep -q "$MOUNT_POINT"; then
+  # Already mounted at /Volumes or ~/mnt
+  if mount | grep -q "backup_proxmox"; then
     return 0
   fi
-  # Mount point exists — try mounting directly (works if pre-created or keychain has creds)
-  if [[ -d "$MOUNT_POINT" ]]; then
-    mount_smbfs "//10.1.1.10/backup_proxmox" "$MOUNT_POINT" 2>/dev/null || true
-    mount | grep -q "$MOUNT_POINT" && return 0
+  # GUI session — let macOS handle it natively (uses keychain, no password prompt)
+  if [[ -n "${SSH_CONNECTION:-}" ]]; then
+    return 1  # SSH session — skip, user can mount manually
   fi
-  # Check if symlink from a previous manual mount is in place
-  if [[ -L "$MOUNT_POINT" ]] && mount | grep -q "$HOME/mnt/backup_proxmox"; then
-    return 0
-  fi
+  open "smb://10.1.1.10/backup_proxmox" 2>/dev/null
+  local i=0
+  while [[ $i -lt 10 ]]; do
+    sleep 1
+    mount | grep -q "backup_proxmox" && return 0
+    (( i++ ))
+  done
   return 1
 }
 
