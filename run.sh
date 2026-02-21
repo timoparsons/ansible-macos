@@ -477,12 +477,8 @@ menu_utilities() {
     choice=$(gum choose \
       "List missing apps" \
       "Dry run full provision (--check)" \
-      "Check playbook syntax" \
       "List available tags" \
-      "List recent backups" \
-      "Inspect app backup…" \
-      "Inspect dotfiles backup" \
-      "Inspect SSH backup" \
+      "Inspect backup…" \
       "Mount network volume" \
       "Unmount network volume" \
       "Refresh repo from GitHub" \
@@ -495,26 +491,18 @@ menu_utilities() {
       "Dry run full provision (--check)")
         run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --check"
         ;;
-      "Check playbook syntax")
-        run_cmd "ansible-playbook site.yml -i inventory.ini --syntax-check"
-        ;;
       "List available tags")
         run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --list-tags"
         ;;
-      "List recent backups")
-        run_cmd "ls -lht $(active_mount)/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
-        ;;
-      "Inspect app backup…")
+      "Inspect backup…")
         local app
-        app=$(gum input --placeholder "app name  e.g. terminal" --prompt "> " --width 40)
+        app=$(gum input --placeholder "app name, or: dotfiles, ssh" --prompt "> " --width 40)
         [[ -z "$app" ]] && continue
-        inspect_backup "$(active_mount)/macos/apps/$app" "$role"
-        ;;
-      "Inspect dotfiles backup")
-        inspect_backup "$(active_mount)/macos/dotfiles" "$role"
-        ;;
-      "Inspect SSH backup")
-        inspect_backup "$(active_mount)/macos/ssh" "$role" "ssh"
+        case "$app" in
+          dotfiles) inspect_backup "$(active_mount)/macos/dotfiles" "$role" ;;
+          ssh)      inspect_backup "$(active_mount)/macos/ssh" "$role" "ssh" ;;
+          *)        inspect_backup "$(active_mount)/macos/apps/$app" "$role" ;;
+        esac
         ;;
       "Mount network volume")
         echo ""
