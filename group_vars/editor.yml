@@ -69,11 +69,8 @@ studio_dmg_pkg_apps: []
 editor_dock_clear_all: true
 
 editor_dock_apps:
-  - path: "/Applications/Bloom.app"
+  - path: "/Applications/DaVinci Resolve/DaVinci Resolve.app"
   - path: "/Applications/Slack.app"
-  - path: "/System/Applications/Messages.app"
-  - path: "/System/Applications/Notes.app"
-  - path: "/System/Applications/Reminders.app"
   - path: "/System/Applications/System Settings.app"
 
 editor_dock_folders: []
