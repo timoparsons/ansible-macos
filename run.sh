@@ -304,6 +304,7 @@ menu_utilities() {
       "Inspect app backup…" \
       "Inspect dotfiles backup" \
       "Inspect SSH backup" \
+      "Refresh repo from GitHub" \
       "── Back")
 
     case "$choice" in
@@ -330,6 +331,18 @@ menu_utilities() {
         ;;
       "Inspect SSH backup")
         inspect_backup "/Volumes/backup_proxmox/macos/ssh" "$role" "ssh"
+        ;;
+      "Refresh repo from GitHub")
+        echo ""
+        gum style --foreground "196" "  ⚠  This will discard all local changes and reset to origin/main."
+        echo ""
+        gum confirm "Are you sure?" || { gum style --foreground "$MUTED" "Cancelled."; sleep 1; continue; }
+        echo ""
+        git -C "$SCRIPT_DIR" fetch --all && git -C "$SCRIPT_DIR" reset --hard origin/main
+        echo ""
+        gum style --foreground "$PINK" "✓ Repo updated — restart run.sh to pick up any changes"
+        echo ""
+        gum input --placeholder "Press enter to return to menu…" > /dev/null || true
         ;;
       "── Back") break ;;
     esac
