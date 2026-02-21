@@ -8,6 +8,19 @@ set -euo pipefail
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOME_MOUNT="$HOME/mnt/backup_proxmox"
+
+# ── Cleanup on exit ───────────────────────────────────────────────────────────
+cleanup() {
+  if mount | grep -q "$HOME_MOUNT"; then
+    diskutil unmount "$HOME_MOUNT" 2>/dev/null       || umount "$HOME_MOUNT" 2>/dev/null       || true
+  fi
+  # Only remove dir/symlink if we mounted it ourselves (not /Volumes)
+  [[ -L "$MOUNT_POINT" ]] && rm -f "$MOUNT_POINT" 2>/dev/null || true
+  rmdir "$HOME_MOUNT" 2>/dev/null || true
+  rmdir "$HOME/mnt" 2>/dev/null || true
+}
+trap cleanup EXIT
 
 # ── Colours / style ───────────────────────────────────────────────────────────
 export GUM_CHOOSE_CURSOR_FOREGROUND="212"
@@ -377,15 +390,11 @@ menu_utilities() {
         fi
         gum confirm "Unmount backup_proxmox?" || continue
         echo ""
-        diskutil unmount "$HOME/mnt/backup_proxmox" 2>/dev/null           || umount "$HOME/mnt/backup_proxmox" 2>/dev/null           || diskutil unmount "$MOUNT_POINT" 2>/dev/null           || true
-        # Clean up symlink and mount dir
-        [[ -L "$MOUNT_POINT" ]] && rm -f "$MOUNT_POINT"
-        rmdir "$HOME/mnt/backup_proxmox" 2>/dev/null || true
-        rmdir "$HOME/mnt" 2>/dev/null || true
+        cleanup
         if ! mount | grep -q "backup_proxmox"; then
           gum style --foreground "$PINK" "  ✓ Unmounted and cleaned up"
         else
-          gum style --foreground "196" "  ✗ Unmount failed — try: diskutil unmount force $HOME/mnt/backup_proxmox"
+          gum style --foreground "196" "  ✗ Unmount failed — try: diskutil unmount force $HOME_MOUNT"
         fi
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true

@@ -1,32 +1,48 @@
 ---
 # tasks/check_network_volumes.yml
-# Simple check that fails if volumes aren't mounted
-# Define 'required_volumes' variable when including this task
+# Checks that required network volumes are mounted at either
+# /Volumes/<name> or ~/mnt/<name>
 
-- name: Check if required network volumes are mounted
+- name: Check if required network volumes are mounted at /Volumes
   stat:
     path: "/Volumes/{{ item }}"
-  register: volume_check
+  register: volume_check_volumes
   loop: "{{ required_volumes }}"
   loop_control:
     label: "{{ item }}"
-  check_mode: no  # Always run this check, even in check mode
+  check_mode: no
 
-- name: List unmounted volumes
+- name: Check if required network volumes are mounted at ~/mnt
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/mnt/{{ item }}"
+  register: volume_check_mnt
+  loop: "{{ required_volumes }}"
+  loop_control:
+    label: "{{ item }}"
+  check_mode: no
+
+- name: Determine which volumes are missing from both locations
   set_fact:
-    unmounted_volumes: "{{ volume_check.results | selectattr('stat.exists', 'equalto', false) | map(attribute='item') | list }}"
-  check_mode: no  # Always run this check, even in check mode
+    unmounted_volumes: >-
+      {{
+        required_volumes | select('ne', '') | list
+        | reject('in',
+            (volume_check_volumes.results | selectattr('stat.exists') | map(attribute='item') | list)
+            + (volume_check_mnt.results    | selectattr('stat.exists') | map(attribute='item') | list)
+          )
+        | list
+      }}
+  check_mode: no
 
 - name: Fail if any required volumes are not mounted
   fail:
     msg: |
       ❌ Required network volumes are not mounted: {{ unmounted_volumes | join(', ') }}
-      
-      Please mount these volumes manually:
-      1. Open Finder
-      2. Press Cmd+K (or Go > Connect to Server)
-      3. Enter: smb://your-server/{{ unmounted_volumes[0] }} (or your network path)
-      4. Authenticate and mount the volume
-      5. Run this script again
+
+      Expected at either:
+        /Volumes/{{ unmounted_volumes[0] }}
+        ~/mnt/{{ unmounted_volumes[0] }}
+
+      Use run.sh → Utilities → Mount network volume
   when: unmounted_volumes | length > 0
-  check_mode: no  # Always fail, even in check mode
+  check_mode: no

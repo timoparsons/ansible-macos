@@ -9,7 +9,7 @@
 repo_root: "{{ inventory_dir }}"
 
 # Network volume base path (used by all machine types)
-macos_network_base: "/Volumes/backup_proxmox/macos"
+macos_network_base: "{{ lookup('env', 'HOME') + '/mnt/backup_proxmox/macos' if not ('/Volumes/backup_proxmox' is exists) else '/Volumes/backup_proxmox/macos' }}"
 
 required_network_volumes:
   - backup_proxmox
