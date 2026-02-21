@@ -341,18 +341,18 @@ menu_backup() {
     echo ""
     local choice
     choice=$(gum choose \
-      "Backup everything" \
-      "Backup specific apps…" \
+      "Backup all settings" \
+      "Backup app settings…" \
       "Backup SSH keys" \
       "Backup dotfiles" \
       "Backup login items" \
       "── Back")
 
     case "$choice" in
-      "Backup everything")
+      "Backup all settings")
         run_cmd "ansible-playbook playbooks/backup-full.yml -i inventory.ini --limit $role"
         ;;
-      "Backup specific apps…")
+      "Backup app settings…")
         local apps; apps=$(prompt_apps)
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/backup-apps.yml -i inventory.ini --limit $role -e \"apps_list=$apps\""
@@ -379,25 +379,25 @@ menu_restore() {
     echo ""
     local choice
     choice=$(gum choose \
-      "Restore everything" \
-      "Restore specific apps…" \
-      "Restore specific apps from another machine…" \
+      "Restore all settings" \
+      "Restore app settings…" \
+      "Restore app settings from another machine…" \
       "Restore SSH keys" \
       "Restore dotfiles" \
       "── Back")
 
     case "$choice" in
-      "Restore everything")
+      "Restore all settings")
         run_cmd "ansible-playbook playbooks/restore-ssh.yml -i inventory.ini --limit $role && \
 ansible-playbook playbooks/restore-apps.yml -i inventory.ini --limit $role && \
 ansible-playbook playbooks/restore-dotfiles.yml -i inventory.ini --limit $role"
         ;;
-      "Restore specific apps…")
+      "Restore app settings…")
         local apps; apps=$(prompt_apps)
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/selective/restore-apps-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\""
         ;;
-      "Restore specific apps from another machine…")
+      "Restore app settings from another machine…")
         local apps; apps=$(prompt_apps)
         [[ -z "$apps" ]] && continue
         local from; from=$(prompt_machine)
@@ -429,7 +429,7 @@ menu_provision() {
       "SSH keys only" \
       "Dock configuration only" \
       "Install specific apps…" \
-      "Install + restore specific apps…" \
+      "Install specific apps + restore their settings…" \
       "── Back")
 
     case "$choice" in
@@ -456,7 +456,7 @@ menu_provision() {
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/selective/install-app-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\""
         ;;
-      "Install + restore specific apps…")
+      "Install specific apps + restore their settings…")
         local apps; apps=$(prompt_apps)
         [[ -z "$apps" ]] && continue
         run_cmd "ansible-playbook playbooks/selective/install-app-selective.yml -i inventory.ini --limit $role -e \"apps_list=$apps\" && \
@@ -475,34 +475,28 @@ menu_utilities() {
     echo ""
     local choice
     choice=$(gum choose \
+      "Refresh repo from GitHub" \
+      "Mount network volume" \
+      "Unmount network volume" \
       "List missing apps" \
       "Dry run full provision (--check)" \
       "List available tags" \
       "Inspect backup…" \
-      "Mount network volume" \
-      "Unmount network volume" \
-      "Refresh repo from GitHub" \
       "── Back")
 
     case "$choice" in
-      "List missing apps")
-        list_missing_apps "$role"
-        ;;
-      "Dry run full provision (--check)")
-        run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --check"
-        ;;
-      "List available tags")
-        run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --list-tags"
-        ;;
-      "Inspect backup…")
-        local app
-        app=$(gum input --placeholder "app name, or: dotfiles, ssh" --prompt "> " --width 40)
-        [[ -z "$app" ]] && continue
-        case "$app" in
-          dotfiles) inspect_backup "$(active_mount)/macos/dotfiles" "$role" ;;
-          ssh)      inspect_backup "$(active_mount)/macos/ssh" "$role" "ssh" ;;
-          *)        inspect_backup "$(active_mount)/macos/apps/$app" "$role" ;;
-        esac
+      "Refresh repo from GitHub")
+        echo ""
+        gum style --foreground "196" "  ⚠  This will discard all local changes and reset to origin/main."
+        echo ""
+        gum confirm "Are you sure?" || { gum style --foreground "$MUTED" "Cancelled."; sleep 1; continue; }
+        echo ""
+        git -C "$SCRIPT_DIR" fetch --all && git -C "$SCRIPT_DIR" reset --hard origin/main
+        echo ""
+        gum style --foreground "$PINK" "✓ Repo updated"
+        gum style --foreground "$MUTED" "  Exiting — restart run.sh to pick up changes"
+        echo ""
+        exit 0
         ;;
       "Mount network volume")
         echo ""
@@ -550,18 +544,24 @@ menu_utilities() {
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true
         ;;
-      "Refresh repo from GitHub")
-        echo ""
-        gum style --foreground "196" "  ⚠  This will discard all local changes and reset to origin/main."
-        echo ""
-        gum confirm "Are you sure?" || { gum style --foreground "$MUTED" "Cancelled."; sleep 1; continue; }
-        echo ""
-        git -C "$SCRIPT_DIR" fetch --all && git -C "$SCRIPT_DIR" reset --hard origin/main
-        echo ""
-        gum style --foreground "$PINK" "✓ Repo updated"
-        gum style --foreground "$MUTED" "  Exiting — restart run.sh to pick up changes"
-        echo ""
-        exit 0
+      "List missing apps")
+        list_missing_apps "$role"
+        ;;
+      "Dry run full provision (--check)")
+        run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --check"
+        ;;
+      "List available tags")
+        run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --list-tags"
+        ;;
+      "Inspect backup…")
+        local app
+        app=$(gum input --placeholder "app name, or: dotfiles, ssh" --prompt "> " --width 40)
+        [[ -z "$app" ]] && continue
+        case "$app" in
+          dotfiles) inspect_backup "$(active_mount)/macos/dotfiles" "$role" ;;
+          ssh)      inspect_backup "$(active_mount)/macos/ssh" "$role" "ssh" ;;
+          *)        inspect_backup "$(active_mount)/macos/apps/$app" "$role" ;;
+        esac
         ;;
       "── Back") break ;;
     esac
