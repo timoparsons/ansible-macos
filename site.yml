@@ -61,8 +61,7 @@
     # ========================================================================
     
     - name: Configure Dock
-      include_tasks: tasks/configure_dock.yml
-      when: configure_dock | default(true)
+      import_tasks: tasks/configure_dock.yml
       tags: ['dock', 'config']
 
     # ========================================================================
