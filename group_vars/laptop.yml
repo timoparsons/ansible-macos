@@ -138,7 +138,7 @@ laptop_dmg_pkg_apps:
     url: "/Volumes/backup_proxmox/macos/installers/CrossOver 25.1.1.dmg"
     volume: "CrossOver 25.1.1"
 
-  - name: "Marked"
+  - name: "Marked 2"
     url: "/Volumes/backup_proxmox/macos/installers/Marked 2.dmg"
     volume: "Marked 2"
 

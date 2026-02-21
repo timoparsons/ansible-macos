@@ -249,13 +249,13 @@
 ###############################################################################
 # Safari
 ###############################################################################
-- name: Prevent Safari from auto-opening safe files
-  community.general.osx_defaults:
-    domain: com.apple.Safari
-    key: AutoOpenSafeDownloads
-    type: bool
-    value: false
-    state: present
+#- name: Prevent Safari from auto-opening safe files
+#  community.general.osx_defaults:
+#    domain: com.apple.Safari
+#    key: AutoOpenSafeDownloads
+#    type: bool
+#    value: false
+#    state: present
 
 ###############################################################################
 # App Store

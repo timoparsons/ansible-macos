@@ -134,10 +134,6 @@ resolve_role() {
 }
 
 # ── Inspect backup helper ─────────────────────────────────────────────────────
-# Usage: inspect_backup <backup_dir> <role> [ssh]
-# For app backups, pass the full app dir e.g. .../apps/terminal
-# For dotfiles, pass parent dir — finds role-specific file e.g. dotfiles-studio-YYYYMMDD.tar.zst
-# For ssh, pass parent dir — finds any .tar.zst (no role in filename)
 inspect_backup() {
   local backup_dir="$1"
   local role="$2"
@@ -151,7 +147,6 @@ inspect_backup() {
     return
   fi
 
-  # SSH has no role in filename, dotfiles/apps do
   local latest
   if [[ "$mode" == "ssh" ]]; then
     latest=$(ls -t "$backup_dir"/*.tar.zst 2>/dev/null | head -1)
@@ -176,6 +171,164 @@ inspect_backup() {
   echo ""
   gum style --foreground "$PINK" "✓ Done"
   echo ""
+  gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+}
+
+# ── Missing apps checker ──────────────────────────────────────────────────────
+list_missing_apps() {
+  local role="$1"
+  local group_vars="$SCRIPT_DIR/group_vars/$role.yml"
+
+  header
+  gum style --foreground "$PINK" --bold "  MISSING APPS  · $role"
+  echo ""
+
+  if [[ ! -f "$group_vars" ]]; then
+    gum style --foreground "196" "  ✗ No group_vars file found: $group_vars"
+    echo ""
+    gum input --placeholder "Press enter to continue…" > /dev/null || true
+    return
+  fi
+
+  # ── Brew formulae ──────────────────────────────────────────────────────────
+  gum style --bold "📦  Formulae"
+  local installed_formulae
+  installed_formulae=$(brew list --formula 2>/dev/null)
+
+  local formula_missing=()
+  local in_formula_block=false
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^${role}_formula_apps: ]]; then
+      in_formula_block=true
+      continue
+    fi
+    # Stop at next top-level key (not indented)
+    if $in_formula_block && [[ "$line" =~ ^[a-zA-Z_] ]]; then
+      in_formula_block=false
+    fi
+    if $in_formula_block && [[ "$line" =~ ^[[:space:]]*-[[:space:]]+([^#]+) ]]; then
+      local pkg="${BASH_REMATCH[1]}"
+      pkg="${pkg%%#*}"       # strip inline comments
+      pkg="${pkg// /}"       # strip spaces
+      if [[ -n "$pkg" ]] && ! echo "$installed_formulae" | grep -qx "$pkg"; then
+        formula_missing+=("$pkg")
+      fi
+    fi
+  done < "$group_vars"
+
+  if [[ ${#formula_missing[@]} -eq 0 ]]; then
+    gum style --foreground "$PINK" "  ✓ all installed"
+  else
+    for pkg in "${formula_missing[@]}"; do
+      gum style --foreground "196" "  ✗  $pkg"
+    done
+  fi
+  echo ""
+
+  # ── Brew casks ─────────────────────────────────────────────────────────────
+  gum style --bold "🖥   Casks"
+  local installed_casks
+  installed_casks=$(brew list --cask 2>/dev/null)
+
+  local cask_missing=()
+  local in_cask_block=false
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^${role}_cask_apps: ]]; then
+      in_cask_block=true
+      continue
+    fi
+    if $in_cask_block && [[ "$line" =~ ^[a-zA-Z_] ]]; then
+      in_cask_block=false
+    fi
+    if $in_cask_block && [[ "$line" =~ ^[[:space:]]*-[[:space:]]+([^#]+) ]]; then
+      local pkg="${BASH_REMATCH[1]}"
+      pkg="${pkg%%#*}"
+      pkg="${pkg// /}"
+      if [[ -n "$pkg" ]] && ! echo "$installed_casks" | grep -qx "$pkg"; then
+        cask_missing+=("$pkg")
+      fi
+    fi
+  done < "$group_vars"
+
+  if [[ ${#cask_missing[@]} -eq 0 ]]; then
+    gum style --foreground "$PINK" "  ✓ all installed"
+  else
+    for pkg in "${cask_missing[@]}"; do
+      gum style --foreground "196" "  ✗  $pkg"
+    done
+  fi
+  echo ""
+
+  # ── MAS apps ───────────────────────────────────────────────────────────────
+  gum style --bold "🍎  Mac App Store"
+  local installed_mas
+  installed_mas=$(mas list 2>/dev/null | awk '{print $1}')
+
+  local mas_missing=()
+  local in_mas_block=false
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^${role}_mas_apps: ]]; then
+      in_mas_block=true
+      continue
+    fi
+    if $in_mas_block && [[ "$line" =~ ^[a-zA-Z_] ]]; then
+      in_mas_block=false
+    fi
+    if $in_mas_block && [[ "$line" =~ id:[[:space:]]*([0-9]+) ]]; then
+      local mas_id="${BASH_REMATCH[1]}"
+      local mas_name
+      mas_name=$(echo "$line" | grep -oP "name:[[:space:]]*'\K[^']+")
+      if [[ -n "$mas_id" ]] && ! echo "$installed_mas" | grep -qx "$mas_id"; then
+        mas_missing+=("$mas_name ($mas_id)")
+      fi
+    fi
+  done < "$group_vars"
+
+  if [[ ${#mas_missing[@]} -eq 0 ]]; then
+    gum style --foreground "$PINK" "  ✓ all installed"
+  else
+    for entry in "${mas_missing[@]}"; do
+      gum style --foreground "196" "  ✗  $entry"
+    done
+  fi
+  echo ""
+
+  # ── DMG/PKG apps ───────────────────────────────────────────────────────────
+  gum style --bold "💿  DMG / PKG"
+
+  local dmg_missing=()
+  local in_dmg_block=false
+  local current_name=""
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^${role}_dmg_pkg_apps: ]]; then
+      in_dmg_block=true
+      continue
+    fi
+    if $in_dmg_block && [[ "$line" =~ ^[a-zA-Z_] ]]; then
+      in_dmg_block=false
+    fi
+    if $in_dmg_block; then
+      # Capture name field (handles both "- name:" and "  name:" styles)
+      if [[ "$line" =~ name:[[:space:]]*\"([^\"]+)\" ]] || [[ "$line" =~ name:[[:space:]]*\'([^\']+)\' ]] || [[ "$line" =~ name:[[:space:]]*([^#\r\n]+) ]]; then
+        current_name="${BASH_REMATCH[1]}"
+        current_name="${current_name%%#*}"
+        current_name="${current_name%"${current_name##*[^[:space:]]}"}"  # trim trailing whitespace
+        if [[ -n "$current_name" ]] && [[ ! -d "/Applications/${current_name}.app" ]]; then
+          dmg_missing+=("$current_name")
+        fi
+      fi
+    fi
+  done < "$group_vars"
+
+  if [[ ${#dmg_missing[@]} -eq 0 ]]; then
+    gum style --foreground "$PINK" "  ✓ all installed"
+  else
+    for app in "${dmg_missing[@]}"; do
+      gum style --foreground "196" "  ✗  $app"
+    done
+  fi
+  echo ""
+
   gum input --placeholder "Press enter to return to menu…" > /dev/null || true
 }
 
@@ -322,6 +475,7 @@ menu_utilities() {
     echo ""
     local choice
     choice=$(gum choose \
+      "List missing apps" \
       "Dry run full provision (--check)" \
       "Check playbook syntax" \
       "List available tags" \
@@ -335,6 +489,9 @@ menu_utilities() {
       "── Back")
 
     case "$choice" in
+      "List missing apps")
+        list_missing_apps "$role"
+        ;;
       "Dry run full provision (--check)")
         run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --check"
         ;;
@@ -425,13 +582,11 @@ menu_utilities() {
 
 # ── Auto-mount network volume ─────────────────────────────────────────────────
 mount_network_volume() {
-  # Already mounted at /Volumes or ~/mnt
   if mount | grep -q "backup_proxmox"; then
     return 0
   fi
-  # GUI session — let macOS handle it natively (uses keychain, no password prompt)
   if [[ -n "${SSH_CONNECTION:-}" ]]; then
-    return 1  # SSH session — skip, user can mount manually
+    return 1
   fi
   open "smb://10.1.1.10/backup_proxmox" 2>/dev/null
   local i=0
@@ -447,14 +602,11 @@ mount_network_volume() {
 main() {
   check_deps
 
-  # Change to repo root so relative paths in ansible commands work
   cd "$SCRIPT_DIR"
 
-  # Resolve role from dotfile or first-run picker
   local role
   role=$(resolve_role)
 
-  # Attempt to mount network volume in the background
   header >&2
   echo "" >&2
   gum style --foreground "$MUTED" "  Connecting to network volume…" >&2
@@ -465,7 +617,6 @@ main() {
   fi
   sleep 1
 
-  # Main loop
   while true; do
     header
     gum style --foreground "$PINK" --bold "  $role"

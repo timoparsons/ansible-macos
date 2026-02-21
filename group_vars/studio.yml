@@ -173,7 +173,7 @@ studio_dmg_pkg_apps:
     url: "/Volumes/backup_proxmox/macos/installers/Loopback_2.4.5.dmg"
     volume: "Loopback 2.4.5" 
 
-  - name: "Marked"
+  - name: "Marked 2"
     url: "/Volumes/backup_proxmox/macos/installers/Marked 2.dmg"
     volume: "Marked 2"
 
