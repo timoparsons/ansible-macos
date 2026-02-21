@@ -341,25 +341,32 @@ menu_utilities() {
           gum input --placeholder "Press enter to return to menu…" > /dev/null || true
           continue
         fi
-        gum style --foreground "$MUTED" "  Attempting mount without credentials…"
+        local smb_user smb_pass
+        smb_user=$(gum input --placeholder "username  (leave blank for guest)" --prompt "  User: " --width 40)
+        smb_pass=$(gum input --placeholder "password" --prompt "  Pass: " --width 40 --password)
         echo ""
-        if open "smb://10.1.1.10/backup_proxmox" 2>/dev/null && sleep 2 && mount | grep -q "/Volumes/backup_proxmox"; then
-          gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
+        gum style --foreground "$MUTED" "  Mounting…"
+        # URL-encode @ in password if present, use open so macOS manages the mount point
+        local smb_url
+        if [[ -n "$smb_user" ]]; then
+          smb_pass_encoded="${smb_pass//@/%40}"
+          smb_url="smb://${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox"
         else
-          gum style --foreground "$MUTED" "  Credentials required."
-          echo ""
-          local smb_user smb_pass
-          smb_user=$(gum input --placeholder "username" --prompt "  User: " --width 40)
-          [[ -z "$smb_user" ]] && continue
-          smb_pass=$(gum input --placeholder "password" --prompt "  Pass: " --width 40 --password)
-          [[ -z "$smb_pass" ]] && continue
-          echo ""
-          mkdir -p /Volumes/backup_proxmox
-          if mount_smbfs "//${smb_user}:${smb_pass}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox; then
+          smb_url="smb://10.1.1.10/backup_proxmox"
+        fi
+        open "$smb_url"
+        # Wait up to 10 seconds for the volume to appear
+        local i=0
+        while [[ $i -lt 10 ]]; do
+          sleep 1
+          if mount | grep -q "/Volumes/backup_proxmox"; then
             gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
-          else
-            gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
+            break
           fi
+          (( i++ ))
+        done
+        if ! mount | grep -q "/Volumes/backup_proxmox"; then
+          gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
         fi
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true
