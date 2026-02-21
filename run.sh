@@ -307,6 +307,7 @@ menu_utilities() {
       "Inspect dotfiles backup" \
       "Inspect SSH backup" \
       "Mount network volume" \
+      "Unmount network volume" \
       "Refresh repo from GitHub" \
       "── Back")
 
@@ -321,24 +322,24 @@ menu_utilities() {
         run_cmd "ansible-playbook site.yml -i inventory.ini --limit $role --list-tags"
         ;;
       "List recent backups")
-        run_cmd "ls -lht /Volumes/backup_proxmox/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
+        run_cmd "ls -lht $MOUNT_POINT/macos/apps/ 2>/dev/null || echo 'Network volume not mounted'"
         ;;
       "Inspect app backup…")
         local app
         app=$(gum input --placeholder "app name  e.g. terminal" --prompt "> " --width 40)
         [[ -z "$app" ]] && continue
-        inspect_backup "/Volumes/backup_proxmox/macos/apps/$app" "$role"
+        inspect_backup "$MOUNT_POINT/macos/apps/$app" "$role"
         ;;
       "Inspect dotfiles backup")
-        inspect_backup "/Volumes/backup_proxmox/macos/dotfiles" "$role"
+        inspect_backup "$MOUNT_POINT/macos/dotfiles" "$role"
         ;;
       "Inspect SSH backup")
-        inspect_backup "/Volumes/backup_proxmox/macos/ssh" "$role" "ssh"
+        inspect_backup "$MOUNT_POINT/macos/ssh" "$role" "ssh"
         ;;
       "Mount network volume")
         echo ""
-        if mount | grep -q "/Volumes/backup_proxmox"; then
-          gum style --foreground "$PINK" "  ✓ Volume already mounted at /Volumes/backup_proxmox"
+        if mount | grep -q "$MOUNT_POINT"; then
+          gum style --foreground "$PINK" "  ✓ Volume already mounted at $MOUNT_POINT"
           echo ""
           gum input --placeholder "Press enter to return to menu…" > /dev/null || true
           continue
@@ -351,13 +352,40 @@ menu_utilities() {
         echo ""
         gum style --foreground "$MUTED" "  Mounting…"
         local smb_pass_encoded="${smb_pass//@/%40}"
-        # sudo needed only to create the mount point under /Volumes
-        sudo mkdir -p /Volumes/backup_proxmox
-        if mount_smbfs "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox; then
-          gum style --foreground "$PINK" "  ✓ Mounted at /Volumes/backup_proxmox"
+        local actual_mount="$HOME/mnt/backup_proxmox"
+        mkdir -p "$actual_mount"
+        if mount_smbfs "//${smb_user}:${smb_pass_encoded}@10.1.1.10/backup_proxmox" "$actual_mount"; then
+          # Symlink ~/mnt/backup_proxmox → /Volumes/backup_proxmox if not already there
+          if [[ ! -e "$MOUNT_POINT" ]]; then
+            ln -sf "$actual_mount" "$MOUNT_POINT" 2>/dev/null               && gum style --foreground "$MUTED" "  Symlinked $actual_mount → $MOUNT_POINT"               || true
+          fi
+          gum style --foreground "$PINK" "  ✓ Mounted at $actual_mount"
         else
           gum style --foreground "196" "  ✗ Mount failed — check credentials and network"
-          sudo rmdir /Volumes/backup_proxmox 2>/dev/null || true
+          rmdir "$actual_mount" 2>/dev/null || true
+        fi
+        echo ""
+        gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+        ;;
+      "Unmount network volume")
+        echo ""
+        if ! mount | grep -q "backup_proxmox"; then
+          gum style --foreground "$MUTED" "  Volume is not currently mounted."
+          echo ""
+          gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+          continue
+        fi
+        gum confirm "Unmount backup_proxmox?" || continue
+        echo ""
+        diskutil unmount "$HOME/mnt/backup_proxmox" 2>/dev/null           || umount "$HOME/mnt/backup_proxmox" 2>/dev/null           || diskutil unmount "$MOUNT_POINT" 2>/dev/null           || true
+        # Clean up symlink and mount dir
+        [[ -L "$MOUNT_POINT" ]] && rm -f "$MOUNT_POINT"
+        rmdir "$HOME/mnt/backup_proxmox" 2>/dev/null || true
+        rmdir "$HOME/mnt" 2>/dev/null || true
+        if ! mount | grep -q "backup_proxmox"; then
+          gum style --foreground "$PINK" "  ✓ Unmounted and cleaned up"
+        else
+          gum style --foreground "196" "  ✗ Unmount failed — try: diskutil unmount force $HOME/mnt/backup_proxmox"
         fi
         echo ""
         gum input --placeholder "Press enter to return to menu…" > /dev/null || true
@@ -370,24 +398,34 @@ menu_utilities() {
         echo ""
         git -C "$SCRIPT_DIR" fetch --all && git -C "$SCRIPT_DIR" reset --hard origin/main
         echo ""
-        gum style --foreground "$PINK" "✓ Repo updated — restart run.sh to pick up any changes"
+        gum style --foreground "$PINK" "✓ Repo updated"
+        gum style --foreground "$MUTED" "  Exiting — restart run.sh to pick up changes"
         echo ""
-        gum input --placeholder "Press enter to return to menu…" > /dev/null || true
+        exit 0
         ;;
       "── Back") break ;;
     esac
   done
 }
 
+MOUNT_POINT="/Volumes/backup_proxmox"
+
 # ── Auto-mount network volume ─────────────────────────────────────────────────
 mount_network_volume() {
-  if mount | grep -q "/Volumes/backup_proxmox"; then
+  # Already mounted
+  if mount | grep -q "$MOUNT_POINT"; then
     return 0
   fi
-  # Silent attempt using keychain/guest — works if credentials are saved
-  mkdir -p /tmp/backup_proxmox_mnt 2>/dev/null
-  mount_smbfs -o nobrowse "//guest@10.1.1.10/backup_proxmox" /Volumes/backup_proxmox 2>/dev/null     || mount_smbfs -o nobrowse "//10.1.1.10/backup_proxmox" /Volumes/backup_proxmox 2>/dev/null     || true
-  mount | grep -q "/Volumes/backup_proxmox"
+  # Mount point exists — try mounting directly (works if pre-created or keychain has creds)
+  if [[ -d "$MOUNT_POINT" ]]; then
+    mount_smbfs "//10.1.1.10/backup_proxmox" "$MOUNT_POINT" 2>/dev/null || true
+    mount | grep -q "$MOUNT_POINT" && return 0
+  fi
+  # Check if symlink from a previous manual mount is in place
+  if [[ -L "$MOUNT_POINT" ]] && mount | grep -q "$HOME/mnt/backup_proxmox"; then
+    return 0
+  fi
+  return 1
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
